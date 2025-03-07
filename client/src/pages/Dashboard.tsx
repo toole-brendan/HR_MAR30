@@ -254,7 +254,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="bg-black text-gray-200 min-h-screen w-full px-4 pb-4 pt-2">
+    <div className="bg-black text-gray-200 min-h-screen w-full px-4 pb-4 pt-2 dashboard-container">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <div></div> {/* Empty div to maintain layout structure */}
@@ -281,15 +281,15 @@ const Dashboard: React.FC = () => {
       
       {/* TOP INFO CARDS */}
       <div className="flex flex-wrap gap-2 mb-6">
-        <div className="bg-blue-900/40 p-3 rounded flex-1 text-center">
+        <div className="bg-blue-900/40 p-3 rounded-none flex-1 text-center dashboard-card">
           <div className="text-xs text-blue-300 mb-1">Total Value</div>
           <div className="text-xl font-bold">$4</div>
         </div>
-        <div className="bg-green-900/30 p-3 rounded flex-1 text-center">
+        <div className="bg-green-900/30 p-3 rounded-none flex-1 text-center dashboard-card">
           <div className="text-xs text-green-300 mb-1">Equipment Items</div>
           <div className="text-xl font-bold">721</div>
         </div>
-        <div className="bg-green-900/20 p-3 rounded flex-1 text-center">
+        <div className="bg-green-900/20 p-3 rounded-none flex-1 text-center dashboard-card">
           <div className="text-xs text-green-300 mb-1">Sensitive Items 100% Verified</div>
         </div>
       </div>
@@ -297,9 +297,9 @@ const Dashboard: React.FC = () => {
       {/* STATS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         {/* TOTAL PROPERTY VALUE */}
-        <div className="bg-gray-900 border border-gray-800 rounded overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden dashboard-card">
           <div className="p-3 bg-blue-900/30 flex items-center space-x-2">
-            <div className="p-2 bg-blue-800/50 rounded">
+            <div className="p-2 bg-blue-800/50 rounded-none">
               <FileText className="h-5 w-5 text-blue-300" />
             </div>
             <div className="uppercase text-xs tracking-wider text-gray-300">Total Property Value</div>
@@ -308,7 +308,7 @@ const Dashboard: React.FC = () => {
             <div className="text-3xl font-bold text-blue-400 mb-2">$4.2M</div>
             <div className="text-xs text-gray-400">Combined value of all accountable equipment</div>
             <div className="mt-4 text-right">
-              <button className="text-xs text-blue-400 flex items-center justify-end">
+              <button className="text-xs text-blue-400 flex items-center justify-end btn-sharp">
                 VIEW DETAILS 
                 <ChevronDown className="h-3 w-3 ml-1" />
               </button>
@@ -317,9 +317,9 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* EQUIPMENT ITEMS */}
-        <div className="bg-gray-900 border border-gray-800 rounded overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden dashboard-card">
           <div className="p-3 bg-gray-800 flex items-center space-x-2">
-            <div className="p-2 bg-gray-700 rounded">
+            <div className="p-2 bg-gray-700 rounded-none">
               <FileText className="h-5 w-5 text-gray-300" />
             </div>
             <div className="uppercase text-xs tracking-wider text-gray-300">EQUIPMENT ITEMS</div>
@@ -328,7 +328,7 @@ const Dashboard: React.FC = () => {
             <div className="text-3xl font-bold text-gray-300 mb-2">721</div>
             <div className="text-xs text-gray-400">Total accountable equipment line items</div>
             <div className="mt-4 text-right">
-              <button className="text-xs text-gray-400 flex items-center justify-end">
+              <button className="text-xs text-gray-400 flex items-center justify-end btn-sharp">
                 VIEW DETAILS 
                 <ChevronDown className="h-3 w-3 ml-1" />
               </button>
@@ -337,9 +337,9 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* SENSITIVE ITEMS */}
-        <div className="bg-gray-900 border border-gray-800 rounded overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden dashboard-card">
           <div className="p-3 bg-green-900/30 flex items-center space-x-2">
-            <div className="p-2 bg-green-800/50 rounded">
+            <div className="p-2 bg-green-800/50 rounded-none">
               <AlertTriangle className="h-5 w-5 text-green-300" />
             </div>
             <div className="uppercase text-xs tracking-wider text-gray-300">SENSITIVE ITEMS</div>
@@ -348,7 +348,7 @@ const Dashboard: React.FC = () => {
             <div className="text-3xl font-bold text-green-400 mb-2">100%</div>
             <div className="text-xs text-gray-400">All items verified and accounted for</div>
             <div className="mt-4 text-right">
-              <button className="text-xs text-green-400 flex items-center justify-end">
+              <button className="text-xs text-green-400 flex items-center justify-end btn-sharp">
                 VIEW DETAILS 
                 <ChevronDown className="h-3 w-3 ml-1" />
               </button>
@@ -357,9 +357,9 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* CURRENT DATE/TIME */}
-        <div className="bg-gray-900 border border-gray-800 rounded overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden dashboard-card">
           <div className="p-3 bg-gray-800 flex items-center space-x-2">
-            <div className="p-2 bg-gray-700 rounded">
+            <div className="p-2 bg-gray-700 rounded-none">
               <Calendar className="h-5 w-5 text-gray-300" />
             </div>
             <div className="uppercase text-xs tracking-wider text-gray-300">CURRENT DATE/TIME</div>
@@ -368,7 +368,7 @@ const Dashboard: React.FC = () => {
             <div className="text-3xl font-bold text-gray-300 mb-2">25FEB2025</div>
             <div className="text-xs text-gray-400">0842 local time</div>
             <div className="mt-4 text-right">
-              <button className="text-xs text-gray-400 flex items-center justify-end">
+              <button className="text-xs text-gray-400 flex items-center justify-end btn-sharp">
                 VIEW DETAILS 
                 <ChevronDown className="h-3 w-3 ml-1" />
               </button>
