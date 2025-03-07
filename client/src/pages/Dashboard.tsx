@@ -380,10 +380,10 @@ const Dashboard: React.FC = () => {
       {/* MIDDLE SECTION - MULTI-COLUMN LAYOUT */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* ACCOUNTABILITY STATUS */}
-        <div className="bg-gray-900 border border-gray-800 rounded p-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-none p-4 dashboard-card">
           <h3 className="text-sm text-gray-300 uppercase mb-4 font-medium tracking-wider flex justify-between items-center">
             ACCOUNTABILITY STATUS
-            <button className="p-1 hover:bg-gray-800 rounded">
+            <button className="p-1 hover:bg-gray-800 rounded-none btn-sharp">
               <HelpCircle className="h-4 w-4 text-gray-500" />
             </button>
           </h3>
@@ -425,7 +425,7 @@ const Dashboard: React.FC = () => {
             <div className="text-xs text-gray-500 mb-2">
               Last: 23FEB2025 0830  Next: 27FEB2025
             </div>
-            <button className="w-full text-center bg-blue-800/50 text-blue-300 py-2 px-4 rounded text-xs">
+            <button className="w-full text-center bg-blue-800/50 text-blue-300 py-2 px-4 rounded-none text-xs btn-sharp">
               CONDUCT SENSITIVE ITEM INVENTORY
             </button>
           </div>
@@ -467,20 +467,20 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* REQUIRES YOUR ACTION */}
-        <div className="bg-gray-900 border border-gray-800 rounded p-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-none p-4 dashboard-card">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm text-gray-300 uppercase font-medium tracking-wider flex items-center">
               REQUIRES YOUR ACTION (3)
-              <button className="ml-1 p-1 hover:bg-gray-800 rounded">
+              <button className="ml-1 p-1 hover:bg-gray-800 rounded-none btn-sharp">
                 <HelpCircle className="h-4 w-4 text-gray-500" />
               </button>
             </h3>
             
             <div className="flex items-center">
-              <span className="flex items-center justify-center w-6 h-6 bg-red-500 text-white rounded-full text-xs">
+              <span className="flex items-center justify-center w-6 h-6 bg-red-500 text-white text-xs">
                 3
               </span>
-              <button className="ml-1 p-1 hover:bg-gray-800 rounded">
+              <button className="ml-1 p-1 hover:bg-gray-800 rounded-none btn-sharp">
                 <ChevronDown className="h-4 w-4 text-gray-500" />
               </button>
             </div>
@@ -523,19 +523,19 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="mt-4">
-            <button className="w-full text-center bg-blue-800/50 text-blue-300 py-2 px-4 rounded text-xs">
+            <button className="w-full text-center bg-blue-800/50 text-blue-300 py-2 px-4 rounded-none text-xs btn-sharp">
               View All Pending Actions
             </button>
           </div>
         </div>
 
         {/* NTC ROTATION */}
-        <div className="bg-gray-900 border border-gray-800 rounded p-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-none p-4 dashboard-card">
           <h3 className="text-sm text-gray-300 uppercase mb-4 font-medium tracking-wider">
             NTC ROTATION 25-08 PREPARATION
           </h3>
 
-          <div className="bg-yellow-900/30 border border-yellow-900/50 p-4 rounded-md mb-4 text-center">
+          <div className="bg-yellow-900/30 border border-yellow-900/50 p-4 rounded-none mb-4 text-center">
             <div className="text-3xl font-bold text-yellow-500 mb-1">T-121</div>
             <div className="text-xs text-gray-400">DAYS TO DEPLOYMENT</div>
           </div>
@@ -597,7 +597,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="mt-4">
-            <button className="w-full text-center bg-blue-800/50 text-blue-300 py-2 px-4 rounded text-xs">
+            <button className="w-full text-center bg-blue-800/50 text-blue-300 py-2 px-4 rounded-none text-xs btn-sharp">
               View NTC Preparation Plan
             </button>
           </div>
@@ -607,30 +607,30 @@ const Dashboard: React.FC = () => {
       {/* CHARTS AND GRAPHS SECTION */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* PROPERTY DISTRIBUTION VISUALIZATION */}
-        <div className="bg-gray-900 border border-gray-800 rounded p-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-none p-4 dashboard-card">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm text-gray-300 uppercase font-medium tracking-wider flex items-center">
               PROPERTY DISTRIBUTION VISUALIZATION
-              <button className="ml-1 p-1 hover:bg-gray-800 rounded">
+              <button className="ml-1 p-1 hover:bg-gray-800 rounded-none btn-sharp">
                 <Info className="h-4 w-4 text-gray-500" />
               </button>
             </h3>
             
             <div className="flex space-x-1">
               <button 
-                className={`px-3 py-1 text-xs rounded ${selectedTab === 'platoon' ? 'bg-blue-800 text-blue-300' : 'bg-gray-800 text-gray-400'}`}
+                className={`px-3 py-1 text-xs rounded-none btn-sharp ${selectedTab === 'platoon' ? 'bg-blue-800 text-blue-300' : 'bg-gray-800 text-gray-400'}`}
                 onClick={() => setSelectedTab('platoon')}
               >
                 By Platoon
               </button>
               <button 
-                className={`px-3 py-1 text-xs rounded ${selectedTab === 'status' ? 'bg-blue-800 text-blue-300' : 'bg-gray-800 text-gray-400'}`}
+                className={`px-3 py-1 text-xs rounded-none btn-sharp ${selectedTab === 'status' ? 'bg-blue-800 text-blue-300' : 'bg-gray-800 text-gray-400'}`}
                 onClick={() => setSelectedTab('status')}
               >
                 By Status
               </button>
               <button 
-                className={`px-3 py-1 text-xs rounded ${selectedTab === 'location' ? 'bg-blue-800 text-blue-300' : 'bg-gray-800 text-gray-400'}`}
+                className={`px-3 py-1 text-xs rounded-none btn-sharp ${selectedTab === 'location' ? 'bg-blue-800 text-blue-300' : 'bg-gray-800 text-gray-400'}`}
                 onClick={() => setSelectedTab('location')}
               >
                 By Location
@@ -650,16 +650,16 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* EQUIPMENT READINESS TREND */}
-        <div className="bg-gray-900 border border-gray-800 rounded p-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-none p-4 dashboard-card">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm text-gray-300 uppercase font-medium tracking-wider flex items-center">
               EQUIPMENT READINESS TREND
-              <button className="ml-1 p-1 hover:bg-gray-800 rounded">
+              <button className="ml-1 p-1 hover:bg-gray-800 rounded-none btn-sharp">
                 <Info className="h-4 w-4 text-gray-500" />
               </button>
             </h3>
             
-            <button className="p-1 hover:bg-gray-800 rounded">
+            <button className="p-1 hover:bg-gray-800 rounded-none btn-sharp">
               <MoreVertical className="h-4 w-4 text-gray-500" />
             </button>
           </div>
@@ -693,11 +693,11 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* CRITICAL EQUIPMENT STATUS SECTION */}
-      <div className="bg-gray-900 border border-gray-800 rounded p-4 mb-6">
+      <div className="bg-gray-900 border border-gray-800 rounded-none p-4 mb-6 dashboard-card">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-sm text-gray-300 uppercase font-medium tracking-wider flex items-center">
             CRITICAL EQUIPMENT STATUS
-            <button className="ml-1 p-1 hover:bg-gray-800 rounded">
+            <button className="ml-1 p-1 hover:bg-gray-800 rounded-none btn-sharp">
               <Info className="h-4 w-4 text-gray-500" />
             </button>
           </h3>
