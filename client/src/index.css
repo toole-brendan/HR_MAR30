@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --sidebar-width: 256px;
+  --sidebar-collapsed-width: 80px;
+  --header-height: 64px;
+  --mobile-nav-height: 56px;
+  --content-max-width: 1280px;
+  --mobile-breakpoint: 768px;
+  --tablet-breakpoint: 1024px;
+  --page-padding-x: 1rem;
+  --page-padding-y: 1rem;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --page-padding-x: 1.5rem;
+    --page-padding-y: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --page-padding-x: 2rem;
+    --page-padding-y: 1.5rem;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -13,13 +39,42 @@
 }
 
 @layer components {
+  /* Main content layout */
+  .main-content {
+    @apply transition-all duration-300 ease-in-out min-h-screen bg-background flex-1;
+    margin-left: var(--sidebar-width);
+    max-width: calc(100% - var(--sidebar-width));
+  }
+
+  .main-content.sidebar-collapsed {
+    margin-left: var(--sidebar-collapsed-width);
+    max-width: calc(100% - var(--sidebar-collapsed-width));
+  }
+
+  /* For mobile views */
+  @media (max-width: 768px) {
+    .main-content, .main-content.sidebar-collapsed {
+      margin-left: 0;
+      max-width: 100%;
+      width: 100%;
+      padding-bottom: var(--mobile-nav-height);
+    }
+    
+    .page-container {
+      padding-left: var(--page-padding-x);
+      padding-right: var(--page-padding-x);
+      width: 100%;
+    }
+  }
+  
   /* Sidebar Styles */
   .sidebar {
-    @apply h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 w-64 flex-shrink-0 flex-col transition-all duration-300 ease-in-out;
+    @apply h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex-shrink-0 flex-col transition-all duration-300 ease-in-out fixed left-0 top-0 z-20;
+    width: var(--sidebar-width);
   }
 
   .sidebar.collapsed {
-    @apply w-20;
+    width: var(--sidebar-collapsed-width);
   }
 
   .sidebar-item {
@@ -50,13 +105,14 @@
     @apply text-gray-500 dark:text-gray-400;
   }
   
-  /* New sidebar styles */
+  /* Sidebar styles */
   aside.sidebar {
-    @apply flex flex-col h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out;
+    @apply flex flex-col h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out fixed left-0 top-0 z-20;
+    width: var(--sidebar-width);
   }
   
   aside.sidebar.collapsed {
-    @apply w-20;
+    width: var(--sidebar-collapsed-width);
   }
   
   aside.sidebar nav {
@@ -69,5 +125,12 @@
   
   .border-border-primary {
     @apply border-gray-700/50 dark:border-gray-700/50;
+  }
+
+  /* Page wrapper */
+  .page-wrapper {
+    @apply mx-auto transition-all duration-200;
+    max-width: var(--content-max-width);
+    padding: var(--page-padding-y) var(--page-padding-x);
   }
 }

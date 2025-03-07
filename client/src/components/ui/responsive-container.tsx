@@ -1,5 +1,7 @@
 import React, { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useApp } from '@/context/AppContext';
 
 interface ResponsiveContainerProps {
   children: ReactNode;
@@ -24,7 +26,7 @@ interface ResponsiveContainerProps {
 
 /**
  * ResponsiveContainer - A container that automatically adjusts to different viewport sizes
- * Handles padding, width, and layout adaptively
+ * Handles padding, width, and layout adaptively using CSS variables defined in index.css
  */
 export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   children,
@@ -34,19 +36,20 @@ export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   display = 'block',
   flexDirection = 'column',
 }) => {
+  const isMobile = useIsMobile();
+  const { sidebarCollapsed } = useApp();
+  
   // Define size classes that scale with the viewport
   const sizeClasses = {
-    sm: 'w-full sm:w-[95%] md:w-[90%] lg:max-w-2xl',
-    md: 'w-full sm:w-[95%] md:w-[90%] lg:max-w-3xl',
-    lg: 'w-full sm:w-[95%] md:w-[90%] lg:max-w-5xl',
-    xl: 'w-full sm:w-[95%] md:w-[90%] lg:max-w-7xl',
+    sm: 'max-w-2xl mx-auto',
+    md: 'max-w-3xl mx-auto',
+    lg: 'max-w-5xl mx-auto',
+    xl: 'max-w-7xl mx-auto',
     full: 'w-full',
   };
 
-  // Define padding classes that adapt to the viewport
-  const paddingClasses = withPadding
-    ? 'px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6'
-    : '';
+  // Use our CSS defined page-wrapper class that has the responsive padding defined
+  const paddingClasses = withPadding ? 'page-wrapper' : '';
 
   // Define display classes
   const displayClasses = {
@@ -54,6 +57,11 @@ export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
     block: 'block',
     grid: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4',
   };
+  
+  // Main content classes for sidebar offset
+  const mainContentClass = !isMobile 
+    ? (sidebarCollapsed ? 'main-content sidebar-collapsed' : 'main-content')
+    : '';
 
   return (
     <div
@@ -62,6 +70,7 @@ export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
         sizeClasses[size],
         paddingClasses,
         displayClasses[display],
+        mainContentClass,
         className
       )}
     >

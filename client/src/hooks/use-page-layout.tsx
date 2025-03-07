@@ -1,5 +1,7 @@
 import { cn } from '@/lib/utils';
 import { useMemo } from 'react';
+import { useIsMobile } from './use-mobile';
+import { useApp } from '@/context/AppContext';
 
 interface PageLayoutOptions {
   /**
@@ -35,22 +37,25 @@ export function usePageLayout({
   containerClasses,
   responsiveScaling = true,
 }: PageLayoutOptions = {}) {
-  // Default padding that scales with viewport size
-  const defaultPadding = 'px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6';
+  const isMobile = useIsMobile();
+  const { sidebarCollapsed } = useApp();
+  
+  // Use CSS variables for padding from our index.css
+  const defaultPadding = 'page-wrapper';
   
   const containerWidth = useMemo(() => {
     if (fullWidth) return 'w-full';
     
     switch (width) {
       case 'narrow':
-        return 'w-full sm:w-[95%] md:w-[90%] lg:max-w-3xl mx-auto';
+        return 'max-w-3xl mx-auto';
       case 'wide':
-        return 'w-full sm:w-[95%] md:w-[90%] lg:max-w-7xl mx-auto';
+        return 'max-w-7xl mx-auto';
       case 'full':
         return 'w-full';
       case 'default':
       default:
-        return 'w-full sm:w-[95%] md:w-[90%] lg:max-w-5xl mx-auto';
+        return 'max-w-5xl mx-auto';
     }
   }, [fullWidth, width]);
 
@@ -59,19 +64,29 @@ export function usePageLayout({
     return responsiveScaling ? 'transition-all duration-200' : '';
   }, [responsiveScaling]);
 
+  // Main content classes based on sidebar state
+  const mainContentClasses = useMemo(() => {
+    return sidebarCollapsed ? 'main-content sidebar-collapsed' : 'main-content';
+  }, [sidebarCollapsed]);
+
   const combinedClasses = useMemo(() => {
-    return cn(
+    const baseClasses = [
       basePadding || defaultPadding,
       containerWidth,
       scaleClasses,
+      isMobile ? '' : mainContentClasses, // Only apply main content classes if not mobile
       containerClasses
-    );
-  }, [basePadding, defaultPadding, containerWidth, scaleClasses, containerClasses]);
+    ];
+    
+    return cn(...baseClasses);
+  }, [basePadding, defaultPadding, containerWidth, scaleClasses, mainContentClasses, containerClasses, isMobile]);
 
   return {
     layoutClasses: combinedClasses,
     containerClasses: combinedClasses,
+    mainContentClasses,
     containerWidth,
     defaultPadding,
+    isMobile,
   };
 }
