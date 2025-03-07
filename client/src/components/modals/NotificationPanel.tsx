@@ -1,7 +1,10 @@
-import { X, CheckCircle, Clock, Bell, AlertCircle } from "lucide-react";
-import { notifications } from "@/lib/mockData";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Bell, Check, ChevronRight } from 'lucide-react';
+import { notifications } from '@/lib/mockData';
+import { Notification } from '@/types';
 
 interface NotificationPanelProps {
   isOpen: boolean;
@@ -9,128 +12,126 @@ interface NotificationPanelProps {
 }
 
 const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
+  const transferRequests = notifications.filter(n => n.type === 'transfer-request');
+  const systemNotifications = notifications.filter(n => n.type !== 'transfer-request');
   
-  // Filter notifications based on active tab
-  const filteredNotifications = activeTab === 'all' 
-    ? notifications 
-    : notifications.filter(notification => !notification.read);
-
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      {/* Backdrop - close when clicked */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
-        onClick={onClose}
-      />
-      
-      {/* Panel */}
-      <div className="w-full max-w-md bg-white dark:bg-gray-900 h-full overflow-hidden shadow-xl z-10 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 p-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Notifications</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full max-w-md sm:max-w-lg overflow-y-auto">
+        <SheetHeader className="border-b pb-4 mb-4">
+          <div className="flex items-center justify-between">
+            <SheetTitle>Notifications</SheetTitle>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-xs"
+            >
+              <Check className="h-3.5 w-3.5 mr-1" /> Mark all as read
+            </Button>
+          </div>
+        </SheetHeader>
         
-        {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-800">
-          <button
-            className={cn(
-              "flex-1 py-3 px-4 text-sm font-medium",
-              activeTab === 'all' 
-                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400" 
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+        <Tabs defaultValue="all">
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="transfers">Transfers</TabsTrigger>
+            <TabsTrigger value="system">System</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="all" className="space-y-4">
+            {notifications.length === 0 ? (
+              <EmptyState />
+            ) : (
+              notifications.map(notification => (
+                <NotificationItem key={notification.id} notification={notification} />
+              ))
             )}
-            onClick={() => setActiveTab('all')}
-          >
-            All
-          </button>
-          <button
-            className={cn(
-              "flex-1 py-3 px-4 text-sm font-medium",
-              activeTab === 'unread' 
-                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400" 
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+          </TabsContent>
+          
+          <TabsContent value="transfers" className="space-y-4">
+            {transferRequests.length === 0 ? (
+              <EmptyState />
+            ) : (
+              transferRequests.map(notification => (
+                <NotificationItem key={notification.id} notification={notification} />
+              ))
             )}
-            onClick={() => setActiveTab('unread')}
-          >
-            Unread
-          </button>
-        </div>
-        
-        {/* Notification list */}
-        <div className="flex-1 overflow-y-auto">
-          {filteredNotifications.length === 0 ? (
-            <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-              No notifications to display
+          </TabsContent>
+          
+          <TabsContent value="system" className="space-y-4">
+            {systemNotifications.length === 0 ? (
+              <EmptyState />
+            ) : (
+              systemNotifications.map(notification => (
+                <NotificationItem key={notification.id} notification={notification} />
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+// NotificationItem component
+const NotificationItem = ({ notification }: { notification: Notification }) => {
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'transfer-request':
+        return <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">↔</div>;
+      case 'transfer-approved':
+        return <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400 flex items-center justify-center">✓</div>;
+      case 'system-alert':
+        return <div className="h-8 w-8 rounded-full bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 flex items-center justify-center">!</div>;
+      default:
+        return <div className="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center"><Bell className="h-4 w-4" /></div>;
+    }
+  };
+  
+  return (
+    <div className={`p-3 rounded-lg border ${notification.read ? 'border-gray-200 dark:border-gray-800 bg-transparent' : 'border-blue-100 dark:border-blue-900/20 bg-blue-50 dark:bg-blue-900/5'}`}>
+      <div className="flex items-start space-x-3">
+        {getIcon(notification.type)}
+        <div className="flex-1">
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium text-sm">{notification.title}</h4>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{notification.timeAgo}</span>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{notification.message}</p>
+          
+          {notification.type === 'transfer-request' && (
+            <div className="flex items-center justify-end mt-2 space-x-2">
+              <Button variant="outline" size="sm" className="text-xs h-7 px-2 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30">
+                Approve
+              </Button>
+              <Button variant="outline" size="sm" className="text-xs h-7 px-2 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30">
+                Reject
+              </Button>
             </div>
-          ) : (
-            <ul className="divide-y divide-gray-200 dark:divide-gray-800">
-              {filteredNotifications.map((notification) => {
-                // Select icon based on notification type
-                let Icon = Bell;
-                let iconColor = "text-gray-400";
-                
-                if (notification.type === 'transfer-request') {
-                  Icon = Clock;
-                  iconColor = "text-yellow-500";
-                } else if (notification.type === 'transfer-approved') {
-                  Icon = CheckCircle;
-                  iconColor = "text-green-500";
-                } else if (notification.type === 'system-alert') {
-                  Icon = AlertCircle;
-                  iconColor = "text-red-500";
-                }
-                
-                return (
-                  <li 
-                    key={notification.id}
-                    className={cn(
-                      "p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors",
-                      !notification.read && "bg-blue-50 dark:bg-blue-900/10"
-                    )}
-                  >
-                    <div className="flex">
-                      <div className={cn("flex-shrink-0 mr-3", iconColor)}>
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                            {notification.title}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                            {notification.timeAgo}
-                          </p>
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                          {notification.message}
-                        </p>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+          )}
+          
+          {(notification.type === 'system-alert' || notification.type === 'other') && (
+            <div className="flex items-center mt-2">
+              <Button variant="ghost" size="sm" className="text-xs h-7 px-2 text-primary">
+                View Details <ChevronRight className="h-3 w-3 ml-1" />
+              </Button>
+            </div>
           )}
         </div>
-        
-        {/* Footer */}
-        <div className="border-t border-gray-200 dark:border-gray-800 p-4">
-          <button
-            className="w-full py-2 px-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-sm font-medium text-gray-900 dark:text-white transition-colors"
-          >
-            Mark all as read
-          </button>
-        </div>
       </div>
+    </div>
+  );
+};
+
+// Empty state component
+const EmptyState = () => {
+  return (
+    <div className="flex flex-col items-center justify-center py-10 text-center">
+      <div className="h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
+        <Bell className="h-6 w-6 text-gray-400" />
+      </div>
+      <h3 className="font-medium mb-1">No notifications</h3>
+      <p className="text-sm text-gray-500 dark:text-gray-400">You're all caught up!</p>
     </div>
   );
 };

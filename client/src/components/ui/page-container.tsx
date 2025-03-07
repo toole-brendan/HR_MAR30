@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
-import { PageHeader } from '@/components/ui/page-header';
 import { cn } from '@/lib/utils';
+import PageHeader from './page-header';
 import { usePageLayout } from '@/hooks/use-page-layout';
 
 interface PageContainerProps {
@@ -26,39 +26,33 @@ interface PageContainerProps {
  * Uses the usePageLayout hook to apply consistent layout properties
  * across different pages and screen sizes
  */
-const PageContainer: React.FC<PageContainerProps> = ({ 
-  title, 
-  description, 
-  actions, 
-  children, 
+const PageContainer: React.FC<PageContainerProps> = ({
+  title,
+  description,
+  actions,
+  children,
   className,
   fullWidth = false,
   width = 'default',
-  padding
+  padding,
 }) => {
-  const { layoutClasses } = usePageLayout({
+  // Get layout properties from the hook
+  const { containerClasses } = usePageLayout({
     fullWidth,
     width,
-    basePadding: padding || 'p-4 md:p-6',
-    containerClasses: className
+    basePadding: padding,
   });
 
   return (
-    <div className={cn(
-      "page-container",
-      layoutClasses
-    )}>
+    <div className={cn(containerClasses, className)}>
       {title && (
-        <PageHeader 
-          title={title} 
-          description={description} 
+        <PageHeader
+          title={title}
+          description={description}
           actions={actions}
-          className="mb-4" 
         />
       )}
-      <div className="w-full">
-        {children}
-      </div>
+      <main>{children}</main>
     </div>
   );
 };

@@ -1,45 +1,45 @@
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface StatusBadgeProps {
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "active" | "transferred";
   className?: string;
 }
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
-  const getStatusStyles = () => {
-    switch (status) {
-      case "pending":
-        return "bg-[#FFC107] bg-opacity-20 text-[#FFC107]";
-      case "approved":
-        return "bg-[#28A745] bg-opacity-20 text-[#28A745]";
-      case "rejected":
-        return "bg-[#DC3545] bg-opacity-20 text-[#DC3545]";
-      default:
-        return "bg-gray-200 text-gray-800";
+  const statusConfig = {
+    pending: {
+      label: 'Pending',
+      classes: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+    },
+    approved: {
+      label: 'Approved',
+      classes: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+    },
+    rejected: {
+      label: 'Rejected',
+      classes: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+    },
+    active: {
+      label: 'Active',
+      classes: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+    },
+    transferred: {
+      label: 'Transferred',
+      classes: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400'
     }
   };
 
-  const getStatusText = () => {
-    switch (status) {
-      case "pending":
-        return "Pending";
-      case "approved":
-        return "Approved";
-      case "rejected":
-        return "Rejected";
-      default:
-        return "Unknown";
-    }
-  };
+  const config = statusConfig[status];
 
   return (
-    <span className={cn(
-      "inline-flex px-2 py-1 text-xs font-medium rounded-full",
-      getStatusStyles(),
-      className
-    )}>
-      {getStatusText()}
-    </span>
+    <Badge 
+      variant="outline"
+      className={cn(config.classes, className)}
+    >
+      {config.label}
+    </Badge>
   );
 };
 

@@ -18,25 +18,18 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   className,
 }) => {
   return (
-    <div className={cn(
-      'flex flex-col gap-2 md:flex-row md:items-center md:justify-between py-4',
-      className
-    )}>
+    <div className={cn('flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4 md:py-6', className)}>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-          {title}
-        </h1>
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         {description && (
-          <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <div className="mt-1 text-sm text-muted-foreground">
             {description}
           </div>
         )}
       </div>
-      {actions && (
-        <div className="flex items-center gap-2 mt-2 md:mt-0">
-          {actions}
-        </div>
-      )}
+      {actions && <div className="flex-shrink-0 flex items-center">{actions}</div>}
     </div>
   );
 };
+
+export default PageHeader;
