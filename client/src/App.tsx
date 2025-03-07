@@ -5,21 +5,14 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import AppShell from "./components/layout/AppShell";
 import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
 import Scan from "./pages/Scan";
 import Transfers from "./pages/Transfers";
 import Inventory from "./pages/Inventory";
 import AuditLog from "./pages/AuditLog";
 import Settings from "./pages/Settings";
-import { useAuth } from "./context/AuthContext";
 
 function Router() {
-  const { isAuthenticated } = useAuth();
-
-  if (!isAuthenticated) {
-    return <Route path="*" component={Login} />;
-  }
-
+  // Always show the app shell with dashboard as default
   return (
     <AppShell>
       <Switch>

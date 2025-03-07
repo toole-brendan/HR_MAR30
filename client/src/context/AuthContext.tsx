@@ -18,16 +18,20 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  // Default demo user
+  const demoUser: User = {
+    id: "8675309",
+    username: "john.doe",
+    name: "SSgt. John Doe",
+    rank: "Staff Sergeant",
+  };
+  
+  const [user, setUser] = useState<User | null>(demoUser);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
 
-  // Check for existing session on load
+  // Auto-authenticate with demo user
   useEffect(() => {
-    const storedUser = localStorage.getItem("handreceiptUser");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
-    }
+    localStorage.setItem("handreceiptUser", JSON.stringify(demoUser));
   }, []);
 
   const login = async (username: string, password: string) => {
