@@ -2,9 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* D-Din Font */
+@font-face {
+  font-family: 'D-Din';
+  src: url('https://cdn.jsdelivr.net/npm/d-din/D-DIN.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/d-din/D-DIN.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'D-Din';
+  src: url('https://cdn.jsdelivr.net/npm/d-din/D-DIN-Bold.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/d-din/D-DIN-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* Layout dimensions */
-  --sidebar-width: 260px;
+  --sidebar-width: 230px; /* Made narrower from 260px */
   --sidebar-collapsed-width: 72px;
   --header-height: 64px;
   --mobile-nav-height: 56px;
@@ -114,13 +133,13 @@
   --chart-5: 260 80% 50%;
   
   /* Sidebar colors */
-  --sidebar-background: 220 30% 13%;
-  --sidebar-foreground: 220 15% 90%;
+  --sidebar-background: 0 0% 0%; /* Black background for sidebar */
+  --sidebar-foreground: 0 0% 95%; /* Light text for contrast */
   --sidebar-primary: 210 100% 25%;
   --sidebar-primary-foreground: 0 0% 98%;
   --sidebar-accent: 210 100% 25%;
   --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-border: 220 30% 20%;
+  --sidebar-border: 0 0% 15%; /* Dark border for black sidebar */
   --sidebar-ring: 210 100% 25%;
 }
 
@@ -154,13 +173,13 @@
   --input: 220 15% 92%;
   --ring: 210 100% 30%;
   
-  --sidebar-background: 210 30% 15%;
-  --sidebar-foreground: 0 0% 95%;
+  --sidebar-background: 0 0% 0%; /* Keep sidebar black even in light mode */
+  --sidebar-foreground: 0 0% 95%; /* Light text for sidebar */
   --sidebar-primary: 210 100% 30%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 210 100% 30%;
   --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 210 30% 20%;
+  --sidebar-border: 0 0% 15%; /* Dark border for black sidebar */
   --sidebar-ring: 210 100% 30%;
 }
 
@@ -303,6 +322,7 @@
   .sidebar-item {
     @apply flex items-center px-4 py-2.5 text-sidebar-foreground hover:bg-sidebar-accent/10 rounded-sm cursor-pointer my-0.5 transition-colors;
     letter-spacing: -0.01em;
+    font-family: 'D-Din', sans-serif;
   }
 
   .sidebar-item.active {
