@@ -49,4 +49,25 @@
   .sidebar .profile-role {
     @apply text-gray-500 dark:text-gray-400;
   }
+  
+  /* New sidebar styles */
+  aside.sidebar {
+    @apply flex flex-col h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out;
+  }
+  
+  aside.sidebar.collapsed {
+    @apply w-20;
+  }
+  
+  aside.sidebar nav {
+    @apply flex-1 px-2 py-4 space-y-1 overflow-y-auto;
+  }
+  
+  aside.sidebar nav.collapsed {
+    @apply px-2 py-4;
+  }
+  
+  .border-border-primary {
+    @apply border-gray-700/50 dark:border-gray-700/50;
+  }
 }

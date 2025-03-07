@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import Sidebar from "./Sidebar";
+import { useApp } from "@/context/AppContext";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -12,6 +13,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   onClose,
   openQRScanner
 }) => {
+  const { toggleTheme } = useApp();
+  
   if (!isOpen) return null;
 
   return (
@@ -27,7 +30,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
         <Sidebar 
           isMobile={true} 
           closeMobileMenu={onClose} 
-          openQRScanner={openQRScanner} 
+          openQRScanner={openQRScanner}
+          toggleTheme={toggleTheme}
         />
       </div>
     </div>

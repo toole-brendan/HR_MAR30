@@ -15,7 +15,7 @@ interface AppShellProps {
 
 const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
-  const { sidebarCollapsed } = useApp();
+  const { sidebarCollapsed, toggleSidebar, toggleTheme } = useApp();
   
   // State for mobile menu, scanner, and notifications
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -41,7 +41,11 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
       {/* Sidebar - hidden on mobile */}
       <div className="hidden md:block">
-        <Sidebar />
+        <Sidebar 
+          openQRScanner={openScanner} 
+          toggleTheme={toggleTheme}
+          toggleSidebar={toggleSidebar}
+        />
       </div>
       
       {/* Mobile menu */}
