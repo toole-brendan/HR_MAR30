@@ -1,66 +1,38 @@
-import { Link, useLocation } from "wouter";
-import { useAuth } from "@/context/AuthContext";
-import UserProfile from "../common/UserProfile";
+import { X } from "lucide-react";
+import Sidebar from "./Sidebar";
 
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
+  openQRScanner?: () => void;
 }
 
-const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
-  const [location] = useLocation();
-  const { user } = useAuth();
-
-  const navItems = [
-    { path: "/", label: "Dashboard", icon: "home" },
-    { path: "/scan", label: "Scan", icon: "qrcode" },
-    { path: "/transfers", label: "Transfers", icon: "exchange-alt", notificationCount: 8 },
-    { path: "/inventory", label: "Inventory", icon: "clipboard-list" },
-    { path: "/audit-log", label: "Audit Log", icon: "history" },
-    { path: "/settings", label: "Settings", icon: "cog" },
-  ];
-
+const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, openQRScanner }) => {
   return (
     <div 
-      className={`md:hidden bg-[#1C2541] text-white absolute inset-0 z-40 transform transition-transform duration-300 ease-in-out ${
+      className={`md:hidden bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 fixed inset-0 z-40 transform transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
-      <div className="flex items-center justify-between h-16 px-4 border-b border-[#545B62]">
-        <h1 className="text-xl font-bold">HandReceipt</h1>
+      <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
+        <h1 className="text-lg font-light tracking-widest text-gray-800 dark:text-gray-100 font-serif">HandReceipt</h1>
         <button 
           type="button" 
-          className="text-white p-2"
+          className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           onClick={onClose}
+          aria-label="Close menu"
         >
-          <i className="fas fa-times text-xl"></i>
+          <X className="h-5 w-5 text-gray-800 dark:text-gray-200" />
         </button>
       </div>
       
-      <nav className="flex-1 px-2 py-4 space-y-1">
-        {navItems.map((item) => (
-          <div key={item.path}>
-            <Link href={item.path}>
-              <div 
-                className={`flex items-center px-4 py-3 cursor-pointer ${
-                  location === item.path ? "bg-[#4B5320] rounded-md" : "text-white hover:bg-[#545B62] hover:bg-opacity-25 rounded-md"
-                }`}
-                onClick={onClose}
-              >
-                <i className={`fas fa-${item.icon} w-6`}></i>
-                <span>{item.label}</span>
-                {item.notificationCount && (
-                  <span className="ml-auto bg-[#FFC107] text-xs px-2 py-1 rounded-full">
-                    {item.notificationCount}
-                  </span>
-                )}
-              </div>
-            </Link>
-          </div>
-        ))}
-      </nav>
-      
-      {user && <UserProfile user={user} />}
+      <div className="overflow-y-auto h-[calc(100vh-64px)] pb-20">
+        <Sidebar 
+          isMobile={true} 
+          closeMobileMenu={onClose} 
+          openQRScanner={openQRScanner} 
+        />
+      </div>
     </div>
   );
 };
