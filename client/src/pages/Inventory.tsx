@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useToast } from "@/hooks/use-toast";
 import QRCodeGenerator from "@/components/common/QRCodeGenerator";
 import TransferRequestModal from "@/components/modals/TransferRequestModal";
+import { StandardPageLayout } from "@/components/layout/StandardPageLayout";
 
 const Inventory: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,12 +45,10 @@ const Inventory: React.FC = () => {
   };
 
   return (
-    <>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-[#1C2541] mb-2">Inventory</h2>
-        <p className="text-gray-600">Track and manage your military equipment</p>
-      </div>
-
+    <StandardPageLayout
+      title="Inventory"
+      description="Track and manage your military equipment"
+    >
       <Card>
         <CardHeader>
           <CardTitle>Equipment Inventory</CardTitle>
@@ -186,7 +185,7 @@ const Inventory: React.FC = () => {
           </DialogContent>
         </Dialog>
       )}
-    </>
+    </StandardPageLayout>
   );
 };
 

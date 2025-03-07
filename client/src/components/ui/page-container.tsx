@@ -37,7 +37,7 @@ const PageContainer: React.FC<PageContainerProps> = ({
   padding,
 }) => {
   // Get layout properties from the hook
-  const { containerClasses } = usePageLayout({
+  const { containerClasses, layoutClasses } = usePageLayout({
     fullWidth,
     width,
     basePadding: padding,

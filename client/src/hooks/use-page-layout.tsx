@@ -45,7 +45,7 @@ export function usePageLayout({
     }
   }, [fullWidth, width]);
 
-  const layoutClasses = useMemo(() => {
+  const combinedClasses = useMemo(() => {
     return cn(
       basePadding,
       containerWidth,
@@ -54,7 +54,8 @@ export function usePageLayout({
   }, [basePadding, containerWidth, containerClasses]);
 
   return {
-    layoutClasses,
+    layoutClasses: combinedClasses,
+    containerClasses: combinedClasses,
     containerWidth,
   };
 }

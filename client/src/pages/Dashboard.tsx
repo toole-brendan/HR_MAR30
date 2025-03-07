@@ -13,7 +13,7 @@ import QRScannerModal from "@/components/shared/QRScannerModal";
 import NotificationPanel from "@/components/modals/NotificationPanel";
 import InventoryAnalytics from "@/components/reports/InventoryAnalytics";
 import { useAuth } from "@/context/AuthContext";
-import PageContainer from "@/components/ui/page-container";
+import { StandardPageLayout } from "@/components/layout/StandardPageLayout";
 import { FileDown, Bell, QrCode } from "lucide-react";
 
 const Dashboard: React.FC = () => {
@@ -48,7 +48,7 @@ const Dashboard: React.FC = () => {
   );
 
   return (
-    <PageContainer 
+    <StandardPageLayout 
       title="Dashboard" 
       description={
         <div className="flex items-center gap-2">
@@ -265,7 +265,7 @@ const Dashboard: React.FC = () => {
         isOpen={scannerOpen} 
         onClose={() => setScannerOpen(false)} 
       />
-    </PageContainer>
+    </StandardPageLayout>
   );
 };
 
