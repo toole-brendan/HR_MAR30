@@ -110,17 +110,23 @@ const Sidebar = ({
     { path: "/reports", icon: <FileText className="sidebar-item-icon" />, label: "Reports" }
   ];
   
-  // QR Scanner quick action button (will be displayed separately with dividers)
+  // Footer actions
   const qrScanAction = {
     path: "/scan",
     icon: <QrCode className="sidebar-item-icon" />,
     label: "Scan QR Code",
     onClick: handleQRScanClick
   };
+  
+  const settingsAction = {
+    path: "/settings",
+    icon: <Settings className="sidebar-item-icon" />,
+    label: "Settings"
+  };
 
   if (isMobile) {
     return (
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 flex flex-col">
         {/* Mobile Logo */}
         <div 
           className="flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity mb-4"
@@ -131,26 +137,14 @@ const Sidebar = ({
           </div>
         </div>
         
-        {/* Main navigation items */}
-        {navItems.map((item) => 
-          item.onClick ? (
-            <div 
-              key={item.path}
-              onClick={() => handleLinkClick(item.onClick)}
-              className={`sidebar-item ${isActive(item.path) ? "active" : ""}`}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-              {item.notificationCount && (
-                <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
-                  {item.notificationCount}
-                </span>
-              )}
-            </div>
-          ) : (
-            <Link key={item.path} href={item.path}>
+        {/* Main navigation section */}
+        <div className="flex-1 space-y-1">
+          {/* Main navigation items */}
+          {navItems.map((item) => 
+            item.onClick ? (
               <div 
-                onClick={() => handleLinkClick()}
+                key={item.path}
+                onClick={() => handleLinkClick(item.onClick)}
                 className={`sidebar-item ${isActive(item.path) ? "active" : ""}`}
               >
                 {item.icon}
@@ -161,31 +155,70 @@ const Sidebar = ({
                   </span>
                 )}
               </div>
-            </Link>
-          )
-        )}
-        
-        {/* New divider for QR Scanner */}
-        <div className="my-3 border-t border-gray-700/50 dark:border-gray-200/20"></div>
-        
-        {/* QR Scanner quick action button */}
-        <div 
-          key={qrScanAction.path}
-          onClick={() => handleLinkClick(qrScanAction.onClick)}
-          className={`sidebar-item ${isActive(qrScanAction.path) ? "active" : ""} bg-primary/10 hover:bg-primary/20`}
-        >
-          {qrScanAction.icon}
-          <span>{qrScanAction.label}</span>
+            ) : (
+              <Link key={item.path} href={item.path}>
+                <div 
+                  onClick={() => handleLinkClick()}
+                  className={`sidebar-item ${isActive(item.path) ? "active" : ""}`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                  {item.notificationCount && (
+                    <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
+                      {item.notificationCount}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            )
+          )}
         </div>
         
-        {/* Second divider after QR Scanner */}
-        <div className="my-3 border-t border-gray-700/50 dark:border-gray-200/20"></div>
-        
-        <div className="mt-8 pt-4 border-t border-gray-700">
-          <div className="flex items-center justify-between px-4 py-3 mb-4">
+        {/* Footer section */}
+        <div className="mt-auto pt-4 space-y-3">
+          {/* Footer divider */}
+          <div className="border-t border-gray-700/50 dark:border-gray-200/20 mb-4"></div>
+          
+          {/* QR Scanner quick action button */}
+          <div 
+            key={qrScanAction.path}
+            onClick={() => handleLinkClick(qrScanAction.onClick)}
+            className="sidebar-item bg-primary/10 hover:bg-primary/20 py-3"
+          >
+            {qrScanAction.icon}
+            <span>{qrScanAction.label}</span>
+          </div>
+          
+          {/* Settings link */}
+          <Link href={settingsAction.path}>
+            <div 
+              onClick={() => handleLinkClick()}
+              className={`sidebar-item ${isActive(settingsAction.path) ? "active" : ""} py-3`}
+            >
+              {settingsAction.icon}
+              <span>{settingsAction.label}</span>
+            </div>
+          </Link>
+          
+          {/* User profile */}
+          <div className="sidebar-item py-3 cursor-pointer">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium mr-3">
+              J
+            </div>
+            <div>
+              <p className="text-sm font-medium profile-name">SSG Doe, John</p>
+              <p className="text-xs profile-role text-gray-500">Supply NCO</p>
+            </div>
+          </div>
+          
+          {/* Footer controls divider */}
+          <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
+          
+          {/* Theme and collapse controls */}
+          <div className="flex items-center justify-between px-2">
             <button 
               onClick={toggleTheme}
-              className="p-2 rounded-md hover:bg-blue-900/50 transition-colors"
+              className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-blue-900/20 transition-colors"
               title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
             >
               {theme === 'light' ? 
@@ -193,16 +226,6 @@ const Sidebar = ({
                 <Sun className="h-5 w-5 text-gray-800 dark:text-gray-200" />
               }
             </button>
-            
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
-                {user?.name?.substring(0, 1) || 'U'}
-              </div>
-              <div>
-                <p className="text-sm font-medium profile-name">{user?.name || 'User'}</p>
-                <p className="text-xs profile-role">{user?.rank || 'Member'}</p>
-              </div>
-            </div>
           </div>
         </div>
       </nav>
@@ -228,28 +251,15 @@ const Sidebar = ({
         )}
       </div>
       
-      <nav className={`flex-1 px-2 py-4 space-y-1 overflow-y-auto ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        {/* Main navigation items */}
-        {navItems.map((item) => 
-          item.onClick ? (
-            <div 
-              key={item.path}
-              onClick={() => handleLinkClick(item.onClick)}
-              className={`sidebar-item ${isActive(item.path) ? "active" : ""}`}
-            >
-              {item.icon}
-              {!sidebarCollapsed && <span>{item.label}</span>}
-              {item.notificationCount && !sidebarCollapsed && (
-                <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
-                  {item.notificationCount}
-                </span>
-              )}
-            </div>
-          ) : (
-            <Link key={item.path} href={item.path}>
-              <div
+      <div className="flex flex-col flex-1">
+        {/* Main navigation items - top section */}
+        <nav className={`flex-1 px-2 py-4 space-y-1 overflow-y-auto ${sidebarCollapsed ? 'collapsed' : ''}`}>
+          {navItems.map((item) => 
+            item.onClick ? (
+              <div 
+                key={item.path}
+                onClick={() => handleLinkClick(item.onClick)}
                 className={`sidebar-item ${isActive(item.path) ? "active" : ""}`}
-                onClick={() => handleLinkClick()}
               >
                 {item.icon}
                 {!sidebarCollapsed && <span>{item.label}</span>}
@@ -259,34 +269,79 @@ const Sidebar = ({
                   </span>
                 )}
               </div>
-            </Link>
-          )
-        )}
+            ) : (
+              <Link key={item.path} href={item.path}>
+                <div
+                  className={`sidebar-item ${isActive(item.path) ? "active" : ""}`}
+                  onClick={() => handleLinkClick()}
+                >
+                  {item.icon}
+                  {!sidebarCollapsed && <span>{item.label}</span>}
+                  {item.notificationCount && !sidebarCollapsed && (
+                    <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
+                      {item.notificationCount}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            )
+          )}
+        </nav>
         
-        {/* New divider for QR Scanner */}
-        <div className="my-3 border-t border-gray-700/50 dark:border-gray-200/20"></div>
-        
-        {/* QR Scanner quick action button */}
-        <div 
-          key={qrScanAction.path}
-          onClick={() => handleLinkClick(qrScanAction.onClick)}
-          className={`sidebar-item ${isActive(qrScanAction.path) ? "active" : ""} bg-primary/10 hover:bg-primary/20`}
-        >
-          {qrScanAction.icon}
-          {!sidebarCollapsed && <span>{qrScanAction.label}</span>}
-        </div>
-        
-        {/* Second divider after QR Scanner */}
-        <div className="my-3 border-t border-gray-700/50 dark:border-gray-200/20"></div>
-      </nav>
-      
-      <div className={`p-4 border-t border-gray-700/50 dark:border-border-primary ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        {!sidebarCollapsed && (
-          <>
-            <div className="flex items-center justify-between mb-4">
+        {/* Footer section with quick actions and user profile */}
+        <div className={`mt-auto px-2 pt-2 pb-4 space-y-4 ${sidebarCollapsed ? 'text-center' : ''}`}>
+          {/* Divider before quick actions */}
+          <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
+          
+          {/* QR Scanner button */}
+          <div 
+            key={qrScanAction.path}
+            onClick={() => handleLinkClick(qrScanAction.onClick)}
+            className={`sidebar-item ${isActive(qrScanAction.path) ? "active" : ""} bg-primary/10 hover:bg-primary/20 py-3`}
+          >
+            {qrScanAction.icon}
+            {!sidebarCollapsed && <span>{qrScanAction.label}</span>}
+          </div>
+          
+          {/* Settings link */}
+          <Link href={settingsAction.path}>
+            <div
+              className={`sidebar-item ${isActive(settingsAction.path) ? "active" : ""} py-3`}
+              onClick={() => handleLinkClick()}
+            >
+              {settingsAction.icon}
+              {!sidebarCollapsed && <span>{settingsAction.label}</span>}
+            </div>
+          </Link>
+          
+          {/* User profile */}
+          {!sidebarCollapsed ? (
+            <div className="sidebar-item py-3 cursor-pointer">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium mr-3">
+                J
+              </div>
+              <div>
+                <p className="text-sm font-medium profile-name">SSG Doe, John</p>
+                <p className="text-xs profile-role text-gray-500">Supply NCO</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center py-2">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium cursor-pointer">
+                J
+              </div>
+            </div>
+          )}
+          
+          {/* Divider before controls */}
+          <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
+          
+          {/* Theme toggle and sidebar collapse buttons */}
+          {!sidebarCollapsed ? (
+            <div className="flex items-center justify-between px-2">
               <button 
                 onClick={toggleTheme}
-                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-blue-900/50 transition-colors"
+                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-blue-900/20 transition-colors"
                 title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               >
                 {theme === 'light' ? 
@@ -303,34 +358,30 @@ const Sidebar = ({
                 <ChevronLeft className="h-5 w-5 text-black dark:text-white" />
               </button>
             </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
-                {user?.name?.substring(0, 1) || 'U'}
-              </div>
-              <div>
-                <p className="text-sm font-medium profile-name">{user?.name || 'User'}</p>
-                <p className="text-xs profile-role">{user?.rank || 'Member'}</p>
-              </div>
-            </div>
-          </>
-        )}
-        
-        {sidebarCollapsed && (
-          <div className="flex flex-col items-center gap-4">
-            <button 
-              onClick={toggleSidebar}
-              className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-              title="Expand sidebar"
-            >
-              <ChevronRight className="h-5 w-5 text-black dark:text-white" />
-            </button>
-            
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
-              {user?.name?.substring(0, 1) || 'U'}
-            </div>
-          </div>
-        )}
+          ) : (
+            <>
+              <button 
+                onClick={toggleTheme}
+                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-blue-900/20 transition-colors mx-auto block mb-2"
+                title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              >
+                {theme === 'light' ? 
+                  <Moon className="h-5 w-5 text-gray-800 dark:text-gray-200" /> : 
+                  <Sun className="h-5 w-5 text-gray-800 dark:text-gray-200" />
+                }
+              </button>
+              
+              {/* Expand button when collapsed */}
+              <button 
+                onClick={toggleSidebar}
+                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors mx-auto block"
+                title="Expand sidebar"
+              >
+                <ChevronRight className="h-5 w-5 text-black dark:text-white" />
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </aside>
   );
