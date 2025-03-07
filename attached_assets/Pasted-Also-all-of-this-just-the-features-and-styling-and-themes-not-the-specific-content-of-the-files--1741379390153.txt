@@ -1,0 +1,243 @@
+Also all of this — just the features and styling and themes, not the specific content of the files
+
+
+
+import { useState, useContext, useEffect, ReactNode } from "react";
+import Sidebar from "./Sidebar";
+import MobileNav from "./MobileNav";
+import { currentUser } from "@/lib/mockData";
+import QRScannerModal from "@/components/shared/QRScannerModal";
+import { AppContext } from "@/context/AppContext";
+import { Menu, X } from "lucide-react";
+
+interface AppLayoutProps {
+  children: ReactNode;
+}
+
+export default function AppLayout({ children }: AppLayoutProps) {
+  const { theme, sidebarCollapsed, toggleTheme, toggleSidebar } = useContext(AppContext);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
+
+  // Theme classes are already managed by the AppContext effect
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const openQRScanner = () => {
+    setIsQRScannerOpen(true);
+  };
+
+  const closeQRScanner = () => {
+    setIsQRScannerOpen(false);
+  };
+
+  return (
+    <div className={`min-h-screen flex flex-col md:flex-row ${theme}-theme`}>
+      {/* Sidebar - Desktop */}
+      <Sidebar 
+        user={currentUser} 
+        openQRScanner={openQRScanner}
+        toggleTheme={toggleTheme}
+        toggleSidebar={toggleSidebar}
+      />
+
+      {/* Mobile header */}
+      <div className="md:hidden bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900 dark:to-blue-900 text-gray-800 dark:text-white p-4 shadow-md">
+        <div className="flex items-center justify-between">
+          <div 
+            className="flex items-center cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => window.location.href = '/'}
+          >
+            <div className="border border-gray-800/70 dark:border-gray-100/70 px-4 py-1.5">
+              <h1 className="text-base font-light tracking-widest text-gray-800 dark:text-gray-100 m-0 font-serif">HandReceipt</h1>
+            </div>
+          </div>
+          <button 
+            className="text-gray-800 dark:text-white hover:bg-blue-200 dark:hover:bg-blue-800 p-2 rounded-md transition-colors focus:outline-none"
+            onClick={toggleMobileMenu}
+            aria-label="Open menu"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile menu overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-60 z-40 md:hidden"
+          onClick={toggleMobileMenu}
+        />
+      )}
+
+      {/* Mobile menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-sky-100 to-blue-100 dark:from-sky-950 dark:to-blue-950 text-gray-800 dark:text-white z-50 md:hidden">
+          <div className="p-4 border-b border-gray-300/50 dark:border-gray-700/50 flex justify-between items-center">
+            <div 
+              className="flex items-center cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => window.location.href = '/'}
+            >
+              <div className="border border-gray-800/70 dark:border-gray-100/70 px-4 py-1.5">
+                <h1 className="text-base font-light tracking-widest text-gray-800 dark:text-gray-100 m-0 font-serif">HandReceipt</h1>
+              </div>
+            </div>
+            <button 
+              className="text-gray-800 dark:text-white hover:bg-blue-200 dark:hover:bg-blue-800 p-2 rounded-md transition-colors focus:outline-none"
+              onClick={toggleMobileMenu}
+              aria-label="Close menu"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <Sidebar 
+            user={currentUser} 
+            isMobile={true} 
+            closeMobileMenu={toggleMobileMenu}
+            openQRScanner={openQRScanner}
+            toggleTheme={toggleTheme}
+            toggleSidebar={toggleSidebar}
+          />
+        </div>
+      )}
+
+      {/* Main content area */}
+      <main className={`main-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        <div className="w-full max-w-full">
+          {children}
+        </div>
+      </main>
+
+      {/* Mobile bottom navigation */}
+      <MobileNav openQRScanner={openQRScanner} />
+
+      {/* QR Scanner Modal */}
+      <QRScannerModal isOpen={isQRScannerOpen} onClose={closeQRScanner} />
+    </div>
+  );
+}
+
+
+
+
+import React, { ReactNode } from 'react';
+import { PageHeader } from '@/components/ui/page-header';
+import { cn } from '@/lib/utils';
+import { usePageLayout } from '@/hooks/use-page-layout';
+
+interface PageContainerProps {
+  title?: string;
+  description?: string;
+  actions?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  fullWidth?: boolean;
+  /**
+   * Container width preset: 'default' | 'narrow' | 'wide' | 'full'
+   */
+  width?: 'default' | 'narrow' | 'wide' | 'full';
+  /**
+   * Custom padding to override the default
+   */
+  padding?: string;
+}
+
+/**
+ * PageContainer - A responsive container for page content
+ * 
+ * Uses the usePageLayout hook to apply consistent layout properties
+ * across different pages and screen sizes
+ */
+const PageContainer: React.FC<PageContainerProps> = ({ 
+  title, 
+  description, 
+  actions, 
+  children, 
+  className,
+  fullWidth = false,
+  width = 'default',
+  padding
+}) => {
+  const { layoutClasses } = usePageLayout({
+    fullWidth,
+    width,
+    basePadding: padding || 'p-4 md:p-6',
+    containerClasses: className
+  });
+
+  return (
+    <div className={cn(
+      "page-container",
+      layoutClasses
+    )}>
+      {title && (
+        <PageHeader 
+          title={title} 
+          description={description} 
+          actions={actions}
+          className="mb-4" 
+        />
+      )}
+      <div className="w-full">
+        {children}
+      </div>
+    </div>
+  );
+};
+
+export default PageContainer;
+
+
+
+
+import React, { ReactNode } from 'react';
+import { PageHeader } from '@/components/ui/page-header';
+import { cn } from '@/lib/utils';
+import { usePageLayout } from '@/hooks/use-page-layout';
+
+interface PageWrapperProps {
+  title?: string;
+  description?: string;
+  actions?: ReactNode;
+  children: ReactNode;
+  fullWidth?: boolean;
+  className?: string;
+}
+
+/**
+ * PageWrapper - A standardized container component for all pages
+ * Maintains consistent spacing, width, and responsive behavior
+ */
+const PageWrapper: React.FC<PageWrapperProps> = ({
+  title,
+  description,
+  actions,
+  children,
+  fullWidth = false,
+  className,
+}) => {
+  const { layoutClasses } = usePageLayout({ fullWidth });
+
+  return (
+    <div className={cn(
+      'page-container',
+      layoutClasses,
+      className
+    )}>
+      {title && (
+        <PageHeader
+          title={title}
+          description={description}
+          actions={actions}
+        />
+      )}
+      <div className="w-full">
+        {children}
+      </div>
+    </div>
+  );
+};
+
+export default PageWrapper;

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 
 interface AppContextType {
   theme: 'light' | 'dark';
@@ -7,6 +7,7 @@ interface AppContextType {
   toggleSidebar: () => void;
 }
 
+// Default values
 export const AppContext = createContext<AppContextType>({
   theme: 'light',
   toggleTheme: () => {},
@@ -17,24 +18,39 @@ export const AppContext = createContext<AppContextType>({
 export const useApp = () => useContext(AppContext);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  // Check for user's preference in localStorage or use system preference
-  const initialTheme = () => {
+  // Initialize theme from localStorage or system preference
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    // Check if theme is stored in localStorage
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      return savedTheme as 'light' | 'dark';
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      return savedTheme;
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  };
+    
+    // Otherwise, check system preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    
+    return 'light';
+  });
   
-  const [theme, setTheme] = useState<'light' | 'dark'>(initialTheme);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(
-    localStorage.getItem('sidebarCollapsed') === 'true'
-  );
+  // Initialize sidebar state from localStorage or default to expanded
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    return savedState === 'true';
+  });
   
-  // Apply theme to document when it changes
+  // Apply theme class to document
   useEffect(() => {
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(theme);
+    const root = window.document.documentElement;
+    
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    
+    // Save to localStorage
     localStorage.setItem('theme', theme);
   }, [theme]);
   
@@ -43,16 +59,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('sidebarCollapsed', sidebarCollapsed.toString());
   }, [sidebarCollapsed]);
   
+  // Toggle theme function
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
   };
   
+  // Toggle sidebar function
   const toggleSidebar = () => {
-    setSidebarCollapsed(prev => !prev);
+    setSidebarCollapsed((prev) => !prev);
   };
-
+  
   return (
-    <AppContext.Provider value={{ theme, toggleTheme, sidebarCollapsed, toggleSidebar }}>
+    <AppContext.Provider
+      value={{
+        theme,
+        toggleTheme,
+        sidebarCollapsed,
+        toggleSidebar
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
