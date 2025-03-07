@@ -24,11 +24,19 @@ interface PageLayoutOptions {
    * Whether to apply responsive scaling
    */
   responsiveScaling?: boolean;
+  /**
+   * Content spacing between children
+   */
+  spacing?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  /**
+   * Whether to apply animation effect
+   */
+  animate?: 'none' | 'fade-in' | 'slide-in';
 }
 
 /**
  * Hook for managing page layout properties consistently across the app
- * with improved viewport scaling
+ * with improved viewport scaling and spacing
  */
 export function usePageLayout({
   fullWidth = false,
@@ -36,6 +44,8 @@ export function usePageLayout({
   basePadding,
   containerClasses,
   responsiveScaling = true,
+  spacing = 'none',
+  animate = 'none',
 }: PageLayoutOptions = {}) {
   const isMobile = useIsMobile();
   const { sidebarCollapsed } = useApp();
@@ -43,26 +53,39 @@ export function usePageLayout({
   // Use CSS variables for padding from our index.css
   const defaultPadding = 'page-wrapper';
   
+  // Generate container width classes based on the width preset
   const containerWidth = useMemo(() => {
     if (fullWidth) return 'w-full';
     
     switch (width) {
       case 'narrow':
-        return 'max-w-3xl mx-auto';
+        return 'container-narrow';
       case 'wide':
-        return 'max-w-7xl mx-auto';
+        return 'container-wide';
       case 'full':
         return 'w-full';
       case 'default':
       default:
-        return 'max-w-5xl mx-auto';
+        return 'container-default';
     }
   }, [fullWidth, width]);
 
   // Apply responsive scaling classes if enabled
   const scaleClasses = useMemo(() => {
-    return responsiveScaling ? 'transition-all duration-200' : '';
+    return responsiveScaling ? 'responsive-scale' : '';
   }, [responsiveScaling]);
+  
+  // Generate spacing classes
+  const spacingClasses = useMemo(() => {
+    if (spacing === 'none') return '';
+    return `spacing-${spacing}`;
+  }, [spacing]);
+  
+  // Generate animation classes
+  const animationClasses = useMemo(() => {
+    if (animate === 'none') return '';
+    return `animate-${animate}`;
+  }, [animate]);
 
   // Main content classes based on sidebar state
   const mainContentClasses = useMemo(() => {
@@ -74,12 +97,36 @@ export function usePageLayout({
       basePadding || defaultPadding,
       containerWidth,
       scaleClasses,
+      spacingClasses,
+      animationClasses,
       isMobile ? '' : mainContentClasses, // Only apply main content classes if not mobile
       containerClasses
     ];
     
     return cn(...baseClasses);
-  }, [basePadding, defaultPadding, containerWidth, scaleClasses, mainContentClasses, containerClasses, isMobile]);
+  }, [
+    basePadding, 
+    defaultPadding, 
+    containerWidth, 
+    scaleClasses, 
+    spacingClasses, 
+    animationClasses, 
+    mainContentClasses, 
+    containerClasses, 
+    isMobile
+  ]);
+
+  // Responsive page settings
+  const pageSettings = useMemo(() => {
+    return {
+      hasResponsiveScaling: responsiveScaling,
+      isMobile,
+      sidebarCollapsed,
+      isFullWidth: fullWidth || width === 'full',
+      spacing,
+      animate,
+    };
+  }, [responsiveScaling, isMobile, sidebarCollapsed, fullWidth, width, spacing, animate]);
 
   return {
     layoutClasses: combinedClasses,
@@ -88,5 +135,8 @@ export function usePageLayout({
     containerWidth,
     defaultPadding,
     isMobile,
+    spacingClasses,
+    animationClasses,
+    pageSettings,
   };
 }
