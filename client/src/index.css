@@ -264,7 +264,6 @@
     @apply transition-all duration-300 min-h-screen bg-background flex-1;
     margin-left: var(--sidebar-width);
     max-width: calc(100% - var(--sidebar-width));
-    padding-top: var(--header-height);
   }
 
   .main-content.sidebar-collapsed {

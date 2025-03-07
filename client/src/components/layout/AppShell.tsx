@@ -64,7 +64,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         {/* Main content area with responsive viewport scaling */}
         <main className={cn(
           "flex-1 overflow-y-auto transition-all duration-300 ease-in-out",
-          "pt-4"
+          "pt-6"
         )}>
           {children}
         </main>
