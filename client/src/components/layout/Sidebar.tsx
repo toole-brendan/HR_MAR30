@@ -54,15 +54,24 @@ const Sidebar = ({
     window.location.href = '/';
   };
 
+  // Interface for navigation items
+  interface NavItem {
+    path: string;
+    icon: React.ReactNode;
+    label: string;
+    notificationCount?: number;
+    onClick?: () => void;
+  }
+
   // Using Lucide icons instead of FontAwesome
-  const navItems = [
+  const navItems: NavItem[] = [
     { path: "/", icon: <LayoutDashboard className="sidebar-item-icon" />, label: "Dashboard" },
     { path: "/inventory", icon: <ClipboardList className="sidebar-item-icon" />, label: "Inventory" },
     { path: "/transfers", icon: <Send className="sidebar-item-icon" />, label: "Transfers", notificationCount: 8 },
     { path: "/scan", icon: <QrCode className="sidebar-item-icon" />, label: "Scan QR Code", onClick: handleQRScanClick },
     { path: "/audit-log", icon: <History className="sidebar-item-icon" />, label: "Audit Log" },
     { path: "/settings", icon: <Settings className="sidebar-item-icon" />, label: "Settings" },
-  ] as const;
+  ];
 
   if (isMobile) {
     return (
@@ -94,7 +103,7 @@ const Sidebar = ({
             </div>
           ) : (
             <Link key={item.path} href={item.path}>
-              <a 
+              <div 
                 onClick={handleLinkClick}
                 className={cn("sidebar-item", isActive(item.path) && "active")}
               >
@@ -105,7 +114,7 @@ const Sidebar = ({
                     {item.notificationCount}
                   </span>
                 )}
-              </a>
+              </div>
             </Link>
           )
         )}
@@ -177,7 +186,7 @@ const Sidebar = ({
             </div>
           ) : (
             <Link key={item.path} href={item.path}>
-              <a
+              <div
                 className={cn("sidebar-item", isActive(item.path) && "active")}
               >
                 {item.icon}
@@ -187,7 +196,7 @@ const Sidebar = ({
                     {item.notificationCount}
                   </span>
                 )}
-              </a>
+              </div>
             </Link>
           )
         )}

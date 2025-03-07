@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useApp } from "@/context/AppContext";
 import Sidebar from "./Sidebar";
 import TopNavBar from "./TopNavBar";
 import MobileMenu from "./MobileMenu";
@@ -10,6 +11,7 @@ interface AppShellProps {
 }
 
 const AppShell: React.FC<AppShellProps> = ({ children }) => {
+  const { theme } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -35,9 +37,9 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className={`flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
       {/* Sidebar - Desktop only */}
-      <Sidebar />
+      <Sidebar openQRScanner={openScanner} />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -51,11 +53,12 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         {/* Mobile Navigation - Shown/hidden based on mobile menu state */}
         <MobileMenu 
           isOpen={mobileMenuOpen} 
-          onClose={() => setMobileMenuOpen(false)} 
+          onClose={() => setMobileMenuOpen(false)}
+          openQRScanner={openScanner}
         />
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-100 p-4">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4">
           {children}
         </main>
       </div>
