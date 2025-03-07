@@ -9,27 +9,33 @@ interface StandardPageLayoutProps {
   actions?: ReactNode;
   children: ReactNode;
   className?: string;
+  width?: 'default' | 'narrow' | 'wide' | 'full';
+  fullWidth?: boolean;
 }
 
 /**
  * StandardPageLayout - A consistent wrapper for all pages
  * Ensures consistent padding, width constraints, and responsive behavior
+ * with dynamic viewport scaling
  */
 export function StandardPageLayout({
   title,
   description,
   actions,
   children,
-  className
+  className,
+  width = 'default',
+  fullWidth = false
 }: StandardPageLayoutProps) {
   const { layoutClasses } = usePageLayout({
-    width: 'default',
-    basePadding: 'p-4 md:p-6 lg:p-8'
+    width,
+    fullWidth,
+    responsiveScaling: true
   });
 
   return (
     <div className={cn(
-      'standard-page',
+      'standard-page transition-all duration-200',
       layoutClasses,
       className
     )}>
@@ -38,10 +44,10 @@ export function StandardPageLayout({
           title={title}
           description={description}
           actions={actions}
-          className="mb-6"
+          className="mb-4 sm:mb-5 md:mb-6"
         />
       )}
-      <div className="w-full">
+      <div className="w-full flex-1 min-h-0">
         {children}
       </div>
     </div>

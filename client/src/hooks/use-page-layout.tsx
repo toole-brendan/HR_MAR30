@@ -18,44 +18,60 @@ interface PageLayoutOptions {
    * Additional container classes
    */
   containerClasses?: string;
+  /**
+   * Whether to apply responsive scaling
+   */
+  responsiveScaling?: boolean;
 }
 
 /**
  * Hook for managing page layout properties consistently across the app
+ * with improved viewport scaling
  */
 export function usePageLayout({
   fullWidth = false,
   width = 'default',
-  basePadding = 'p-4 md:p-6',
+  basePadding,
   containerClasses,
+  responsiveScaling = true,
 }: PageLayoutOptions = {}) {
+  // Default padding that scales with viewport size
+  const defaultPadding = 'px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6';
+  
   const containerWidth = useMemo(() => {
     if (fullWidth) return 'w-full';
     
     switch (width) {
       case 'narrow':
-        return 'max-w-3xl mx-auto';
+        return 'w-full sm:w-[95%] md:w-[90%] lg:max-w-3xl mx-auto';
       case 'wide':
-        return 'max-w-7xl mx-auto';
+        return 'w-full sm:w-[95%] md:w-[90%] lg:max-w-7xl mx-auto';
       case 'full':
         return 'w-full';
       case 'default':
       default:
-        return 'max-w-5xl mx-auto';
+        return 'w-full sm:w-[95%] md:w-[90%] lg:max-w-5xl mx-auto';
     }
   }, [fullWidth, width]);
 
+  // Apply responsive scaling classes if enabled
+  const scaleClasses = useMemo(() => {
+    return responsiveScaling ? 'transition-all duration-200' : '';
+  }, [responsiveScaling]);
+
   const combinedClasses = useMemo(() => {
     return cn(
-      basePadding,
+      basePadding || defaultPadding,
       containerWidth,
+      scaleClasses,
       containerClasses
     );
-  }, [basePadding, containerWidth, containerClasses]);
+  }, [basePadding, defaultPadding, containerWidth, scaleClasses, containerClasses]);
 
   return {
     layoutClasses: combinedClasses,
     containerClasses: combinedClasses,
     containerWidth,
+    defaultPadding,
   };
 }
