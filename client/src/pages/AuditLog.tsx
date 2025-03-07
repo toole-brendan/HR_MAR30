@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { PageWrapper } from "@/components/ui/page-wrapper";
+import { PageHeader } from "@/components/ui/page-header";
+import { Search, FileDown, CheckCircle, XCircle, RefreshCw, Info } from "lucide-react";
 
 const AuditLog: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,22 +36,32 @@ const AuditLog: React.FC = () => {
   const getActivityTypeIcon = (type: string) => {
     switch (type) {
       case "transfer-approved":
-        return <i className="fas fa-check text-[#28A745]"></i>;
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
       case "transfer-rejected":
-        return <i className="fas fa-times text-[#DC3545]"></i>;
+        return <XCircle className="h-4 w-4 text-red-600" />;
       case "inventory-updated":
-        return <i className="fas fa-sync text-blue-600"></i>;
+        return <RefreshCw className="h-4 w-4 text-blue-600" />;
       default:
-        return <i className="fas fa-info text-gray-500"></i>;
+        return <Info className="h-4 w-4 text-gray-500" />;
     }
   };
 
+  // Action buttons for the page header
+  const actions = (
+    <Button className="flex items-center gap-1">
+      <FileDown className="h-4 w-4" />
+      <span>Export Log</span>
+    </Button>
+  );
+
   return (
-    <>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-[#1C2541] mb-2">Audit Log</h2>
-        <p className="text-gray-600">Track all equipment changes and transfers</p>
-      </div>
+    <PageWrapper withPadding={true}>
+      <PageHeader
+        title="Audit Log"
+        description="Track all equipment changes and transfers"
+        actions={actions}
+        className="mb-4 sm:mb-5 md:mb-6"
+      />
 
       <Card>
         <CardHeader>
@@ -64,7 +77,7 @@ const AuditLog: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
-              <i className="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             </div>
             <div className="w-full md:w-64">
               <Select
@@ -82,26 +95,22 @@ const AuditLog: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button className="bg-[#4B5320] hover:bg-[#3a4019]">
-              <i className="fas fa-file-export mr-2"></i>
-              Export Log
-            </Button>
           </div>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {filteredActivities.length === 0 ? (
-              <div className="py-4 text-center text-gray-500">No activities found</div>
+              <div className="py-4 text-center text-gray-500 dark:text-gray-400">No activities found</div>
             ) : (
               filteredActivities.map((activity) => (
                 <div key={activity.id} className="py-4 flex items-start">
                   <div className="mr-4 mt-1">
-                    <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                       {getActivityTypeIcon(activity.type)}
                     </div>
                   </div>
                   <div className="flex-1">
                     <p className="font-medium">{activity.description}</p>
-                    <div className="flex flex-col sm:flex-row sm:items-center text-sm text-gray-500 mt-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
                       <span>{activity.user}</span>
                       <span className="hidden sm:inline mx-2">•</span>
                       <span>{activity.timeAgo}</span>
@@ -115,7 +124,7 @@ const AuditLog: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-    </>
+    </PageWrapper>
   );
 };
 

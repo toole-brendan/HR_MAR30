@@ -16,12 +16,14 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
+import { PageWrapper } from "@/components/ui/page-wrapper";
+import { PageHeader } from "@/components/ui/page-header";
+import { Save, LogOut, RotateCcw, RefreshCw } from "lucide-react";
 
 const Settings: React.FC = () => {
   const { user, logout } = useAuth();
@@ -45,11 +47,12 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-[#1C2541] mb-2">Settings</h2>
-        <p className="text-gray-600">Manage your account and application preferences</p>
-      </div>
+    <PageWrapper withPadding={true}>
+      <PageHeader
+        title="Settings"
+        description="Manage your account and application preferences"
+        className="mb-4 sm:mb-5 md:mb-6"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
@@ -67,7 +70,7 @@ const Settings: React.FC = () => {
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
                       <FormControl>
-                        <Input {...field} readOnly className="bg-gray-50" />
+                        <Input {...field} readOnly className="bg-gray-50 dark:bg-gray-800" />
                       </FormControl>
                       <FormDescription>
                         Contact admin to update name
@@ -102,8 +105,9 @@ const Settings: React.FC = () => {
                   )}
                 />
                 
-                <Button type="submit" className="bg-[#4B5320] hover:bg-[#3a4019]">
-                  Save Changes
+                <Button type="submit" className="flex items-center gap-1">
+                  <Save className="h-4 w-4" />
+                  <span>Save Changes</span>
                 </Button>
               </form>
             </Form>
@@ -119,7 +123,7 @@ const Settings: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-medium">Notifications</h4>
-                <p className="text-sm text-gray-500">Enable transfer and system notifications</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Enable transfer and system notifications</p>
               </div>
               <Switch 
                 checked={notifications} 
@@ -130,7 +134,7 @@ const Settings: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-medium">Auto-scan Mode</h4>
-                <p className="text-sm text-gray-500">Automatically process scanned codes</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Automatically process scanned codes</p>
               </div>
               <Switch 
                 checked={autoScan} 
@@ -141,31 +145,37 @@ const Settings: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-medium">Device ID</h4>
-                <p className="text-sm text-gray-500 font-mono">DVC-{user?.id || "000000"}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">DVC-{user?.id || "000000"}</p>
               </div>
-              <Button variant="outline" size="sm" onClick={() => {
-                toast({
-                  title: "Device Reset",
-                  description: "Device ID has been regenerated",
-                });
-              }}>
-                Reset
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => {
+                  toast({
+                    title: "Device Reset",
+                    description: "Device ID has been regenerated",
+                  });
+                }}
+                className="flex items-center gap-1"
+              >
+                <RefreshCw className="h-3 w-3" />
+                <span>Reset</span>
               </Button>
             </div>
           </CardContent>
           <CardFooter>
             <Button 
               variant="destructive" 
-              className="w-full"
+              className="w-full flex items-center justify-center gap-1"
               onClick={logout}
             >
-              <i className="fas fa-sign-out-alt mr-2"></i>
-              Sign Out
+              <LogOut className="h-4 w-4" />
+              <span>Sign Out</span>
             </Button>
           </CardFooter>
         </Card>
       </div>
-    </>
+    </PageWrapper>
   );
 };
 
