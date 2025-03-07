@@ -23,24 +23,23 @@ const Sidebar = () => {
       
       <nav className="flex-1 px-2 py-4 space-y-1">
         {navItems.map((item) => (
-          <Link 
-            key={item.path} 
-            href={item.path}
-          >
-            <a 
-              className={`flex items-center px-4 py-3 ${
-                location === item.path ? "bg-[#4B5320] rounded-md" : "text-white hover:bg-[#545B62] hover:bg-opacity-25 rounded-md"
-              }`}
-            >
-              <i className={`fas fa-${item.icon} w-6`}></i>
-              <span>{item.label}</span>
-              {item.notificationCount && (
-                <span className="ml-auto bg-[#FFC107] text-xs px-2 py-1 rounded-full">
-                  {item.notificationCount}
-                </span>
-              )}
-            </a>
-          </Link>
+          <div key={item.path}>
+            <Link href={item.path}>
+              <div 
+                className={`flex items-center px-4 py-3 cursor-pointer ${
+                  location === item.path ? "bg-[#4B5320] rounded-md" : "text-white hover:bg-[#545B62] hover:bg-opacity-25 rounded-md"
+                }`}
+              >
+                <i className={`fas fa-${item.icon} w-6`}></i>
+                <span>{item.label}</span>
+                {item.notificationCount && (
+                  <span className="ml-auto bg-[#FFC107] text-xs px-2 py-1 rounded-full">
+                    {item.notificationCount}
+                  </span>
+                )}
+              </div>
+            </Link>
+          </div>
         ))}
       </nav>
       
