@@ -16,6 +16,10 @@ import {
   QrCode,
   ChevronLeft,
   ChevronRight,
+  BookOpen,
+  Shield,
+  Wrench,
+  FileText,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -90,25 +94,29 @@ const Sidebar = ({
     onClick?: () => void;
   }
 
-  // Using the original nav items from the app
+  // Updated nav items according to the new structure
   const navItems: NavItem[] = [
     { path: "/", icon: <Home className="sidebar-item-icon" />, label: "Dashboard" },
-    { path: "/inventory", icon: <ClipboardList className="sidebar-item-icon" />, label: "Inventory" },
-    { 
-      path: "/scan", 
-      icon: <QrCode className="sidebar-item-icon" />, 
-      label: "Scan",
-      onClick: handleQRScanClick
-    },
+    { path: "/property-book", icon: <BookOpen className="sidebar-item-icon" />, label: "Property Book" },
+    { path: "/sensitive-items", icon: <Shield className="sidebar-item-icon" />, label: "Sensitive Items" },
     { 
       path: "/transfers", 
       icon: <Send className="sidebar-item-icon" />, 
       label: "Transfers",
       notificationCount: 3
     },
-    { path: "/audit-log", icon: <BarChart3 className="sidebar-item-icon" />, label: "Audit Log" },
-    { path: "/settings", icon: <Settings className="sidebar-item-icon" />, label: "Settings" }
+    { path: "/maintenance", icon: <Wrench className="sidebar-item-icon" />, label: "Maintenance" },
+    { path: "/qr-management", icon: <QrCode className="sidebar-item-icon" />, label: "QR Management" },
+    { path: "/reports", icon: <FileText className="sidebar-item-icon" />, label: "Reports" }
   ];
+  
+  // QR Scanner quick action button (will be displayed separately with dividers)
+  const qrScanAction = {
+    path: "/scan",
+    icon: <QrCode className="sidebar-item-icon" />,
+    label: "Scan QR Code",
+    onClick: handleQRScanClick
+  };
 
   if (isMobile) {
     return (
@@ -123,6 +131,7 @@ const Sidebar = ({
           </div>
         </div>
         
+        {/* Main navigation items */}
         {navItems.map((item) => 
           item.onClick ? (
             <div 
@@ -155,6 +164,22 @@ const Sidebar = ({
             </Link>
           )
         )}
+        
+        {/* New divider for QR Scanner */}
+        <div className="my-3 border-t border-gray-700/50 dark:border-gray-200/20"></div>
+        
+        {/* QR Scanner quick action button */}
+        <div 
+          key={qrScanAction.path}
+          onClick={() => handleLinkClick(qrScanAction.onClick)}
+          className={`sidebar-item ${isActive(qrScanAction.path) ? "active" : ""} bg-primary/10 hover:bg-primary/20`}
+        >
+          {qrScanAction.icon}
+          <span>{qrScanAction.label}</span>
+        </div>
+        
+        {/* Second divider after QR Scanner */}
+        <div className="my-3 border-t border-gray-700/50 dark:border-gray-200/20"></div>
         
         <div className="mt-8 pt-4 border-t border-gray-700">
           <div className="flex items-center justify-between px-4 py-3 mb-4">
@@ -204,6 +229,7 @@ const Sidebar = ({
       </div>
       
       <nav className={`flex-1 px-2 py-4 space-y-1 overflow-y-auto ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        {/* Main navigation items */}
         {navItems.map((item) => 
           item.onClick ? (
             <div 
@@ -236,6 +262,22 @@ const Sidebar = ({
             </Link>
           )
         )}
+        
+        {/* New divider for QR Scanner */}
+        <div className="my-3 border-t border-gray-700/50 dark:border-gray-200/20"></div>
+        
+        {/* QR Scanner quick action button */}
+        <div 
+          key={qrScanAction.path}
+          onClick={() => handleLinkClick(qrScanAction.onClick)}
+          className={`sidebar-item ${isActive(qrScanAction.path) ? "active" : ""} bg-primary/10 hover:bg-primary/20`}
+        >
+          {qrScanAction.icon}
+          {!sidebarCollapsed && <span>{qrScanAction.label}</span>}
+        </div>
+        
+        {/* Second divider after QR Scanner */}
+        <div className="my-3 border-t border-gray-700/50 dark:border-gray-200/20"></div>
       </nav>
       
       <div className={`p-4 border-t border-gray-700/50 dark:border-border-primary ${sidebarCollapsed ? 'collapsed' : ''}`}>
