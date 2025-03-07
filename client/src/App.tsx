@@ -12,6 +12,7 @@ import Transfers from "./pages/Transfers";
 import Inventory from "./pages/Inventory";
 import AuditLog from "./pages/AuditLog";
 import Settings from "./pages/Settings";
+import PropertyBook from "./pages/PropertyBook";
 
 function Router() {
   // Always show the app shell with dashboard as default
@@ -21,6 +22,7 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/scan" component={Scan} />
         <Route path="/transfers" component={Transfers} />
+        <Route path="/property-book" component={PropertyBook} />
         <Route path="/inventory" component={Inventory} />
         <Route path="/audit-log" component={AuditLog} />
         <Route path="/settings" component={Settings} />
