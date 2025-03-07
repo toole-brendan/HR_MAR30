@@ -42,7 +42,7 @@ export function StandardPageLayout({
       size={size}
       withPadding={withPadding}
       display={display}
-      className={cn('standard-page', className)}
+      className={cn('standard-page h-full', className)}
     >
       {title && (
         <PageHeader

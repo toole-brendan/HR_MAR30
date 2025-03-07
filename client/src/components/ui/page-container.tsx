@@ -43,7 +43,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({
       withPadding={withPadding}
       display={display === 'flex' ? 'flex' : display}
       flexDirection="column"
-      className={className}
+      className={cn("h-full", className)}
     >
       {title && (
         <PageHeader

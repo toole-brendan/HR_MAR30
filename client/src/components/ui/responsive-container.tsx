@@ -58,7 +58,7 @@ export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   return (
     <div
       className={cn(
-        'mx-auto transition-all duration-200',
+        'transition-all duration-200',
         sizeClasses[size],
         paddingClasses,
         displayClasses[display],

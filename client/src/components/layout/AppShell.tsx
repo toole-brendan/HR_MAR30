@@ -72,8 +72,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         {/* Main content area with responsive viewport scaling */}
         <main className={cn(
           "flex-1 overflow-y-auto transition-all duration-300 ease-in-out pb-16 md:pb-0",
-          "min-h-0 w-full",
-          sidebarCollapsed ? "md:ml-20" : "md:ml-64"
+          "min-h-0 w-full"
         )}>
           <div className="h-full w-full">
             {children}
