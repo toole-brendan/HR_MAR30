@@ -282,11 +282,8 @@
   .main-content {
     @apply transition-all duration-300 min-h-screen bg-background flex-1;
     margin-left: var(--sidebar-width);
-    margin-top: 0; /* Remove negative margin */
+    margin-top: -6px; /* Smaller negative margin to avoid cutting off content */
     max-width: calc(100% - var(--sidebar-width));
-    padding-left: clamp(1rem, 3vw, 2rem); /* Responsive padding that scales with viewport */
-    padding-right: clamp(1rem, 3vw, 2rem);
-    padding-top: clamp(0.75rem, 2vh, 1.5rem);
   }
 
   .main-content.sidebar-collapsed {
@@ -298,11 +295,10 @@
   @media (max-width: 768px) {
     .main-content, .main-content.sidebar-collapsed {
       margin-left: 0;
-      margin-top: 0;
+      margin-top: -6px; /* Match desktop negative margin */
       max-width: 100%;
       width: 100%;
-      padding: 1rem;
-      padding-bottom: calc(var(--mobile-nav-height) + 1rem);
+      padding-bottom: var(--mobile-nav-height);
     }
     
     .page-container {
