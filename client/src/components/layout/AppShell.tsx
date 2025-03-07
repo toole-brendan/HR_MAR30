@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "./Sidebar";
-import TopNavBar from "./TopNavBar";
 import MobileMenu from "./MobileMenu";
 import MobileNav from "./MobileNav";
 import NotificationPanel from "@/components/modals/NotificationPanel";
@@ -62,13 +61,6 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Nav Bar */}
-        <TopNavBar 
-          toggleMobileMenu={() => setMobileMenuOpen(true)} 
-          openScanner={openScanner}
-          openNotifications={openNotifications}
-        />
-        
         {/* Main content area with responsive viewport scaling */}
         <main className={cn(
           "flex-1 overflow-y-auto transition-all duration-300 ease-in-out pb-16 md:pb-0",
