@@ -10,12 +10,16 @@ import {
   ClipboardList,
   Settings,
   BarChart3,
-  Menu,
+  Shield,
   Moon,
   Sun,
   QrCode,
   ChevronLeft,
   ChevronRight,
+  AlertTriangle,
+  FileText,
+  User,
+  LogOut,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -90,9 +94,9 @@ const Sidebar = ({
     onClick?: () => void;
   }
 
-  // Using the original nav items from the app
+  // Military-themed nav items for the app
   const navItems: NavItem[] = [
-    { path: "/", icon: <Home className="sidebar-item-icon" />, label: "Dashboard" },
+    { path: "/", icon: <Shield className="sidebar-item-icon" />, label: "Command Center" },
     { path: "/inventory", icon: <ClipboardList className="sidebar-item-icon" />, label: "Inventory" },
     { 
       path: "/scan", 
@@ -106,20 +110,24 @@ const Sidebar = ({
       label: "Transfers",
       notificationCount: 3
     },
-    { path: "/audit-log", icon: <BarChart3 className="sidebar-item-icon" />, label: "Audit Log" },
+    { path: "/audit-log", icon: <FileText className="sidebar-item-icon" />, label: "Field Reports" },
     { path: "/settings", icon: <Settings className="sidebar-item-icon" />, label: "Settings" }
   ];
 
   if (isMobile) {
     return (
       <nav className="flex-1 p-4 space-y-1">
-        {/* Mobile Logo */}
+        {/* Mobile Logo - Military Style */}
         <div 
-          className="flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity mb-4"
+          className="flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity mb-6"
           onClick={handleLogoClick}
         >
-          <div className="border border-gray-800/70 dark:border-gray-100/70 px-4 py-1.5">
-            <h1 className="text-lg font-light tracking-widest text-gray-800 dark:text-gray-100 m-0 font-serif">HandReceipt</h1>
+          <div className="bg-military-navy border-l-4 border-military-accent px-4 py-2 w-full">
+            <div className="flex items-center">
+              <Shield className="w-5 h-5 mr-2 text-military-accent" />
+              <h1 className="text-base font-medium tracking-wider text-gray-100 m-0 uppercase">HandReceipt</h1>
+            </div>
+            <div className="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">Defense Asset System</div>
           </div>
         </div>
         
@@ -133,7 +141,7 @@ const Sidebar = ({
               {item.icon}
               <span>{item.label}</span>
               {item.notificationCount && (
-                <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
+                <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-military-accent">
                   {item.notificationCount}
                 </span>
               )}
@@ -147,7 +155,7 @@ const Sidebar = ({
                 {item.icon}
                 <span>{item.label}</span>
                 {item.notificationCount && (
-                  <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
+                  <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-military-accent">
                     {item.notificationCount}
                   </span>
                 )}
@@ -156,27 +164,36 @@ const Sidebar = ({
           )
         )}
         
-        <div className="mt-8 pt-4 border-t border-gray-700">
-          <div className="flex items-center justify-between px-4 py-3 mb-4">
-            <button 
-              onClick={toggleTheme}
-              className="p-2 rounded-md hover:bg-blue-900/50 transition-colors"
-              title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-            >
-              {theme === 'light' ? 
-                <Moon className="h-5 w-5 text-gray-800 dark:text-gray-200" /> : 
-                <Sun className="h-5 w-5 text-gray-800 dark:text-gray-200" />
-              }
-            </button>
+        <div className="mt-8 pt-4 border-t border-military-navy">
+          <div className="bg-military-navy/30 rounded-sm p-2">
+            <div className="flex items-center space-x-3 p-2">
+              <div className="flex-shrink-0 w-10 h-10 bg-military-accent/20 border border-military-accent/50 flex items-center justify-center text-military-accent text-sm font-mono">
+                {user?.rank || 'PVT'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-200 truncate uppercase tracking-wide">{user?.name || 'User'}</p>
+                <p className="text-xs text-gray-400 uppercase font-mono">Defense Personnel</p>
+              </div>
+            </div>
             
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
-                {user?.name?.substring(0, 1) || 'U'}
-              </div>
-              <div>
-                <p className="text-sm font-medium profile-name">{user?.name || 'User'}</p>
-                <p className="text-xs profile-role">{user?.rank || 'Member'}</p>
-              </div>
+            <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-700/40">
+              <button 
+                onClick={toggleTheme}
+                className="p-2 rounded-sm hover:bg-military-blue/30 transition-colors"
+                title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              >
+                {theme === 'light' ? 
+                  <Moon className="h-4 w-4 text-gray-200" /> : 
+                  <Sun className="h-4 w-4 text-gray-200" />
+                }
+              </button>
+              
+              <button 
+                className="p-2 rounded-sm hover:bg-military-blue/30 transition-colors"
+                title="Log out"
+              >
+                <LogOut className="h-4 w-4 text-gray-200" />
+              </button>
             </div>
           </div>
         </div>
@@ -186,19 +203,23 @@ const Sidebar = ({
 
   return (
     <aside className={`sidebar hidden md:flex flex-col ${sidebarCollapsed ? 'collapsed' : ''}`}>
-      <div className="p-4 border-b border-gray-700/50 dark:border-border-primary">
+      <div className="px-3 py-3 border-b border-gray-700/90">
         {!sidebarCollapsed ? (
           <div 
-            className="flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+            className="cursor-pointer hover:opacity-90 transition-opacity"
             onClick={handleLogoClick}
           >
-            <div className="border border-gray-800/70 dark:border-gray-100/70 px-4 py-1.5">
-              <h1 className="text-lg font-light tracking-widest text-gray-800 dark:text-gray-100 m-0 font-serif">HandReceipt</h1>
+            <div className="bg-military-navy border-l-4 border-military-accent px-3 py-2">
+              <div className="flex items-center">
+                <Shield className="w-5 h-5 mr-2 text-military-accent" />
+                <h1 className="text-base font-medium tracking-wider text-gray-100 m-0 uppercase">HandReceipt</h1>
+              </div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">Defense Asset System</div>
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-5">
-            {/* Empty div to maintain spacing in collapsed mode */}
+          <div className="flex items-center justify-center h-8">
+            <Shield className="w-6 h-6 text-military-accent" />
           </div>
         )}
       </div>
@@ -214,7 +235,7 @@ const Sidebar = ({
               {item.icon}
               {!sidebarCollapsed && <span>{item.label}</span>}
               {item.notificationCount && !sidebarCollapsed && (
-                <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
+                <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-military-accent">
                   {item.notificationCount}
                 </span>
               )}
@@ -228,7 +249,7 @@ const Sidebar = ({
                 {item.icon}
                 {!sidebarCollapsed && <span>{item.label}</span>}
                 {item.notificationCount && !sidebarCollapsed && (
-                  <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
+                  <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-military-accent">
                     {item.notificationCount}
                   </span>
                 )}
