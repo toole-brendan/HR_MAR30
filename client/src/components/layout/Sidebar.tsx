@@ -20,6 +20,7 @@ import {
   Shield,
   Wrench,
   FileText,
+  User,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -123,19 +124,42 @@ const Sidebar = ({
     icon: <Settings className="sidebar-item-icon" />,
     label: "Settings"
   };
+  
+  const profileAction = {
+    path: "/profile", 
+    icon: <User className="sidebar-item-icon" />,
+    label: "Profile"
+  };
 
   if (isMobile) {
     return (
       <nav className="flex-1 p-4 flex flex-col">
         {/* Mobile Logo */}
         <div 
-          className="flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity mb-4"
+          className="flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity mb-2"
           onClick={handleLogoClick}
         >
           <div className="border border-gray-800/70 dark:border-gray-100/70 px-4 py-1.5">
             <h1 className="text-lg font-light tracking-widest text-gray-800 dark:text-gray-100 m-0 font-serif">HandReceipt</h1>
           </div>
         </div>
+        
+        {/* First divider after logo */}
+        <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
+        
+        {/* User Profile section */}
+        <div className="flex items-center cursor-pointer mb-3">
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium mr-3">
+            J
+          </div>
+          <div>
+            <p className="text-sm font-medium profile-name">SSG Doe, John</p>
+            <p className="text-xs profile-role text-gray-500">Supply NCO</p>
+          </div>
+        </div>
+        
+        {/* Second divider after user profile */}
+        <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
         
         {/* Main navigation section */}
         <div className="flex-1 space-y-1">
@@ -177,13 +201,13 @@ const Sidebar = ({
         {/* Footer section */}
         <div className="mt-auto pt-4 space-y-3">
           {/* Footer divider */}
-          <div className="border-t border-gray-700/50 dark:border-gray-200/20 mb-4"></div>
+          <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
           
-          {/* QR Scanner quick action button */}
+          {/* QR Scanner button */}
           <div 
             key={qrScanAction.path}
             onClick={() => handleLinkClick(qrScanAction.onClick)}
-            className="sidebar-item bg-primary/10 hover:bg-primary/20 py-3"
+            className="sidebar-item bg-primary/10 hover:bg-primary/20"
           >
             {qrScanAction.icon}
             <span>{qrScanAction.label}</span>
@@ -193,28 +217,28 @@ const Sidebar = ({
           <Link href={settingsAction.path}>
             <div 
               onClick={() => handleLinkClick()}
-              className={`sidebar-item ${isActive(settingsAction.path) ? "active" : ""} py-3`}
+              className={`sidebar-item ${isActive(settingsAction.path) ? "active" : ""}`}
             >
               {settingsAction.icon}
               <span>{settingsAction.label}</span>
             </div>
           </Link>
           
-          {/* User profile */}
-          <div className="sidebar-item py-3 cursor-pointer">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium mr-3">
-              J
+          {/* Profile link */}
+          <Link href="/profile">
+            <div
+              className={`sidebar-item ${isActive("/profile") ? "active" : ""}`}
+              onClick={() => handleLinkClick()}
+            >
+              <User className="sidebar-item-icon" />
+              <span>Profile</span>
             </div>
-            <div>
-              <p className="text-sm font-medium profile-name">SSG Doe, John</p>
-              <p className="text-xs profile-role text-gray-500">Supply NCO</p>
-            </div>
-          </div>
+          </Link>
           
           {/* Footer controls divider */}
           <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
           
-          {/* Theme and collapse controls */}
+          {/* Theme toggle button */}
           <div className="flex items-center justify-between px-2">
             <button 
               onClick={toggleTheme}
@@ -234,6 +258,7 @@ const Sidebar = ({
 
   return (
     <aside className={`sidebar hidden md:flex flex-col ${sidebarCollapsed ? 'collapsed' : ''}`}>
+      {/* Logo section */}
       <div className="p-4 border-b border-gray-700/50 dark:border-border-primary">
         {!sidebarCollapsed ? (
           <div 
@@ -251,8 +276,29 @@ const Sidebar = ({
         )}
       </div>
       
+      {/* User Profile section after logo */}
+      <div className="py-3 px-4 border-b border-gray-700/50 dark:border-gray-200/20">
+        {!sidebarCollapsed ? (
+          <div className="flex items-center cursor-pointer">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium mr-3">
+              J
+            </div>
+            <div>
+              <p className="text-sm font-medium profile-name">SSG Doe, John</p>
+              <p className="text-xs profile-role text-gray-500">Supply NCO</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium cursor-pointer">
+              J
+            </div>
+          </div>
+        )}
+      </div>
+      
       <div className="flex flex-col flex-1">
-        {/* Main navigation items - top section */}
+        {/* Main navigation items section */}
         <nav className={`flex-1 px-2 py-4 space-y-1 overflow-y-auto ${sidebarCollapsed ? 'collapsed' : ''}`}>
           {navItems.map((item) => 
             item.onClick ? (
@@ -288,8 +334,8 @@ const Sidebar = ({
           )}
         </nav>
         
-        {/* Footer section with quick actions and user profile */}
-        <div className={`mt-auto px-2 pt-2 pb-4 space-y-4 ${sidebarCollapsed ? 'text-center' : ''}`}>
+        {/* Bottom action links section */}
+        <div className={`mt-auto px-2 pt-2 pb-4 space-y-3 ${sidebarCollapsed ? 'text-center' : ''}`}>
           {/* Divider before quick actions */}
           <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
           
@@ -297,7 +343,7 @@ const Sidebar = ({
           <div 
             key={qrScanAction.path}
             onClick={() => handleLinkClick(qrScanAction.onClick)}
-            className={`sidebar-item ${isActive(qrScanAction.path) ? "active" : ""} bg-primary/10 hover:bg-primary/20 py-3`}
+            className={`sidebar-item ${isActive(qrScanAction.path) ? "active" : ""} bg-primary/10 hover:bg-primary/20`}
           >
             {qrScanAction.icon}
             {!sidebarCollapsed && <span>{qrScanAction.label}</span>}
@@ -306,7 +352,7 @@ const Sidebar = ({
           {/* Settings link */}
           <Link href={settingsAction.path}>
             <div
-              className={`sidebar-item ${isActive(settingsAction.path) ? "active" : ""} py-3`}
+              className={`sidebar-item ${isActive(settingsAction.path) ? "active" : ""}`}
               onClick={() => handleLinkClick()}
             >
               {settingsAction.icon}
@@ -314,24 +360,16 @@ const Sidebar = ({
             </div>
           </Link>
           
-          {/* User profile */}
-          {!sidebarCollapsed ? (
-            <div className="sidebar-item py-3 cursor-pointer">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium mr-3">
-                J
-              </div>
-              <div>
-                <p className="text-sm font-medium profile-name">SSG Doe, John</p>
-                <p className="text-xs profile-role text-gray-500">Supply NCO</p>
-              </div>
+          {/* Profile link */}
+          <Link href="/profile">
+            <div
+              className={`sidebar-item ${isActive("/profile") ? "active" : ""}`}
+              onClick={() => handleLinkClick()}
+            >
+              <User className="sidebar-item-icon" />
+              {!sidebarCollapsed && <span>Profile</span>}
             </div>
-          ) : (
-            <div className="flex justify-center py-2">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium cursor-pointer">
-                J
-              </div>
-            </div>
-          )}
+          </Link>
           
           {/* Divider before controls */}
           <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
