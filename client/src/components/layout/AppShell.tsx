@@ -1,73 +1,90 @@
 import { useState } from "react";
-import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
 import Sidebar from "./Sidebar";
 import TopNavBar from "./TopNavBar";
 import MobileMenu from "./MobileMenu";
-import QRScannerModal from "../modals/QRScannerModal";
-import NotificationPanel from "../modals/NotificationPanel";
+import MobileNav from "./MobileNav";
+import NotificationPanel from "@/components/modals/NotificationPanel";
+import QRScannerModal from "@/components/shared/QRScannerModal";
+import { useApp } from "@/context/AppContext";
+import { cn } from "@/lib/utils";
 
 interface AppShellProps {
   children: React.ReactNode;
 }
 
 const AppShell: React.FC<AppShellProps> = ({ children }) => {
-  const { theme } = useApp();
+  const { isAuthenticated } = useAuth();
+  const { sidebarCollapsed } = useApp();
+  
+  // State for mobile menu, scanner, and notifications
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
-  const openScanner = () => {
-    setScannerOpen(true);
-  };
-
-  const closeScanner = () => {
-    setScannerOpen(false);
-  };
-
-  const openNotifications = () => {
-    setNotificationsOpen(true);
-  };
-
-  const closeNotifications = () => {
-    setNotificationsOpen(false);
-  };
-
-  return (
-    <div className={`flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
-      {/* Sidebar - Desktop only */}
-      <Sidebar openQRScanner={openScanner} />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Navigation Bar */}
-        <TopNavBar 
-          toggleMobileMenu={toggleMobileMenu}
-          openScanner={openScanner}
-          openNotifications={openNotifications}
-        />
-
-        {/* Mobile Navigation - Shown/hidden based on mobile menu state */}
-        <MobileMenu 
-          isOpen={mobileMenuOpen} 
-          onClose={() => setMobileMenuOpen(false)}
-          openQRScanner={openScanner}
-        />
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4">
+  
+  // Handlers for opening/closing various panels
+  const openScanner = () => setScannerOpen(true);
+  const openNotifications = () => setNotificationsOpen(true);
+  
+  if (!isAuthenticated) {
+    // Render a simpler layout for unauthenticated pages (login)
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1">
           {children}
         </main>
       </div>
+    );
+  }
 
+  return (
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+      {/* Sidebar - hidden on mobile */}
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
+      
+      {/* Mobile menu */}
+      <MobileMenu 
+        isOpen={mobileMenuOpen} 
+        onClose={() => setMobileMenuOpen(false)} 
+        openQRScanner={openScanner}
+      />
+      
+      {/* Mobile nav bar - fixed at bottom */}
+      <div className="md:hidden">
+        <MobileNav openQRScanner={openScanner} />
+      </div>
+      
+      {/* Main content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Nav Bar */}
+        <TopNavBar 
+          toggleMobileMenu={() => setMobileMenuOpen(true)} 
+          openScanner={openScanner}
+          openNotifications={openNotifications}
+        />
+        
+        {/* Main content area */}
+        <main className={cn(
+          "flex-1 overflow-y-auto transition-all duration-300 ease-in-out pb-16 md:pb-0",
+          sidebarCollapsed ? "md:ml-20" : "md:ml-64"
+        )}>
+          {children}
+        </main>
+      </div>
+      
       {/* QR Scanner Modal */}
-      <QRScannerModal isOpen={scannerOpen} onClose={closeScanner} />
-
+      <QRScannerModal
+        isOpen={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+      />
+      
       {/* Notification Panel */}
-      <NotificationPanel isOpen={notificationsOpen} onClose={closeNotifications} />
+      <NotificationPanel
+        isOpen={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+      />
     </div>
   );
 };

@@ -164,27 +164,26 @@ const Sidebar = ({
                   )}
                 </button>
               ) : (
-                <Link href={item.path}>
-                  <a
-                    onClick={() => handleNavClick()}
-                    className={cn(
-                      "group flex items-center w-full p-2 rounded-md text-sm font-medium transition-colors",
-                      isActive(item.path)
-                        ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800",
-                      sidebarCollapsed && !isMobile ? "justify-center" : ""
-                    )}
-                  >
-                    <span className="flex-shrink-0">{item.icon}</span>
-                    {(!sidebarCollapsed || isMobile) && (
-                      <span className="ml-3">{item.label}</span>
-                    )}
-                    {item.notificationCount && (!sidebarCollapsed || isMobile) && (
-                      <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
-                        {item.notificationCount}
-                      </span>
-                    )}
-                  </a>
+                <Link 
+                  href={item.path}
+                  onClick={() => handleNavClick()}
+                  className={cn(
+                    "group flex items-center w-full p-2 rounded-md text-sm font-medium transition-colors",
+                    isActive(item.path)
+                      ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800",
+                    sidebarCollapsed && !isMobile ? "justify-center" : ""
+                  )}
+                >
+                  <span className="flex-shrink-0">{item.icon}</span>
+                  {(!sidebarCollapsed || isMobile) && (
+                    <span className="ml-3">{item.label}</span>
+                  )}
+                  {item.notificationCount && (!sidebarCollapsed || isMobile) && (
+                    <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
+                      {item.notificationCount}
+                    </span>
+                  )}
                 </Link>
               )}
             </li>
