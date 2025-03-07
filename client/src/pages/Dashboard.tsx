@@ -257,7 +257,7 @@ const Dashboard: React.FC = () => {
     <div className="bg-black text-gray-200 min-h-screen w-full px-4 pb-4 pt-2">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl text-blue-400 tracking-wide">DASHBOARD</h1>
+        <div></div> {/* Empty div to maintain layout structure */}
         <div className="flex gap-2">
           <Button variant="outline" className="border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs">
             <FileText className="h-4 w-4 mr-2" /> Generate Reports
