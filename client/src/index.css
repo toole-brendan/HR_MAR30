@@ -263,6 +263,7 @@
   .main-content {
     @apply transition-all duration-300 min-h-screen bg-background flex-1;
     margin-left: var(--sidebar-width);
+    margin-top: -16px; /* Negative margin to remove the gap */
     max-width: calc(100% - var(--sidebar-width));
   }
 
@@ -275,6 +276,7 @@
   @media (max-width: 768px) {
     .main-content, .main-content.sidebar-collapsed {
       margin-left: 0;
+      margin-top: -16px; /* Apply the same negative margin on mobile */
       max-width: 100%;
       width: 100%;
       padding-bottom: var(--mobile-nav-height);
@@ -416,7 +418,7 @@
   .page-wrapper {
     @apply mx-auto transition-all duration-200;
     max-width: var(--content-max-width);
-    padding: var(--page-padding-y) var(--page-padding-x);
+    padding: 0 var(--page-padding-x) var(--page-padding-y); /* Remove top padding */
   }
   
   /* Content containers with controlled width */
