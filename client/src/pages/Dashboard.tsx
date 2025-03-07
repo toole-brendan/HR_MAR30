@@ -711,8 +711,8 @@ const Dashboard: React.FC = () => {
               />
             </div>
             <div className="flex">
-              <button className="px-3 py-1 bg-gray-800 text-gray-300 text-xs rounded-l">All Items</button>
-              <button className="px-3 py-1 bg-gray-900 text-gray-500 text-xs border border-gray-700 rounded-r">Issues Only</button>
+              <button className="px-3 py-1 bg-gray-800 text-gray-300 text-xs rounded-none btn-sharp">All Items</button>
+              <button className="px-3 py-1 bg-gray-900 text-gray-500 text-xs border border-gray-700 rounded-none btn-sharp">Issues Only</button>
             </div>
           </div>
         </div>
@@ -737,7 +737,7 @@ const Dashboard: React.FC = () => {
                   <td className="py-3">{item.serialNumber}</td>
                   <td className="py-3">
                     <span 
-                      className="px-2 py-1 rounded text-xs" 
+                      className="px-2 py-1 rounded-none text-xs" 
                       style={{ 
                         backgroundColor: `${item.statusColor}20`, 
                         color: item.statusColor 
@@ -750,7 +750,7 @@ const Dashboard: React.FC = () => {
                   <td className="py-3">{item.issue}</td>
                   <td className="py-3">
                     <button 
-                      className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-blue-400 rounded text-xs"
+                      className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-blue-400 rounded-none text-xs btn-sharp"
                     >
                       {item.action}
                     </button>
@@ -773,7 +773,7 @@ const Dashboard: React.FC = () => {
       {/* BOTTOM SECTION - REQUIREMENTS AND ACTIVITY */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* UPCOMING ACCOUNTABILITY REQUIREMENTS */}
-        <div className="bg-gray-900 border border-gray-800 rounded p-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-none p-4 dashboard-card">
           <h3 className="text-sm text-gray-300 uppercase mb-4 font-medium tracking-wider">
             UPCOMING ACCOUNTABILITY REQUIREMENTS
           </h3>
@@ -821,7 +821,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* PROPERTY ACCOUNTABILITY ACTIVITY */}
-        <div className="bg-gray-900 border border-gray-800 rounded p-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-none p-4 dashboard-card">
           <h3 className="text-sm text-gray-300 uppercase mb-4 font-medium tracking-wider">
             PROPERTY ACCOUNTABILITY ACTIVITY
           </h3>
@@ -848,7 +848,7 @@ const Dashboard: React.FC = () => {
                     <td className="py-2">{item.details}</td>
                     <td className="py-2">
                       <span 
-                        className={`px-2 py-1 rounded text-xs ${
+                        className={`px-2 py-1 rounded-none text-xs ${
                           item.status === 'Complete' 
                             ? 'bg-green-900/30 text-green-400' 
                             : 'bg-blue-900/30 text-blue-400'
@@ -867,7 +867,7 @@ const Dashboard: React.FC = () => {
 
       {/* Floating Action Button */}
       <div className="fixed bottom-6 right-6">
-        <button className="p-3 bg-blue-800 hover:bg-blue-700 text-white rounded-full shadow-lg">
+        <button className="p-3 bg-blue-800 hover:bg-blue-700 text-white rounded-none btn-sharp shadow-lg">
           <Plus className="h-6 w-6" />
         </button>
       </div>
