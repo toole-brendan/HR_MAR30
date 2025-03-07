@@ -13,7 +13,8 @@ import QRScannerModal from "@/components/shared/QRScannerModal";
 import NotificationPanel from "@/components/modals/NotificationPanel";
 import InventoryAnalytics from "@/components/reports/InventoryAnalytics";
 import { useAuth } from "@/context/AuthContext";
-import { StandardPageLayout } from "@/components/layout/StandardPageLayout";
+import { PageHeader } from "@/components/ui/page-header";
+import { PageWrapper } from "@/components/ui/page-wrapper";
 import { FileDown, Bell, QrCode } from "lucide-react";
 
 const Dashboard: React.FC = () => {
@@ -48,20 +49,22 @@ const Dashboard: React.FC = () => {
   );
 
   return (
-    <StandardPageLayout 
-      title="Dashboard" 
-      description={
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <span>Welcome back, {user?.name}. You have {pendingTransfers} pending transfer requests.</span>
-          <div className="text-xs font-mono bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded">
-            {securityClassification}
+    <PageWrapper>
+      {/* Page Header with consistent spacing */}
+      <PageHeader
+        title="Dashboard"
+        description={
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <span>Welcome back, {user?.name}. You have {pendingTransfers} pending transfer requests.</span>
+            <div className="text-xs font-mono bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded">
+              {securityClassification}
+            </div>
           </div>
-        </div>
-      }
-      actions={actions}
-      size="xl" // Use the largest size for dashboard
-      withPadding={true}
-    >
+        }
+        actions={actions}
+        className="mb-4 sm:mb-5 md:mb-6"
+      />
+
       {/* Top section with responsive grid that changes columns based on viewport */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6 mb-4 sm:mb-5 md:mb-6">
         <Card className="transition-all duration-200">
@@ -270,7 +273,7 @@ const Dashboard: React.FC = () => {
         isOpen={scannerOpen} 
         onClose={() => setScannerOpen(false)} 
       />
-    </StandardPageLayout>
+    </PageWrapper>
   );
 };
 

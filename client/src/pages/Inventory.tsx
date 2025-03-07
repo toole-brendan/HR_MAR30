@@ -14,7 +14,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useToast } from "@/hooks/use-toast";
 import QRCodeGenerator from "@/components/common/QRCodeGenerator";
 import TransferRequestModal from "@/components/modals/TransferRequestModal";
-import { StandardPageLayout } from "@/components/layout/StandardPageLayout";
+import { PageHeader } from "@/components/ui/page-header";
+import { PageWrapper } from "@/components/ui/page-wrapper";
+import { Search, Filter, Plus } from "lucide-react";
 
 const Inventory: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,11 +46,23 @@ const Inventory: React.FC = () => {
     setDetailsModalOpen(true);
   };
 
+  // Page actions for consistent header layout
+  const actions = (
+    <Button size="sm" className="flex items-center gap-1">
+      <Plus className="h-4 w-4" />
+      <span>Add New Equipment</span>
+    </Button>
+  );
+
   return (
-    <StandardPageLayout
-      title="Inventory"
-      description="Track and manage your military equipment"
-    >
+    <PageWrapper withPadding={true}>
+      <PageHeader
+        title="Inventory"
+        description="Track and manage your military equipment"
+        actions={actions}
+        className="mb-4 sm:mb-5 md:mb-6"
+      />
+      
       <Card>
         <CardHeader>
           <CardTitle>Equipment Inventory</CardTitle>
@@ -63,7 +77,7 @@ const Inventory: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
-              <i className="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             </div>
             <div className="w-full md:w-48">
               <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -80,19 +94,19 @@ const Inventory: React.FC = () => {
             </div>
           </div>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {filteredInventory.length === 0 ? (
-              <div className="py-4 text-center text-gray-500">No items found</div>
+              <div className="py-4 text-center text-gray-500 dark:text-gray-400">No items found</div>
             ) : (
               filteredInventory.map((item) => (
                 <div key={item.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between">
                   <div className="flex items-center mb-3 sm:mb-0">
-                    <div className="h-10 w-10 bg-[#4B5320] rounded-full flex items-center justify-center text-white">
-                      <i className="fas fa-box"></i>
+                    <div className="h-10 w-10 bg-[#4B5320] dark:bg-[#5A6433] rounded-full flex items-center justify-center text-white">
+                      <Filter className="h-5 w-5" />
                     </div>
                     <div className="ml-4">
                       <h4 className="font-medium">{item.name}</h4>
-                      <div className="flex flex-col sm:flex-row sm:items-center text-sm text-gray-500">
+                      <div className="flex flex-col sm:flex-row sm:items-center text-sm text-gray-500 dark:text-gray-400">
                         <span className="font-mono">SN: {item.serialNumber}</span>
                         <span className="hidden sm:inline mx-2">•</span>
                         <span>Assigned: {item.assignedDate}</span>
@@ -106,7 +120,6 @@ const Inventory: React.FC = () => {
                       onClick={() => handleTransferRequest(item)}
                       className="flex items-center space-x-1"
                     >
-                      <i className="fas fa-exchange-alt mr-1"></i>
                       <span>Transfer</span>
                     </Button>
                     <QRCodeGenerator 
@@ -119,7 +132,6 @@ const Inventory: React.FC = () => {
                       onClick={() => handleViewDetails(item)}
                       className="flex items-center space-x-1"
                     >
-                      <i className="fas fa-info-circle mr-1"></i>
                       <span>Details</span>
                     </Button>
                   </div>
@@ -157,24 +169,24 @@ const Inventory: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-gray-500">Category</p>
+                  <p className="text-gray-500 dark:text-gray-400">Category</p>
                   <p>Tactical Equipment</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Status</p>
+                  <p className="text-gray-500 dark:text-gray-400">Status</p>
                   <p>Active</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Assigned Date</p>
+                  <p className="text-gray-500 dark:text-gray-400">Assigned Date</p>
                   <p>Mar 15, 2024</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Last Inspection</p>
+                  <p className="text-gray-500 dark:text-gray-400">Last Inspection</p>
                   <p>Feb 28, 2024</p>
                 </div>
               </div>
               <div className="border-t pt-2">
-                <p className="text-gray-500 text-sm">Service History</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Service History</p>
                 <ul className="text-sm space-y-1 mt-1">
                   <li>- Maintenance check (Jan 2024)</li>
                   <li>- Battery replacement (Dec 2023)</li>
@@ -185,7 +197,7 @@ const Inventory: React.FC = () => {
           </DialogContent>
         </Dialog>
       )}
-    </StandardPageLayout>
+    </PageWrapper>
   );
 };
 

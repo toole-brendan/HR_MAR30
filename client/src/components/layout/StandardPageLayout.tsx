@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { PageHeader } from '@/components/ui/page-header';
 import { cn } from '@/lib/utils';
-import ResponsiveContainer from '@/components/ui/responsive-container';
+import { usePageLayout } from '@/hooks/use-page-layout';
 
 interface StandardPageLayoutProps {
   title?: string;
@@ -25,7 +25,7 @@ interface StandardPageLayoutProps {
 
 /**
  * StandardPageLayout - A consistent wrapper for all pages
- * Uses ResponsiveContainer for dynamic viewport scaling
+ * Uses the usePageLayout hook for dynamic viewport scaling
  */
 export function StandardPageLayout({
   title,
@@ -37,13 +37,29 @@ export function StandardPageLayout({
   withPadding = true,
   display = 'block'
 }: StandardPageLayoutProps) {
+  // Map size prop to width prop for usePageLayout
+  const widthMap = {
+    'sm': 'narrow',
+    'md': 'default',
+    'lg': 'wide',
+    'xl': 'wide',
+    'full': 'full'
+  } as const;
+  
+  const { layoutClasses } = usePageLayout({
+    width: widthMap[size] || 'default',
+    fullWidth: size === 'full',
+    basePadding: withPadding ? 'page-wrapper' : '',
+    containerClasses: className,
+    responsiveScaling: true
+  });
+
   return (
-    <ResponsiveContainer
-      size={size}
-      withPadding={withPadding}
-      display={display}
-      className={cn('standard-page h-full', className)}
-    >
+    <div className={cn(
+      'standard-page',
+      display === 'flex' ? 'flex flex-col' : display === 'grid' ? 'grid' : '',
+      layoutClasses
+    )}>
       {title && (
         <PageHeader
           title={title}
@@ -52,10 +68,13 @@ export function StandardPageLayout({
           className="mb-4 sm:mb-5 md:mb-6"
         />
       )}
-      <div className="w-full flex-1 min-h-0">
+      <div className={cn(
+        "w-full", 
+        display === 'flex' ? 'flex-1 min-h-0' : ''
+      )}>
         {children}
       </div>
-    </ResponsiveContainer>
+    </div>
   );
 }
 
