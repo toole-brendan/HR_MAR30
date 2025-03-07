@@ -254,7 +254,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="bg-black text-gray-200 min-h-screen w-full p-4">
+    <div className="bg-black text-gray-200 min-h-screen w-full px-4 pb-4 pt-0">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl text-blue-400 tracking-wide">DASHBOARD</h1>
