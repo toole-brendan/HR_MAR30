@@ -268,32 +268,29 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* OVERVIEW PANEL */}
-      <div className="bg-gray-900 border border-gray-800 mb-6 rounded">
-        <div className="p-4">
-          <div className="flex justify-between items-center mb-2">
-            <div>
-              <h2 className="text-xl font-medium">Dashboard</h2>
-              <p className="text-sm text-gray-400">CPT Rodriguez</p>
-            </div>
-            <div className="text-right text-xs text-gray-400">
-              Last updated: 25FEB2025 0842
-            </div>
-          </div>
-          
-          <div className="flex flex-wrap gap-2 mt-4">
-            <div className="bg-blue-900/40 p-3 rounded flex-1 text-center">
-              <div className="text-xs text-blue-300 mb-1">Total Value</div>
-              <div className="text-xl font-bold">$4</div>
-            </div>
-            <div className="bg-green-900/30 p-3 rounded flex-1 text-center">
-              <div className="text-xs text-green-300 mb-1">Equipment Items</div>
-              <div className="text-xl font-bold">721</div>
-            </div>
-            <div className="bg-green-900/20 p-3 rounded flex-1 text-center">
-              <div className="text-xs text-green-300 mb-1">Sensitive Items 100% Verified</div>
-            </div>
-          </div>
+      {/* DASHBOARD INFO ROW */}
+      <div className="mb-2 flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-medium">Dashboard</h2>
+          <p className="text-sm text-gray-400">CPT Rodriguez</p>
+        </div>
+        <div className="text-right text-xs text-gray-400">
+          Last updated: 25FEB2025 0842
+        </div>
+      </div>
+      
+      {/* TOP INFO CARDS */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <div className="bg-blue-900/40 p-3 rounded flex-1 text-center">
+          <div className="text-xs text-blue-300 mb-1">Total Value</div>
+          <div className="text-xl font-bold">$4</div>
+        </div>
+        <div className="bg-green-900/30 p-3 rounded flex-1 text-center">
+          <div className="text-xs text-green-300 mb-1">Equipment Items</div>
+          <div className="text-xl font-bold">721</div>
+        </div>
+        <div className="bg-green-900/20 p-3 rounded flex-1 text-center">
+          <div className="text-xs text-green-300 mb-1">Sensitive Items 100% Verified</div>
         </div>
       </div>
 
