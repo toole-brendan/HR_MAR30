@@ -383,7 +383,7 @@ const Maintenance: React.FC = () => {
               {selectedItem.partsRequired && selectedItem.partsRequired.length > 0 && (
                 <div className="border rounded-md p-4">
                   <h3 className="text-lg font-medium mb-2 flex items-center">
-                    <Tool className="mr-2 h-4 w-4" />
+                    <Hammer className="mr-2 h-4 w-4" />
                     Required Parts
                   </h3>
                   <div className="overflow-x-auto">
@@ -745,8 +745,8 @@ const MaintenanceItemRow: React.FC<MaintenanceItemRowProps> = ({
     case 'weapon': CategoryIcon = Sword; break;
     case 'vehicle': CategoryIcon = Truck; break;
     case 'communication': CategoryIcon = Radio; break;
-    case 'optics': CategoryIcon = Eye; break;
-    default: CategoryIcon = Tool;
+    case 'optics': CategoryIcon = Search; break;
+    default: CategoryIcon = Hammer;
   }
 
   return (
