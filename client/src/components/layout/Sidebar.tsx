@@ -149,7 +149,7 @@ const Sidebar = ({
         
         {/* User Profile section */}
         <div className="flex items-center cursor-pointer mb-3">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium mr-3">
+          <div className="w-8 h-8 rounded-full bg-venture-purple flex items-center justify-center text-white text-sm font-medium mr-3">
             M
           </div>
           <div>
@@ -174,7 +174,7 @@ const Sidebar = ({
                 {item.icon}
                 <span>{item.label}</span>
                 {item.notificationCount && (
-                  <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
+                  <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-venture-purple rounded-full">
                     {item.notificationCount}
                   </span>
                 )}
@@ -188,7 +188,7 @@ const Sidebar = ({
                   {item.icon}
                   <span>{item.label}</span>
                   {item.notificationCount && (
-                    <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
+                    <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-venture-purple rounded-full">
                       {item.notificationCount}
                     </span>
                   )}
@@ -280,7 +280,7 @@ const Sidebar = ({
       <div className="py-3 px-4 border-b border-gray-700/50 dark:border-gray-200/20">
         {!sidebarCollapsed ? (
           <div className="flex items-center cursor-pointer">
-            <div className="w-8 h-8 rounded-full bg-[#3B5BDB] flex items-center justify-center text-white text-sm font-medium mr-3">
+            <div className="w-8 h-8 rounded-full bg-venture-purple flex items-center justify-center text-white text-sm font-medium mr-3">
               M
             </div>
             <div>
@@ -290,7 +290,7 @@ const Sidebar = ({
           </div>
         ) : (
           <div className="flex justify-center">
-            <div className="w-8 h-8 rounded-full bg-[#3B5BDB] flex items-center justify-center text-white text-sm font-medium cursor-pointer">
+            <div className="w-8 h-8 rounded-full bg-venture-purple flex items-center justify-center text-white text-sm font-medium cursor-pointer">
               M
             </div>
           </div>
@@ -310,7 +310,7 @@ const Sidebar = ({
                 {item.icon}
                 {!sidebarCollapsed && <span>{item.label}</span>}
                 {item.notificationCount && !sidebarCollapsed && (
-                  <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
+                  <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-venture-purple rounded-full">
                     {item.notificationCount}
                   </span>
                 )}
