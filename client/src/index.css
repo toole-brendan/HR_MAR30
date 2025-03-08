@@ -132,9 +132,6 @@
   --chart-4: 40 90% 50%;
   --chart-5: 260 80% 50%;
   
-  /* Page header title color */
-  --header-title: 210 70% 60%;
-  
   /* Sidebar colors */
   --sidebar-background: 0 0% 0%; /* Black background for sidebar */
   --sidebar-foreground: 0 0% 95%; /* Light text for contrast */

@@ -26,7 +26,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       className
     )}>
       <div className="flex-1 min-w-0">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate" style={{ color: 'hsl(var(--header-title))' }}>{title}</h1>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate">{title}</h1>
         {description && (
           <div className="mt-1 sm:mt-1.5 md:mt-2 text-xs sm:text-sm text-muted-foreground">
             {description}
