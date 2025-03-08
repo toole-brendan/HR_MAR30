@@ -83,14 +83,14 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
 
   return (
     <>
-      <Button 
-        variant="outline" 
-        onClick={() => setIsDialogOpen(true)}
-        className="bg-[#3B5BDB] hover:bg-[#364FC7] text-white inline-flex items-center justify-center px-4 py-2 min-w-[180px] max-w-[200px]"
-      >
-        <i className="fas fa-qrcode mr-2"></i>
-        <span>Generate QR Code</span>
-      </Button>
+      <div className="flex justify-center">
+        <button 
+          onClick={() => setIsDialogOpen(true)}
+          className="bg-[#3B5BDB] hover:bg-[#364FC7] text-white rounded-md h-9 px-4 text-sm font-medium w-[160px] flex items-center justify-center"
+        >
+          Generate QR Code
+        </button>
+      </div>
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -124,12 +124,12 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
           
           {!qrImage ? (
             <div className="flex justify-center py-4">
-              <Button 
-                onClick={generateQRCode} 
-                className="bg-[#3B5BDB] hover:bg-[#364FC7] inline-flex items-center justify-center px-4 py-2 min-w-[180px] max-w-[200px]"
+              <button 
+                onClick={generateQRCode}
+                className="bg-[#3B5BDB] hover:bg-[#364FC7] text-white rounded-md h-9 px-4 text-sm font-medium w-[160px] flex items-center justify-center"
               >
                 Generate QR Code
-              </Button>
+              </button>
             </div>
           ) : (
             <Card className="border-dashed">
@@ -139,36 +139,31 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
                   <p className="font-bold">{itemName}</p>
                   <p className="font-mono">{serialNumber}</p>
                 </div>
-                <div className="flex space-x-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                <div className="flex space-x-4">
+                  <button 
                     onClick={handlePrint}
-                    className="inline-flex items-center justify-center px-4 py-1 min-w-[100px]"
+                    className="border border-gray-300 bg-white text-gray-700 rounded-md h-8 px-3 text-sm font-medium w-[80px] flex items-center justify-center"
                   >
-                    <i className="fas fa-print mr-2"></i> Print
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="text-red-500 inline-flex items-center justify-center px-4 py-1 min-w-[100px]" 
+                    Print
+                  </button>
+                  <button 
                     onClick={handleReport}
+                    className="border border-red-300 bg-white text-red-500 rounded-md h-8 px-3 text-sm font-medium w-[80px] flex items-center justify-center"
                   >
-                    <i className="fas fa-exclamation-triangle mr-2"></i> Report Issue
-                  </Button>
+                    Report
+                  </button>
                 </div>
               </CardContent>
             </Card>
           )}
           
           <DialogFooter className="sm:justify-start">
-            <Button 
-              variant="secondary" 
+            <button 
               onClick={() => setIsDialogOpen(false)}
-              className="inline-flex items-center justify-center px-4 py-2 min-w-[100px]"
+              className="bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md h-8 px-3 text-sm font-medium w-[80px] flex items-center justify-center"
             >
               Close
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
