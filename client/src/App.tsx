@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import SensitiveItems from "./pages/SensitiveItems";
 import Maintenance from "./pages/Maintenance";
 import QRManagement from "./pages/QRManagement";
+import Reports from "./pages/Reports";
 
 function Router() {
   // Always show the app shell with dashboard as default
@@ -31,6 +32,7 @@ function Router() {
         <Route path="/sensitive-items" component={SensitiveItems} />
         <Route path="/maintenance" component={Maintenance} />
         <Route path="/qr-management" component={QRManagement} />
+        <Route path="/reports" component={Reports} />
         <Route path="/audit-log" component={AuditLog} />
         <Route path="/settings" component={Settings} />
         <Route path="/profile" component={Profile} />
