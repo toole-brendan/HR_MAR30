@@ -122,6 +122,7 @@ export default {
           "dark-border": "rgba(255,255,255,0.1)",
           "light-border": "rgba(0,0,0,0.1)",
         },
+        "venture-purple": "#6941C6",
       },
       boxShadow: {
         'subtle': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',

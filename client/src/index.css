@@ -397,13 +397,13 @@
   
   /* Military-style button variations */
   .btn-military {
-    @apply bg-military-blue text-white font-medium py-2 px-4 rounded-sm shadow-military 
-    hover:bg-military-navy transition-all duration-200;
+    @apply bg-venture-purple text-white font-medium py-2 px-4 rounded-sm shadow-military 
+    hover:bg-venture-purple/90 transition-all duration-200;
   }
   
   .btn-military-outline {
-    @apply border border-military-blue text-military-blue bg-transparent font-medium py-2 px-4 rounded-sm 
-    hover:bg-military-blue/10 transition-all duration-200;
+    @apply border border-venture-purple text-venture-purple bg-transparent font-medium py-2 px-4 rounded-sm 
+    hover:bg-venture-purple/10 transition-all duration-200;
   }
   
   .btn-military-success {
@@ -422,7 +422,7 @@
   }
   
   .light .btn-military-outline {
-    @apply border-primary-400 text-primary-600 hover:bg-primary-50 hover:border-primary-500;
+    @apply border-venture-purple text-venture-purple hover:bg-venture-purple/10 hover:border-venture-purple;
   }
   
   /* Card styles with military aesthetic */
@@ -648,7 +648,7 @@
   
   /* Light mode badges with better contrast */
   .light .badge-military.primary {
-    @apply bg-primary-100 text-primary-800;
+    @apply bg-venture-purple/20 text-venture-purple;
   }
   
   .light .badge-military.success {
@@ -675,11 +675,11 @@
   
   /* Light mode section headers */
   .light .section-header {
-    @apply border-border text-primary-800;
+    @apply border-border text-venture-purple;
   }
   
   .light .section-subheader {
-    @apply text-primary-700;
+    @apply text-venture-purple/80;
   }
   
   /* Dashboard specific - Sharp corners */
