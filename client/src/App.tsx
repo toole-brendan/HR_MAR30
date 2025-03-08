@@ -15,6 +15,7 @@ import Settings from "./pages/Settings";
 import PropertyBook from "./pages/PropertyBook";
 import Profile from "./pages/Profile";
 import SensitiveItems from "./pages/SensitiveItems";
+import Maintenance from "./pages/Maintenance";
 
 function Router() {
   // Always show the app shell with dashboard as default
@@ -27,6 +28,7 @@ function Router() {
         <Route path="/property-book" component={PropertyBook} />
         <Route path="/inventory" component={Inventory} />
         <Route path="/sensitive-items" component={SensitiveItems} />
+        <Route path="/maintenance" component={Maintenance} />
         <Route path="/audit-log" component={AuditLog} />
         <Route path="/settings" component={Settings} />
         <Route path="/profile" component={Profile} />
