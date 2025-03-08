@@ -150,11 +150,11 @@ const Sidebar = ({
         {/* User Profile section */}
         <div className="flex items-center cursor-pointer mb-3">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium mr-3">
-            J
+            M
           </div>
           <div>
-            <p className="text-sm font-medium profile-name">SSG Doe, John</p>
-            <p className="text-xs profile-role text-gray-500">Supply NCO</p>
+            <p className="text-sm font-medium profile-name">CPT Rodriguez, Michael</p>
+            <p className="text-xs profile-role text-gray-500">Company Commander</p>
           </div>
         </div>
         
@@ -281,17 +281,17 @@ const Sidebar = ({
         {!sidebarCollapsed ? (
           <div className="flex items-center cursor-pointer">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium mr-3">
-              J
+              M
             </div>
             <div>
-              <p className="text-sm font-medium profile-name">SSG Doe, John</p>
-              <p className="text-xs profile-role text-gray-500">Supply NCO</p>
+              <p className="text-sm font-medium profile-name">CPT Rodriguez, Michael</p>
+              <p className="text-xs profile-role text-gray-500">Company Commander</p>
             </div>
           </div>
         ) : (
           <div className="flex justify-center">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium cursor-pointer">
-              J
+              M
             </div>
           </div>
         )}
