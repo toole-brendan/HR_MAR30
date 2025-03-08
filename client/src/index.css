@@ -21,6 +21,23 @@
   font-display: swap;
 }
 
+/* PT Serif Font - Elegant Serif for Branding Elements */
+@font-face {
+  font-family: 'PT Serif';
+  src: url('https://fonts.gstatic.com/s/ptserif/v17/EJRVQgYoZZY2vCFuvAFbzr-tdg.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PT Serif';
+  src: url('https://fonts.gstatic.com/s/ptserif/v17/EJRSQgYoZZY2vCFuvAFb_r-dYadYaA.woff2') format('woff2');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* Layout dimensions */
   --sidebar-width: 250px;
