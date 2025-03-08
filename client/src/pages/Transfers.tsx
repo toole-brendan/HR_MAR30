@@ -304,7 +304,7 @@ const Transfers: React.FC = () => {
         size="sm" 
         variant="outline" 
         onClick={() => setShowScanner(true)}
-        className="flex items-center gap-1"
+        className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white"
       >
         <ScanLine className="h-4 w-4" />
         <span className="hidden sm:inline">Scan QR</span>
@@ -317,7 +317,7 @@ const Transfers: React.FC = () => {
           setShowNewTransfer(true);
           setActiveView('outgoing');
         }}
-        className="flex items-center gap-1"
+        className="flex items-center gap-1 bg-[#3B5BDB] hover:bg-[#364FC7]"
       >
         <Plus className="h-4 w-4" />
         <span className="hidden sm:inline">Initiate Transfer</span>
