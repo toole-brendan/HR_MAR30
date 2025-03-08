@@ -599,16 +599,7 @@ const Transfers: React.FC = () => {
 
   // Get page title based on active view
   const getPageTitle = () => {
-    switch (activeView) {
-      case 'incoming':
-        return "Incoming Transfers";
-      case 'outgoing':
-        return "Outgoing Transfers";
-      case 'history':
-        return "Transfer History";
-      default:
-        return "Transfer Requests";
-    }
+    return "Transfers";
   };
 
   return (

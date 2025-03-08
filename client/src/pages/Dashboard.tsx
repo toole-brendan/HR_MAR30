@@ -95,7 +95,7 @@ export default function Dashboard() {
   return (
     <PageWrapper withPadding={true}>
       <PageHeader
-        title={`Welcome, ${user?.name || 'User'}`}
+        title={`Welcome, CPT Rodriguez`}
         description="HandReceipt Dashboard"
         actions={actions}
         className="mb-4 sm:mb-5 md:mb-6"
