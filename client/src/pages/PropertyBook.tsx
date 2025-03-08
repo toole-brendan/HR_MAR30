@@ -191,7 +191,7 @@ const PropertyBook: React.FC = () => {
               placeholder="Search by name, serial number or assignee"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-white dark:bg-white/10"
             />
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           </div>
