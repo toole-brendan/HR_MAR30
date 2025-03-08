@@ -208,7 +208,7 @@ export default function Dashboard() {
             <CardHeader className="bg-muted/40 pb-2">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Equipment Status</CardTitle>
+                <CardTitle className="text-xl">Equipment Status</CardTitle>
               </div>
               <CardDescription>Overview of equipment readiness and verification</CardDescription>
             </CardHeader>
@@ -345,7 +345,7 @@ export default function Dashboard() {
             <CardHeader className="bg-muted/40 pb-2">
               <div className="flex items-center gap-2">
                 <QrCode className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">QR Management</CardTitle>
+                <CardTitle className="text-xl">QR Management</CardTitle>
               </div>
               <CardDescription>Barcode and QR code status</CardDescription>
             </CardHeader>
@@ -384,7 +384,7 @@ export default function Dashboard() {
             <CardHeader className="bg-muted/40 pb-2">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Team Activity</CardTitle>
+                <CardTitle className="text-xl">Team Activity</CardTitle>
               </div>
               <CardDescription>Recent notifications and updates</CardDescription>
             </CardHeader>

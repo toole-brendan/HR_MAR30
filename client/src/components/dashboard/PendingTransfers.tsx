@@ -95,7 +95,7 @@ const PendingTransfers: React.FC = () => {
       <CardHeader className="bg-muted/40 pb-2">
         <div className="flex items-center gap-2">
           <RepeatIcon className="h-5 w-5 text-primary" />
-          <CardTitle className="text-lg">Pending Transfer Requests</CardTitle>
+          <CardTitle className="text-xl">Pending Transfer Requests</CardTitle>
         </div>
         <CardDescription>Equipment transfer requests requiring approval</CardDescription>
       </CardHeader>

@@ -14,7 +14,7 @@ const RecentActivity: React.FC = () => {
       <CardHeader className="bg-muted/40 pb-2">
         <div className="flex items-center gap-2">
           <Activity className="h-5 w-5 text-primary" />
-          <CardTitle className="text-lg">Recent Activity</CardTitle>
+          <CardTitle className="text-xl">Recent Activity</CardTitle>
         </div>
         <CardDescription>System activity and notifications</CardDescription>
       </CardHeader>

@@ -21,7 +21,7 @@ const MyInventory: React.FC = () => {
       <CardHeader className="bg-muted/40 pb-2">
         <div className="flex items-center gap-2">
           <Package className="h-5 w-5 text-primary" />
-          <CardTitle className="text-lg">My Inventory</CardTitle>
+          <CardTitle className="text-xl">My Inventory</CardTitle>
         </div>
         <CardDescription>Recently assigned equipment</CardDescription>
       </CardHeader>
