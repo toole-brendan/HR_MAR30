@@ -207,7 +207,7 @@ const Sidebar = ({
           <div 
             key={qrScanAction.path}
             onClick={() => handleLinkClick(qrScanAction.onClick)}
-            className="sidebar-item bg-primary/10 hover:bg-primary/20"
+            className="sidebar-item bg-venture-purple/10 hover:bg-venture-purple/20"
           >
             {qrScanAction.icon}
             <span>{qrScanAction.label}</span>
@@ -242,11 +242,11 @@ const Sidebar = ({
           <div className="flex items-center justify-between px-2">
             <button 
               onClick={toggleTheme}
-              className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-blue-900/20 transition-colors"
+              className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-venture-purple/20 transition-colors"
               title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
             >
               {theme === 'light' ? 
-                <Moon className="h-5 w-5 text-primary-700 dark:text-gray-200" /> : 
+                <Moon className="h-5 w-5 text-venture-purple dark:text-gray-200" /> : 
                 <Sun className="h-5 w-5 text-gray-200 dark:text-gray-200" />
               }
             </button>
@@ -324,7 +324,7 @@ const Sidebar = ({
                   {item.icon}
                   {!sidebarCollapsed && <span>{item.label}</span>}
                   {item.notificationCount && !sidebarCollapsed && (
-                    <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-blue-600 rounded-full">
+                    <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-venture-purple rounded-full">
                       {item.notificationCount}
                     </span>
                   )}
@@ -343,7 +343,7 @@ const Sidebar = ({
           <div 
             key={qrScanAction.path}
             onClick={() => handleLinkClick(qrScanAction.onClick)}
-            className={`sidebar-item ${isActive(qrScanAction.path) ? "active" : ""} bg-primary/10 hover:bg-primary/20`}
+            className={`sidebar-item ${isActive(qrScanAction.path) ? "active" : ""} bg-venture-purple/10 hover:bg-venture-purple/20`}
           >
             {qrScanAction.icon}
             {!sidebarCollapsed && <span>{qrScanAction.label}</span>}
@@ -379,32 +379,32 @@ const Sidebar = ({
             <div className="flex items-center justify-between px-2">
               <button 
                 onClick={toggleTheme}
-                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-blue-900/20 transition-colors"
+                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-venture-purple/20 transition-colors"
                 title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               >
                 {theme === 'light' ? 
-                  <Moon className="h-5 w-5 text-primary-700 dark:text-gray-200" /> : 
+                  <Moon className="h-5 w-5 text-venture-purple dark:text-gray-200" /> : 
                   <Sun className="h-5 w-5 text-gray-200 dark:text-gray-200" />
                 }
               </button>
               
               <button 
                 onClick={toggleSidebar}
-                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-venture-purple/20 transition-colors"
                 title="Collapse sidebar"
               >
-                <ChevronLeft className="h-5 w-5 text-primary-700 dark:text-white" />
+                <ChevronLeft className="h-5 w-5 text-venture-purple dark:text-white" />
               </button>
             </div>
           ) : (
             <>
               <button 
                 onClick={toggleTheme}
-                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-blue-900/20 transition-colors mx-auto block mb-2"
+                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-venture-purple/20 transition-colors mx-auto block mb-2"
                 title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               >
                 {theme === 'light' ? 
-                  <Moon className="h-5 w-5 text-primary-700 dark:text-gray-200" /> : 
+                  <Moon className="h-5 w-5 text-venture-purple dark:text-gray-200" /> : 
                   <Sun className="h-5 w-5 text-gray-200 dark:text-gray-200" />
                 }
               </button>
@@ -412,10 +412,10 @@ const Sidebar = ({
               {/* Expand button when collapsed */}
               <button 
                 onClick={toggleSidebar}
-                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors mx-auto block"
+                className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-venture-purple/20 transition-colors mx-auto block"
                 title="Expand sidebar"
               >
-                <ChevronRight className="h-5 w-5 text-primary-700 dark:text-white" />
+                <ChevronRight className="h-5 w-5 text-venture-purple dark:text-white" />
               </button>
             </>
           )}
