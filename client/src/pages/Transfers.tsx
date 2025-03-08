@@ -572,7 +572,7 @@ const Transfers: React.FC = () => {
         {view === 'outgoing' && (
           <Button 
             variant="outline" 
-            className="mt-4"
+            className="mt-4 bg-[#3B5BDB] hover:bg-[#364FC7] text-white border-[#3B5BDB]"
             onClick={() => setShowNewTransfer(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
