@@ -18,12 +18,29 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // Default demo user
+  // Default demo user - Captain Michael Rodriguez
   const demoUser: User = {
     id: "8675309",
-    username: "john.doe",
-    name: "SSgt. John Doe",
-    rank: "Staff Sergeant",
+    username: "michael.rodriguez",
+    name: "Michael Rodriguez",
+    rank: "Captain",
+    position: "Company Commander, Bravo Company",
+    unit: "2-87 Infantry Battalion, 2nd Brigade Combat Team, 10th Mountain Division",
+    yearsOfService: 6,
+    commandTime: "3 months",
+    responsibility: "Primary Hand Receipt Holder for company-level property",
+    valueManaged: "$4.2M",
+    upcomingEvents: [
+      { title: "National Training Center rotation", date: "4 months" },
+      { title: "Post-deployment equipment reset", date: "In progress" }
+    ],
+    equipmentSummary: {
+      vehicles: 72,
+      weapons: 143,
+      communications: 95,
+      opticalSystems: 63,
+      sensitiveItems: 210
+    }
   };
   
   const [user, setUser] = useState<User | null>(demoUser);
@@ -37,17 +54,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (username: string, password: string) => {
     try {
       // Mock auth - in real world would call API
-      if (username === "john.doe" && password === "password") {
-        const user = {
-          id: "8675309",
-          username: "john.doe",
-          name: "SSgt. John Doe",
-          rank: "Staff Sergeant",
-        };
-        
-        setUser(user);
+      if (username === "michael.rodriguez" && password === "password") {
+        // Use the same demo user object we defined above
+        setUser(demoUser);
         setIsAuthenticated(true);
-        localStorage.setItem("handreceiptUser", JSON.stringify(user));
+        localStorage.setItem("handreceiptUser", JSON.stringify(demoUser));
         return;
       }
       throw new Error("Invalid credentials");

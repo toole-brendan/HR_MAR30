@@ -4,6 +4,20 @@ export interface User {
   username: string;
   name: string;
   rank: string;
+  position?: string;
+  unit?: string;
+  yearsOfService?: number;
+  commandTime?: string;
+  responsibility?: string;
+  valueManaged?: string;
+  upcomingEvents?: Array<{title: string; date: string;}>;
+  equipmentSummary?: {
+    vehicles?: number;
+    weapons?: number;
+    communications?: number;
+    opticalSystems?: number;
+    sensitiveItems?: number;
+  };
 }
 
 // Inventory Types
