@@ -20,8 +20,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageWrapper } from "@/components/ui/page-wrapper";
+import { PageHeader } from "@/components/ui/page-header";
 import { useToast } from "@/hooks/use-toast";
-import { StandardPageLayout } from "@/components/layout/StandardPageLayout";
 import { 
   BarChart,
   Bar, 

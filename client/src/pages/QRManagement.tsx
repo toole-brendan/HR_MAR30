@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { StandardPageLayout } from "@/components/layout/StandardPageLayout";
+import { PageWrapper } from "@/components/ui/page-wrapper";
+import { PageHeader } from "@/components/ui/page-header";
 import { Printer, QrCode, RefreshCw, AlertTriangle, Plus, Tag, ArrowUpDown, Filter, Search, X } from "lucide-react";
 import QRCodeGenerator from "@/components/common/QRCodeGenerator";
 import { inventory } from "@/lib/mockData";
@@ -206,15 +207,17 @@ const QRManagement = () => {
   };
 
   return (
-    <StandardPageLayout
-      title="QR Code Management"
-      description="Generate, print, and manage QR codes for equipment tracking"
-      actions={
-        <Button onClick={handleOpenGenerateDialog} className="bg-[#4B5320] hover:bg-[#3a4019]">
-          <Plus className="mr-2 h-4 w-4" /> Generate New QR Code
-        </Button>
-      }
-    >
+    <PageWrapper withPadding={true}>
+      <PageHeader
+        title="QR Code Management"
+        description="Generate, print, and manage QR codes for equipment tracking"
+        actions={
+          <Button onClick={handleOpenGenerateDialog} className="bg-[#4B5320] hover:bg-[#3a4019]">
+            <Plus className="mr-2 h-4 w-4" /> Generate New QR Code
+          </Button>
+        }
+        className="mb-4 sm:mb-5 md:mb-6"
+      />
       <Tabs defaultValue="all">
           <div className="flex items-center justify-between mb-4">
             <TabsList>
@@ -674,7 +677,7 @@ const QRManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </StandardPageLayout>
+    </PageWrapper>
   );
 };
 
