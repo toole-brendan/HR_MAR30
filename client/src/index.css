@@ -68,84 +68,8 @@
   /* Radius */
   --radius: 0rem; /* 8VC uses square corners */
   
-  /* 8VC Dark Theme Color Palette */
+  /* 8VC Light Theme Color Palette as DEFAULT */
   /* Base colors */
-  --background: 0 0% 0%; /* Black */
-  --foreground: 0 0% 100%; /* White */
-  
-  /* Card and container colors */
-  --card: 0 0% 7%; /* Dark gray #111111 */
-  --card-foreground: 0 0% 100%; /* White */
-  
-  /* Popover colors */
-  --popover: 0 0% 7%; /* Dark gray #111111 */
-  --popover-foreground: 0 0% 100%; /* White */
-  
-  /* Primary colors - Purple shade */
-  --primary: 264 64% 52%; /* 8VC Purple #6941C6 */
-  --primary-foreground: 0 0% 100%;
-  --primary-50: 264 100% 97%;
-  --primary-100: 264 100% 94%;
-  --primary-200: 264 95% 88%;
-  --primary-300: 264 90% 80%;
-  --primary-400: 264 85% 70%;
-  --primary-500: 264 64% 52%; /* Main purple */
-  --primary-600: 264 70% 48%;
-  --primary-700: 264 75% 42%;
-  --primary-800: 264 80% 35%;
-  --primary-900: 264 85% 30%;
-  
-  /* Secondary colors */
-  --secondary: 264 46% 60%; /* Lighter purple #9E77ED */
-  --secondary-foreground: 0 0% 100%;
-  
-  /* Muted colors */
-  --muted: 0 0% 7%; /* Dark gray #111111 */
-  --muted-foreground: 0 0% 67%; /* Gray #AAAAAA */
-  
-  /* Accent colors */
-  --accent: 264 64% 52%; /* Same as primary */
-  --accent-foreground: 0 0% 100%;
-  
-  /* States */
-  --destructive: 0 70% 50%;
-  --destructive-foreground: 0 0% 100%;
-  
-  --success: 142 76% 36%;
-  --success-foreground: 0 0% 100%;
-  
-  --warning: 38 92% 50%;
-  --warning-foreground: 0 0% 0%;
-  
-  --info: 218 81% 59%;
-  --info-foreground: 0 0% 100%;
-  
-  /* Border & input */
-  --border: 0 0% 10%;
-  --input: 0 0% 7%;
-  --ring: 264 64% 52%;
-  
-  /* Chart colors */
-  --chart-1: 264 64% 52%;
-  --chart-2: 244 63% 50%;
-  --chart-3: 324 64% 55%;
-  --chart-4: 38 92% 50%;
-  --chart-5: 184 80% 45%;
-  
-  /* Sidebar colors */
-  --sidebar-background: 0 0% 0%; /* Black background for sidebar */
-  --sidebar-foreground: 0 0% 100%; /* White text for contrast */
-  --sidebar-primary: 264 64% 52%; /* 8VC Purple */
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 264 64% 52%;
-  --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 10%; /* rgba(255,255,255,0.1) */
-  --sidebar-ring: 264 64% 52%;
-}
-
-/* Light mode - 8VC Light Theme */
-.light {
-  /* Base colors - 8VC Light Theme */
   --background: 0 0% 100%; /* White */
   --foreground: 0 0% 7%; /* Dark gray #111111 */
   
@@ -216,6 +140,74 @@
   --sidebar-accent: 264 64% 52%;
   --sidebar-accent-foreground: 0 0% 100%;
   --sidebar-border: 0 0% 90%; /* rgba(0,0,0,0.1) */
+  --sidebar-ring: 264 64% 52%;
+}
+
+/* Light mode is now the default theme */
+
+/* Dark mode - 8VC Dark Theme */
+.dark {
+  /* Base colors - 8VC Dark Theme */
+  --background: 0 0% 0%; /* Black */
+  --foreground: 0 0% 100%; /* White */
+  
+  /* Card and container colors */
+  --card: 0 0% 7%; /* Dark gray #111111 */
+  --card-foreground: 0 0% 100%; /* White */
+  
+  /* Popover colors */
+  --popover: 0 0% 7%; /* Dark gray #111111 */
+  --popover-foreground: 0 0% 100%; /* White */
+  
+  /* Primary colors - same as light for consistency */
+  --primary: 264 64% 52%; /* 8VC Purple #6941C6 */
+  --primary-foreground: 0 0% 100%;
+  
+  /* Secondary colors - same as light */
+  --secondary: 264 46% 60%; /* Lighter purple #9E77ED */
+  --secondary-foreground: 0 0% 100%;
+  
+  /* Muted colors - darker */
+  --muted: 0 0% 7%; /* Dark gray #111111 */
+  --muted-foreground: 0 0% 67%; /* Gray #AAAAAA */
+  
+  /* Accent colors - same as primary */
+  --accent: 264 64% 52%; /* Same as primary */
+  --accent-foreground: 0 0% 100%;
+  
+  /* States - same as light */
+  --destructive: 0 70% 50%;
+  --destructive-foreground: 0 0% 100%;
+  
+  --success: 142 76% 36%;
+  --success-foreground: 0 0% 100%;
+  
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 0%;
+  
+  --info: 218 81% 59%;
+  --info-foreground: 0 0% 100%;
+  
+  /* Border & input - darker */
+  --border: 0 0% 10%;
+  --input: 0 0% 7%;
+  --ring: 264 64% 52%;
+  
+  /* Chart colors - same as light */
+  --chart-1: 264 64% 52%;
+  --chart-2: 244 63% 50%;
+  --chart-3: 324 64% 55%;
+  --chart-4: 38 92% 50%;
+  --chart-5: 184 80% 45%;
+  
+  /* Sidebar colors - darker */
+  --sidebar-background: 0 0% 0%; /* Black background for sidebar */
+  --sidebar-foreground: 0 0% 100%; /* White text for contrast */
+  --sidebar-primary: 264 64% 52%; /* 8VC Purple */
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 264 64% 52%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 0 0% 10%; /* rgba(255,255,255,0.1) */
   --sidebar-ring: 264 64% 52%;
 }
 
@@ -383,23 +375,23 @@
   }
 
   .sidebar-item {
-    @apply flex items-center px-4 py-2.5 text-sidebar-foreground hover:bg-sidebar-accent/10 rounded-sm cursor-pointer my-0.5 transition-colors;
+    @apply flex items-center px-4 py-2.5 text-primary-700 hover:bg-primary-50 rounded-sm cursor-pointer my-0.5 transition-colors;
     letter-spacing: -0.01em;
     font-family: 'D-Din', sans-serif;
   }
   
-  /* Light mode sidebar text */
-  .light .sidebar-item {
-    @apply text-primary-700 hover:bg-primary-50;
+  /* Dark mode sidebar text */
+  .dark .sidebar-item {
+    @apply text-white hover:bg-sidebar-accent/10;
   }
 
   .sidebar-item.active {
-    @apply bg-sidebar-accent/20 text-white font-medium;
+    @apply bg-primary-100 text-primary-700 font-medium;
   }
   
-  /* Light mode active sidebar item */
-  .light .sidebar-item.active {
-    @apply bg-primary-100 text-primary-700 font-medium;
+  /* Dark mode active sidebar item */
+  .dark .sidebar-item.active {
+    @apply bg-sidebar-accent/20 text-white font-medium;
   }
 
   .sidebar-item-icon {
@@ -657,12 +649,14 @@
     @apply inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium;
   }
   
+  /* Badge styling for different themes */
+  /* Light mode is default */
   .badge-military.primary {
-    @apply bg-primary/20 text-primary-foreground;
+    @apply bg-venture-purple/20 text-venture-purple;
   }
   
   .badge-military.success {
-    @apply bg-success/20 text-success-foreground;
+    @apply bg-success/15 text-success;
   }
   
   .badge-military.warning {
@@ -670,43 +664,43 @@
   }
   
   .badge-military.danger {
-    @apply bg-destructive/20 text-destructive-foreground;
+    @apply bg-destructive/15 text-destructive;
   }
   
-  /* Light mode badges with better contrast */
-  .light .badge-military.primary {
-    @apply bg-venture-purple/20 text-venture-purple;
+  /* Dark mode badges */
+  .dark .badge-military.primary {
+    @apply bg-primary/20 text-primary-foreground;
   }
   
-  .light .badge-military.success {
-    @apply bg-success/15 text-success;
+  .dark .badge-military.success {
+    @apply bg-success/20 text-success-foreground;
   }
   
-  .light .badge-military.warning {
+  .dark .badge-military.warning {
     @apply bg-warning/20 text-warning-foreground;
   }
   
-  .light .badge-military.danger {
-    @apply bg-destructive/15 text-destructive;
+  .dark .badge-military.danger {
+    @apply bg-destructive/20 text-destructive-foreground;
   }
   
   /* Header and section styles */
   .section-header {
-    @apply text-lg font-medium mb-3 pb-2 border-b border-border;
+    @apply text-lg font-medium mb-3 pb-2 border-b border-border text-venture-purple;
     letter-spacing: -0.01em;
   }
   
   .section-subheader {
-    @apply text-sm uppercase font-medium mb-2 text-muted-foreground tracking-wider;
+    @apply text-sm uppercase font-medium mb-2 text-venture-purple/80 tracking-wider;
   }
   
-  /* Light mode section headers */
-  .light .section-header {
-    @apply border-border text-venture-purple;
+  /* Dark mode section headers */
+  .dark .section-header {
+    @apply border-border/50 text-white;
   }
   
-  .light .section-subheader {
-    @apply text-venture-purple/80;
+  .dark .section-subheader {
+    @apply text-gray-300;
   }
   
   /* Dashboard specific - Sharp corners */
@@ -716,12 +710,12 @@
   
   /* Override specific rounded elements on the dashboard */
   .dashboard-card {
-    @apply rounded-none border-border overflow-hidden;
+    @apply rounded-none border-border overflow-hidden bg-white shadow-sm;
   }
   
-  /* Light mode dashboard card */
-  .light .dashboard-card {
-    @apply bg-white border-border shadow-sm;
+  /* Dark mode dashboard card */
+  .dark .dashboard-card {
+    @apply bg-card border-border/50;
   }
   
   /* Button overrides for sharp corners */
