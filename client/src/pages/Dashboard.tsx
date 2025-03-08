@@ -98,84 +98,84 @@ export default function Dashboard() {
         title={`Welcome, CPT Rodriguez`}
         description="HandReceipt Dashboard"
         actions={actions}
-        className="mb-4 sm:mb-5 md:mb-6"
+        className="mb-6 sm:mb-7 md:mb-8"
       />
       
       {/* Summary Stats & Alerts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="overflow-hidden border border-border">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <Card className="overflow-hidden border border-border dashboard-card">
           <CardHeader className="pb-2 bg-muted/40">
-            <CardTitle className="text-lg flex items-center">
+            <CardTitle className="text-lg flex items-center tracking-tight">
               <Database className="h-5 w-5 mr-2 text-primary" />
               Inventory Status
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="text-3xl font-bold mb-1">{inventory.length}</div>
-            <p className="text-sm text-muted-foreground">Total inventory items</p>
+            <div className="text-3xl font-medium mb-1">{inventory.length}</div>
+            <p className="text-sm text-muted-foreground tracking-wide">Total inventory items</p>
           </CardContent>
           <CardFooter className="pt-0">
-            <Button variant="ghost" className="p-0 h-auto text-xs flex items-center" onClick={() => navigate('/property-book')}>
+            <Button variant="ghost" className="p-0 h-auto text-xs uppercase tracking-wider flex items-center" onClick={() => navigate('/property-book')}>
               View Property Book
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </CardFooter>
         </Card>
 
-        <Card className="overflow-hidden border border-border border-l-4 border-l-amber-500">
+        <Card className="overflow-hidden border border-border border-l-4 border-l-amber-500 dashboard-card">
           <CardHeader className="pb-2 bg-muted/40">
-            <CardTitle className="text-lg flex items-center">
+            <CardTitle className="text-lg flex items-center tracking-tight">
               <RefreshCw className="h-5 w-5 mr-2 text-amber-500" />
               Transfer Requests
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="text-3xl font-bold mb-1">{pendingTransfersCount}</div>
-            <p className="text-sm text-muted-foreground">Pending approvals</p>
+            <div className="text-3xl font-medium mb-1">{pendingTransfersCount}</div>
+            <p className="text-sm text-muted-foreground tracking-wide">Pending approvals</p>
           </CardContent>
           <CardFooter className="pt-0">
-            <Button variant="ghost" className="p-0 h-auto text-xs flex items-center" onClick={() => navigate('/transfers')}>
+            <Button variant="ghost" className="p-0 h-auto text-xs uppercase tracking-wider flex items-center" onClick={() => navigate('/transfers')}>
               Manage Transfers
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </CardFooter>
         </Card>
 
-        <Card className="overflow-hidden border border-border border-l-4 border-l-red-500">
+        <Card className="overflow-hidden border border-border border-l-4 border-l-red-500 dashboard-card">
           <CardHeader className="pb-2 bg-muted/40">
-            <CardTitle className="text-lg flex items-center">
+            <CardTitle className="text-lg flex items-center tracking-tight">
               <Shield className="h-5 w-5 mr-2 text-red-500" />
               Sensitive Items
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="flex justify-between items-center mb-2">
-              <div className="text-3xl font-bold">{sensitiveItemsStats.verifiedToday}</div>
-              <div className="text-sm text-muted-foreground">of {sensitiveItemsStats.totalItems} verified</div>
+              <div className="text-3xl font-medium">{sensitiveItemsStats.verifiedToday}</div>
+              <div className="text-sm text-muted-foreground tracking-wide">of {sensitiveItemsStats.totalItems} verified</div>
             </div>
             <Progress value={verificationPercentage} className="h-2" />
           </CardContent>
           <CardFooter className="pt-2">
-            <Button variant="ghost" className="p-0 h-auto text-xs flex items-center" onClick={() => navigate('/sensitive-items')}>
+            <Button variant="ghost" className="p-0 h-auto text-xs uppercase tracking-wider flex items-center" onClick={() => navigate('/sensitive-items')}>
               Verify Items
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </CardFooter>
         </Card>
 
-        <Card className="overflow-hidden border border-border border-l-4 border-l-blue-500">
+        <Card className="overflow-hidden border border-border border-l-4 border-l-blue-500 dashboard-card">
           <CardHeader className="pb-2 bg-muted/40">
-            <CardTitle className="text-lg flex items-center">
+            <CardTitle className="text-lg flex items-center tracking-tight">
               <AlertTriangle className="h-5 w-5 mr-2 text-blue-500" />
               Maintenance
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="text-3xl font-bold mb-1">{pendingMaintenanceCount}</div>
-            <p className="text-sm text-muted-foreground">Scheduled maintenance items</p>
+            <div className="text-3xl font-medium mb-1">{pendingMaintenanceCount}</div>
+            <p className="text-sm text-muted-foreground tracking-wide">Scheduled maintenance items</p>
           </CardContent>
           <CardFooter className="pt-0">
-            <Button variant="ghost" className="p-0 h-auto text-xs flex items-center" onClick={() => navigate('/maintenance')}>
+            <Button variant="ghost" className="p-0 h-auto text-xs uppercase tracking-wider flex items-center" onClick={() => navigate('/maintenance')}>
               View Maintenance
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
@@ -204,13 +204,13 @@ export default function Dashboard() {
           </div>
           
           {/* Stats Tabs */}
-          <Card className="mb-6 overflow-hidden border border-border">
+          <Card className="mb-6 overflow-hidden border border-border dashboard-card">
             <CardHeader className="bg-muted/40 pb-2">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-primary" />
-                <CardTitle className="text-xl">Equipment Status</CardTitle>
+                <CardTitle className="text-xl tracking-tight">Equipment Status</CardTitle>
               </div>
-              <CardDescription>Overview of equipment readiness and verification</CardDescription>
+              <CardDescription className="tracking-wide text-xs">Overview of equipment readiness and verification</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <Tabs defaultValue="overview" className="w-full">
@@ -341,13 +341,13 @@ export default function Dashboard() {
           <RecentActivity />
           
           {/* QR Management Summary */}
-          <Card className="overflow-hidden border border-border">
+          <Card className="overflow-hidden border border-border dashboard-card">
             <CardHeader className="bg-muted/40 pb-2">
               <div className="flex items-center gap-2">
                 <QrCode className="h-5 w-5 text-primary" />
-                <CardTitle className="text-xl">QR Management</CardTitle>
+                <CardTitle className="text-xl tracking-tight">QR Management</CardTitle>
               </div>
-              <CardDescription>Barcode and QR code status</CardDescription>
+              <CardDescription className="tracking-wide text-xs">Barcode and QR code status</CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="space-y-3">
@@ -380,13 +380,13 @@ export default function Dashboard() {
           </Card>
           
           {/* Notifications Preview */}
-          <Card className="overflow-hidden border border-border">
+          <Card className="overflow-hidden border border-border dashboard-card">
             <CardHeader className="bg-muted/40 pb-2">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
-                <CardTitle className="text-xl">Team Activity</CardTitle>
+                <CardTitle className="text-xl tracking-tight">Team Activity</CardTitle>
               </div>
-              <CardDescription>Recent notifications and updates</CardDescription>
+              <CardDescription className="tracking-wide text-xs">Recent notifications and updates</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-border">
