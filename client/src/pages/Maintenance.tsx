@@ -227,7 +227,7 @@ const Maintenance: React.FC = () => {
   return (
     <PageWrapper withPadding={true}>
       <PageHeader
-        title="Equipment Maintenance"
+        title="Maintenance"
         description="Submit, track, and manage maintenance requests for your equipment"
         actions={actions}
         className="mb-4 sm:mb-5 md:mb-6"
