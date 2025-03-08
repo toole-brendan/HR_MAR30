@@ -205,8 +205,11 @@ export default function Dashboard() {
           
           {/* Stats Tabs */}
           <Card className="mb-6 overflow-hidden border border-border">
-            <CardHeader className="bg-muted/40 pb-3">
-              <CardTitle>Equipment Status</CardTitle>
+            <CardHeader className="bg-muted/40 pb-2">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Equipment Status</CardTitle>
+              </div>
               <CardDescription>Overview of equipment readiness and verification</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
@@ -319,6 +322,16 @@ export default function Dashboard() {
                 </div>
               </Tabs>
             </CardContent>
+            <CardFooter className="bg-muted/10 py-3">
+              <Button 
+                variant="ghost" 
+                className="w-full text-xs flex items-center justify-center"
+                onClick={() => navigate("/reports")}
+              >
+                View Detailed Reports
+                <ArrowRight className="h-3 w-3 ml-1" />
+              </Button>
+            </CardFooter>
           </Card>
         </div>
         
@@ -329,11 +342,11 @@ export default function Dashboard() {
           
           {/* QR Management Summary */}
           <Card className="overflow-hidden border border-border">
-            <CardHeader className="pb-2 bg-muted/40">
-              <CardTitle className="text-lg flex items-center">
-                <QrCode className="h-5 w-5 mr-2 text-primary" />
-                QR Management
-              </CardTitle>
+            <CardHeader className="bg-muted/40 pb-2">
+              <div className="flex items-center gap-2">
+                <QrCode className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">QR Management</CardTitle>
+              </div>
               <CardDescription>Barcode and QR code status</CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
@@ -354,26 +367,31 @@ export default function Dashboard() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="bg-muted/10 pt-3">
-              <Button variant="outline" className="w-full" onClick={() => navigate('/qr-management')}>
+            <CardFooter className="bg-muted/10 py-3">
+              <Button 
+                variant="ghost" 
+                className="w-full text-xs flex items-center justify-center"
+                onClick={() => navigate('/qr-management')}
+              >
                 Manage QR Codes
+                <ArrowRight className="h-3 w-3 ml-1" />
               </Button>
             </CardFooter>
           </Card>
           
           {/* Notifications Preview */}
           <Card className="overflow-hidden border border-border">
-            <CardHeader className="pb-2 bg-muted/40">
-              <CardTitle className="text-lg flex items-center">
-                <Users className="h-5 w-5 mr-2 text-primary" />
-                Team Activity
-              </CardTitle>
+            <CardHeader className="bg-muted/40 pb-2">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Team Activity</CardTitle>
+              </div>
               <CardDescription>Recent notifications and updates</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-border">
                 {notifications.slice(0, 3).map(notification => (
-                  <div key={notification.id} className="p-4 hover:bg-muted/20">
+                  <div key={notification.id} className="p-4 hover:bg-muted/10">
                     <div className="flex items-start">
                       <div className={`h-8 w-8 flex-shrink-0 rounded-full bg-primary/10 flex items-center justify-center mr-3 ${
                         notification.type === 'transfer-request' ? 'text-amber-500' : 
@@ -395,7 +413,11 @@ export default function Dashboard() {
               </div>
             </CardContent>
             <CardFooter className="bg-muted/10 py-3">
-              <Button variant="ghost" className="w-full text-xs flex items-center justify-center" onClick={() => navigate('/audit-log')}>
+              <Button 
+                variant="ghost" 
+                className="w-full text-xs flex items-center justify-center" 
+                onClick={() => navigate('/audit-log')}
+              >
                 View All Activity
                 <ArrowRight className="h-3 w-3 ml-1" />
               </Button>

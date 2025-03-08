@@ -1,8 +1,8 @@
 import { activities } from "@/lib/mockData";
 import ActivityItem from "../common/ActivityItem";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Activity, ListChecks } from "lucide-react";
+import { Activity, ListChecks, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 
 const RecentActivity: React.FC = () => {
@@ -11,23 +11,14 @@ const RecentActivity: React.FC = () => {
 
   return (
     <Card className="overflow-hidden border border-border">
-      <CardHeader className="bg-muted/40 pb-3">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
-            <CardTitle>Recent Activity</CardTitle>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-xs flex items-center gap-1"
-            onClick={() => navigate("/audit-log")}
-          >
-            View All
-          </Button>
+      <CardHeader className="bg-muted/40 pb-2">
+        <div className="flex items-center gap-2">
+          <Activity className="h-5 w-5 text-primary" />
+          <CardTitle className="text-lg">Recent Activity</CardTitle>
         </div>
         <CardDescription>System activity and notifications</CardDescription>
       </CardHeader>
+      
       <CardContent className="p-0">
         {recentActivities.length === 0 ? (
           <div className="p-6 text-center text-muted-foreground flex flex-col items-center">
@@ -42,6 +33,17 @@ const RecentActivity: React.FC = () => {
           </div>
         )}
       </CardContent>
+      
+      <CardFooter className="bg-muted/10 py-3">
+        <Button 
+          variant="ghost" 
+          className="w-full text-xs flex items-center justify-center"
+          onClick={() => navigate("/audit-log")}
+        >
+          View All Activity
+          <ArrowRight className="h-3 w-3 ml-1" />
+        </Button>
+      </CardFooter>
     </Card>
   );
 };

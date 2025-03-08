@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { inventory } from "@/lib/mockData";
 import InventoryItem from "../common/InventoryItem";
-import { Search, Package } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Search, Package, ArrowRight } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
@@ -18,20 +18,10 @@ const MyInventory: React.FC = () => {
   
   return (
     <Card className="overflow-hidden border border-border mb-6">
-      <CardHeader className="bg-muted/40 pb-3">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-primary" />
-            <CardTitle>My Inventory</CardTitle>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-xs flex items-center gap-1"
-            onClick={() => navigate("/property-book")}
-          >
-            View All
-          </Button>
+      <CardHeader className="bg-muted/40 pb-2">
+        <div className="flex items-center gap-2">
+          <Package className="h-5 w-5 text-primary" />
+          <CardTitle className="text-lg">My Inventory</CardTitle>
         </div>
         <CardDescription>Recently assigned equipment</CardDescription>
       </CardHeader>
@@ -61,6 +51,17 @@ const MyInventory: React.FC = () => {
           )}
         </div>
       </CardContent>
+      
+      <CardFooter className="bg-muted/10 py-3">
+        <Button 
+          variant="ghost" 
+          className="w-full text-xs flex items-center justify-center" 
+          onClick={() => navigate("/property-book")}
+        >
+          View All Inventory
+          <ArrowRight className="h-3 w-3 ml-1" />
+        </Button>
+      </CardFooter>
     </Card>
   );
 };

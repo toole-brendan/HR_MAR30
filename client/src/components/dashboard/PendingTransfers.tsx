@@ -2,9 +2,9 @@ import { useState } from "react";
 import { transfers } from "@/lib/mockData";
 import StatusBadge from "../common/StatusBadge";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, X, RepeatIcon, ArrowRightLeft } from "lucide-react";
+import { Check, X, RepeatIcon, ArrowRightLeft, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 import { Transfer } from "@/types";
 import { Badge } from "@/components/ui/badge";
@@ -52,13 +52,13 @@ const PendingTransfers: React.FC = () => {
     <div className="border-b border-border">
       <div className="p-4 hover:bg-muted/10 flex items-center justify-between">
         <div className="flex items-center">
-          <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center text-primary">
-            <ArrowRightLeft className="h-5 w-5" />
+          <div className="h-9 w-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+            <ArrowRightLeft className="h-4 w-4" />
           </div>
-          <div className="ml-4">
-            <h4 className="font-medium">{transfer.name}</h4>
+          <div className="ml-3">
+            <h4 className="font-medium text-sm">{transfer.name}</h4>
             <div className="flex items-center space-x-3">
-              <p className="text-sm text-muted-foreground font-mono">SN: {transfer.serialNumber}</p>
+              <p className="text-xs text-muted-foreground font-mono">SN: {transfer.serialNumber}</p>
               <Badge variant="outline" className="text-xs">From: {transfer.from}</Badge>
             </div>
           </div>
@@ -92,20 +92,10 @@ const PendingTransfers: React.FC = () => {
 
   return (
     <Card className="overflow-hidden border border-border mb-6">
-      <CardHeader className="bg-muted/40 pb-3">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <RepeatIcon className="h-5 w-5 text-primary" />
-            <CardTitle>Pending Transfer Requests</CardTitle>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-xs flex items-center gap-1"
-            onClick={() => navigate("/transfers")}
-          >
-            View All
-          </Button>
+      <CardHeader className="bg-muted/40 pb-2">
+        <div className="flex items-center gap-2">
+          <RepeatIcon className="h-5 w-5 text-primary" />
+          <CardTitle className="text-lg">Pending Transfer Requests</CardTitle>
         </div>
         <CardDescription>Equipment transfer requests requiring approval</CardDescription>
       </CardHeader>
@@ -123,6 +113,17 @@ const PendingTransfers: React.FC = () => {
           </div>
         )}
       </CardContent>
+      
+      <CardFooter className="bg-muted/10 py-3">
+        <Button 
+          variant="ghost" 
+          className="w-full text-xs flex items-center justify-center" 
+          onClick={() => navigate("/transfers")}
+        >
+          View All Transfers
+          <ArrowRight className="h-3 w-3 ml-1" />
+        </Button>
+      </CardFooter>
     </Card>
   );
 };
