@@ -48,7 +48,7 @@ nextWeek.setDate(nextWeek.getDate() + 7);
 export const sensitiveItems: SensitiveItem[] = [
   {
     id: "si-001",
-    name: "M4A1 Carbine",
+    name: "M4A1",
     category: 'weapon',
     serialNumber: "M4-87654321",
     assignedDate: "01/15/2023",
@@ -57,24 +57,24 @@ export const sensitiveItems: SensitiveItem[] = [
     nextVerification: format(nextWeek, 'dd MMM yyyy'),
     securityLevel: "controlled",
     location: "Arms Room",
-    assignedTo: "SSgt. John Doe",
+    assignedTo: "CPT John Doe",
   },
   {
     id: "si-002",
-    name: "M9 Pistol",
+    name: "M17 Pistol",
     category: 'weapon',
-    serialNumber: "M9-12345678",
+    serialNumber: "M17-12345678",
     assignedDate: "02/20/2023",
     status: "active",
     lastVerified: format(yesterday, 'dd MMM yyyy'),
     nextVerification: format(nextWeek, 'dd MMM yyyy'),
     securityLevel: "controlled",
     location: "Arms Room",
-    assignedTo: "SSgt. John Doe",
+    assignedTo: "CPT John Doe",
   },
   {
     id: "si-003",
-    name: "AN/PRC-152 Radio",
+    name: "PRC-152",
     category: 'communication',
     serialNumber: "PRC-98765432",
     assignedDate: "03/10/2023",
@@ -83,11 +83,11 @@ export const sensitiveItems: SensitiveItem[] = [
     nextVerification: format(nextWeek, 'dd MMM yyyy'),
     securityLevel: "classified",
     location: "Comms Cage",
-    assignedTo: "SSgt. John Doe",
+    assignedTo: "CPT John Doe",
   },
   {
     id: "si-004",
-    name: "Night Vision Goggles PVS-14",
+    name: "PVS-14",
     category: 'optics',
     serialNumber: "PVS-23456789",
     assignedDate: "03/15/2023",
@@ -96,11 +96,11 @@ export const sensitiveItems: SensitiveItem[] = [
     nextVerification: format(nextWeek, 'dd MMM yyyy'),
     securityLevel: "controlled",
     location: "Equipment Room",
-    assignedTo: "SSgt. John Doe",
+    assignedTo: "CPT John Doe",
   },
   {
     id: "si-005",
-    name: "KG-175D Taclane Encryptor",
+    name: "KG-175D",
     category: 'crypto',
     serialNumber: "KG-45678901",
     assignedDate: "04/05/2023",
@@ -109,12 +109,12 @@ export const sensitiveItems: SensitiveItem[] = [
     nextVerification: format(nextWeek, 'dd MMM yyyy'),
     securityLevel: "secret",
     location: "Secure Room",
-    assignedTo: "SSgt. John Doe",
+    assignedTo: "CPT John Doe",
     notes: "Requires two-person verification"
   },
   {
     id: "si-006",
-    name: "AN/PVS-24 Night Vision Device",
+    name: "PVS-31",
     category: 'optics',
     serialNumber: "PVS-34567890",
     assignedDate: "04/12/2023",
@@ -123,12 +123,12 @@ export const sensitiveItems: SensitiveItem[] = [
     nextVerification: format(nextWeek, 'dd MMM yyyy'),
     securityLevel: "controlled",
     location: "Maintenance Shop",
-    assignedTo: "SSgt. John Doe",
+    assignedTo: "CPT John Doe",
     notes: "Scheduled maintenance - battery issue"
   },
   {
     id: "si-007",
-    name: "DAGR GPS Receiver",
+    name: "DAGR",
     category: 'communication',
     serialNumber: "DAGR-76543210",
     assignedDate: "04/20/2023",
@@ -137,24 +137,24 @@ export const sensitiveItems: SensitiveItem[] = [
     nextVerification: format(nextWeek, 'dd MMM yyyy'),
     securityLevel: "controlled",
     location: "Equipment Room",
-    assignedTo: "SSgt. John Doe"
+    assignedTo: "CPT John Doe"
   },
   {
     id: "si-008",
-    name: "SINCGARS Radio System",
+    name: "ASIP",
     category: 'communication',
-    serialNumber: "SINC-87654320",
+    serialNumber: "ASIP-87654320",
     assignedDate: "05/01/2023",
     status: "active",
     lastVerified: format(yesterday, 'dd MMM yyyy'),
     nextVerification: format(nextWeek, 'dd MMM yyyy'),
     securityLevel: "classified",
     location: "Comms Cage",
-    assignedTo: "SSgt. John Doe"
+    assignedTo: "CPT John Doe"
   },
   {
     id: "si-009",
-    name: "M240B Machine Gun",
+    name: "M240B",
     category: 'weapon',
     serialNumber: "M240-12345670",
     assignedDate: "05/10/2023",
@@ -163,11 +163,11 @@ export const sensitiveItems: SensitiveItem[] = [
     nextVerification: format(nextWeek, 'dd MMM yyyy'),
     securityLevel: "controlled",
     location: "Arms Room",
-    assignedTo: "SSgt. John Doe"
+    assignedTo: "CPT John Doe"
   },
   {
     id: "si-010",
-    name: "KIV-7M Encryptor",
+    name: "KIV-7M",
     category: 'crypto',
     serialNumber: "KIV-23456780",
     assignedDate: "05/15/2023",
@@ -176,7 +176,73 @@ export const sensitiveItems: SensitiveItem[] = [
     nextVerification: format(nextWeek, 'dd MMM yyyy'),
     securityLevel: "top-secret",
     location: "Secure Room",
-    assignedTo: "SSgt. John Doe",
+    assignedTo: "CPT John Doe",
+    notes: "Requires two-person verification"
+  },
+  {
+    id: "si-011",
+    name: "M2 .50 Cal",
+    category: 'weapon',
+    serialNumber: "M2-56781234",
+    assignedDate: "05/20/2023",
+    status: "active",
+    lastVerified: format(yesterday, 'dd MMM yyyy'),
+    nextVerification: format(nextWeek, 'dd MMM yyyy'),
+    securityLevel: "controlled",
+    location: "Arms Room",
+    assignedTo: "CPT John Doe"
+  },
+  {
+    id: "si-012",
+    name: "MK19",
+    category: 'weapon',
+    serialNumber: "MK19-87612345",
+    assignedDate: "05/25/2023",
+    status: "active",
+    lastVerified: format(yesterday, 'dd MMM yyyy'),
+    nextVerification: format(nextWeek, 'dd MMM yyyy'),
+    securityLevel: "controlled",
+    location: "Arms Room",
+    assignedTo: "CPT John Doe"
+  },
+  {
+    id: "si-013",
+    name: "SOFLAM",
+    category: 'optics',
+    serialNumber: "SOFLAM-32176543",
+    assignedDate: "06/01/2023",
+    status: "active",
+    lastVerified: format(yesterday, 'dd MMM yyyy'),
+    nextVerification: format(nextWeek, 'dd MMM yyyy'),
+    securityLevel: "classified",
+    location: "Equipment Room",
+    assignedTo: "CPT John Doe"
+  },
+  {
+    id: "si-014",
+    name: "IZLID",
+    category: 'optics',
+    serialNumber: "IZLID-98765432",
+    assignedDate: "06/05/2023",
+    status: "active",
+    lastVerified: format(yesterday, 'dd MMM yyyy'),
+    nextVerification: format(nextWeek, 'dd MMM yyyy'),
+    securityLevel: "controlled",
+    location: "Equipment Room",
+    assignedTo: "CPT John Doe"
+  },
+  {
+    id: "si-015",
+    name: "CYZ-10",
+    category: 'crypto',
+    serialNumber: "CYZ-43218765",
+    assignedDate: "06/10/2023",
+    status: "active",
+    lastVerified: format(yesterday, 'dd MMM yyyy'),
+    nextVerification: format(nextWeek, 'dd MMM yyyy'),
+    securityLevel: "top-secret",
+    location: "Secure Room",
+    assignedTo: "CPT John Doe",
     notes: "Requires two-person verification"
   }
 ];
@@ -188,90 +254,135 @@ export const verificationLogs: VerificationLog[] = [
     itemId: "si-001",
     date: format(yesterday, 'yyyy-MM-dd'),
     time: "0600",
-    verifiedBy: "SSgt. John Doe",
+    verifiedBy: "CPT John Doe",
     status: "verified",
-    notes: "Standard morning verification"
+    notes: "Accounted for during daily SI check"
   },
   {
     id: "vl-002",
     itemId: "si-002",
     date: format(yesterday, 'yyyy-MM-dd'),
     time: "0605",
-    verifiedBy: "SSgt. John Doe",
+    verifiedBy: "CPT John Doe",
     status: "verified",
-    notes: "Standard morning verification"
+    notes: "Accounted for during daily SI check"
   },
   {
     id: "vl-003",
     itemId: "si-003",
     date: format(yesterday, 'yyyy-MM-dd'),
     time: "0610",
-    verifiedBy: "SSgt. John Doe",
+    verifiedBy: "CPT John Doe",
     status: "verified",
-    notes: "Standard morning verification"
+    notes: "Accounted for during daily COMSEC inventory"
   },
   {
     id: "vl-004",
     itemId: "si-004",
     date: format(yesterday, 'yyyy-MM-dd'),
     time: "0615",
-    verifiedBy: "SSgt. John Doe",
+    verifiedBy: "CPT John Doe",
     status: "verified",
-    notes: "Standard morning verification"
+    notes: "Accounted for during daily SI check"
   },
   {
     id: "vl-005",
     itemId: "si-005",
     date: format(yesterday, 'yyyy-MM-dd'),
     time: "0620",
-    verifiedBy: "SSgt. John Doe",
+    verifiedBy: "CPT John Doe",
     status: "verified",
-    notes: "Standard morning verification with secondary verification by Lt. Parker"
+    notes: "Accounted for with secondary verification by 1LT Parker"
   },
   {
     id: "vl-006",
     itemId: "si-006",
     date: format(lastWeek, 'yyyy-MM-dd'),
     time: "0625",
-    verifiedBy: "SSgt. John Doe",
+    verifiedBy: "CPT John Doe",
     status: "damaged",
-    notes: "Battery issue identified, sent to maintenance"
+    notes: "Battery issue identified, submitted DA 2404 for repair"
   },
   {
     id: "vl-007",
     itemId: "si-007",
     date: format(yesterday, 'yyyy-MM-dd'),
     time: "0630",
-    verifiedBy: "SSgt. John Doe",
+    verifiedBy: "CPT John Doe",
     status: "verified",
-    notes: "Standard morning verification"
+    notes: "Accounted for during daily SI check"
   },
   {
     id: "vl-008",
     itemId: "si-008",
     date: format(yesterday, 'yyyy-MM-dd'),
     time: "0635",
-    verifiedBy: "SSgt. John Doe",
+    verifiedBy: "CPT John Doe",
     status: "verified",
-    notes: "Standard morning verification"
+    notes: "Accounted for during daily COMSEC inventory"
   },
   {
     id: "vl-009",
     itemId: "si-009",
     date: format(yesterday, 'yyyy-MM-dd'),
     time: "0640",
-    verifiedBy: "SSgt. John Doe",
+    verifiedBy: "CPT John Doe",
     status: "verified",
-    notes: "Standard morning verification"
+    notes: "Accounted for during arms room inventory"
   },
   {
     id: "vl-010",
     itemId: "si-010",
     date: format(yesterday, 'yyyy-MM-dd'),
     time: "0645",
-    verifiedBy: "SSgt. John Doe",
+    verifiedBy: "CPT John Doe",
     status: "verified",
-    notes: "Standard morning verification with secondary verification by Lt. Parker"
+    notes: "Accounted for with secondary verification by 1LT Parker"
+  },
+  {
+    id: "vl-011",
+    itemId: "si-011",
+    date: format(yesterday, 'yyyy-MM-dd'),
+    time: "0650",
+    verifiedBy: "CPT John Doe",
+    status: "verified",
+    notes: "Accounted for during crew-served weapons inventory"
+  },
+  {
+    id: "vl-012",
+    itemId: "si-012",
+    date: format(yesterday, 'yyyy-MM-dd'),
+    time: "0655",
+    verifiedBy: "CPT John Doe",
+    status: "verified",
+    notes: "Accounted for during crew-served weapons inventory"
+  },
+  {
+    id: "vl-013",
+    itemId: "si-013",
+    date: format(yesterday, 'yyyy-MM-dd'),
+    time: "0700",
+    verifiedBy: "CPT John Doe",
+    status: "verified",
+    notes: "Accounted for during daily SI check"
+  },
+  {
+    id: "vl-014",
+    itemId: "si-014",
+    date: format(yesterday, 'yyyy-MM-dd'),
+    time: "0705",
+    verifiedBy: "CPT John Doe",
+    status: "verified",
+    notes: "Accounted for during daily SI check"
+  },
+  {
+    id: "vl-015",
+    itemId: "si-015",
+    date: format(yesterday, 'yyyy-MM-dd'),
+    time: "0710",
+    verifiedBy: "CPT John Doe",
+    status: "verified",
+    notes: "Accounted for with secondary verification by 1LT Parker"
   }
 ];
 
@@ -280,7 +391,7 @@ export const sensitiveItemCategories: SensitiveItemCategory[] = [
   {
     id: "cat-1",
     name: "Crew-Served Weapons",
-    count: 3,
+    count: 5,
     verificationFrequency: "Twice Daily (0600/1800)",
     riskLevel: "critical",
     icon: "gun"
@@ -296,7 +407,7 @@ export const sensitiveItemCategories: SensitiveItemCategory[] = [
   {
     id: "cat-3",
     name: "NVG Systems",
-    count: 2,
+    count: 4,
     verificationFrequency: "Daily (0600)",
     riskLevel: "high",
     icon: "eye"
@@ -304,7 +415,7 @@ export const sensitiveItemCategories: SensitiveItemCategory[] = [
   {
     id: "cat-4",
     name: "CCI Equipment",
-    count: 2,
+    count: 3,
     verificationFrequency: "Daily (0600)",
     riskLevel: "critical",
     icon: "key"
@@ -353,11 +464,11 @@ export const verificationSchedule = [
 
 // Summary statistics
 export const sensitiveItemsStats = {
-  totalItems: 10,
-  verifiedToday: 9,
+  totalItems: 15,
+  verifiedToday: 14,
   pendingVerification: 1,
   inMaintenance: 1,
-  highRiskItems: 7,
+  highRiskItems: 10,
   lastFullVerification: format(yesterday, 'dd MMM yyyy'),
   verificationCompliance: "100%",
 };
