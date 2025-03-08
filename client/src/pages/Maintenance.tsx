@@ -882,7 +882,7 @@ const Maintenance: React.FC = () => {
                 
                 {selectedItem.status === 'scheduled' && (
                   <Button 
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-[#3B5BDB] hover:bg-[#364FC7] flex items-center justify-center"
                     onClick={() => {
                       handleStartMaintenance(selectedItem);
                       setDetailsModalOpen(false);
@@ -1063,7 +1063,7 @@ const Maintenance: React.FC = () => {
             </Button>
             <Button 
               onClick={handleSubmitNewRequest}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-[#3B5BDB] hover:bg-[#364FC7] flex items-center justify-center"
             >
               Submit Request
             </Button>

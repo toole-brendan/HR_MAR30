@@ -86,7 +86,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
       <Button 
         variant="outline" 
         onClick={() => setIsDialogOpen(true)}
-        className="flex items-center space-x-2 bg-[#4B5320] hover:bg-[#3a4019] text-white"
+        className="flex items-center justify-center space-x-2 bg-[#3B5BDB] hover:bg-[#364FC7] text-white"
       >
         <i className="fas fa-qrcode"></i>
         <span>Generate QR Code</span>
@@ -124,7 +124,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
           
           {!qrImage ? (
             <div className="flex justify-center py-4">
-              <Button onClick={generateQRCode} className="bg-[#4B5320] hover:bg-[#3a4019]">
+              <Button onClick={generateQRCode} className="bg-[#3B5BDB] hover:bg-[#364FC7] flex items-center justify-center">
                 Generate QR Code
               </Button>
             </div>
