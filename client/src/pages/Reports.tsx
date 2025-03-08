@@ -133,8 +133,6 @@ const Reports = () => {
     status: "all"
   });
   const { toast } = useToast();
-  const { layoutClasses } = usePageLayout({ fullWidth: false });
-
   const handleGenerateReport = (reportType: string) => {
     setSelectedReportType(reportType);
     toast({
@@ -177,8 +175,7 @@ const Reports = () => {
         </div>
       }
     >
-      <div className={layoutClasses}>
-        <Tabs defaultValue="dashboard" onValueChange={setActiveTab}>
+      <Tabs defaultValue="dashboard" onValueChange={setActiveTab}>
           <div className="flex items-center justify-between mb-4">
             <TabsList>
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
@@ -820,8 +817,7 @@ const Reports = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </StandardPageLayout>
+      </StandardPageLayout>
   );
 };
 
