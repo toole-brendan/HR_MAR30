@@ -23,8 +23,8 @@
 
 :root {
   /* Layout dimensions */
-  --sidebar-width: 230px; /* Made narrower from 260px */
-  --sidebar-collapsed-width: 72px;
+  --sidebar-width: 250px;
+  --sidebar-collapsed-width: 70px;
   --header-height: 64px;
   --mobile-nav-height: 56px;
   --content-max-width: 1280px;
@@ -46,8 +46,8 @@
   --tablet-breakpoint: 1024px;
   
   /* Padding */
-  --page-padding-x: 1rem;
-  --page-padding-y: 1rem;
+  --page-padding-x: 1.5rem;
+  --page-padding-y: 1.5rem;
   
   /* Element scaling ratios for responsive design */
   --scale-ratio-mobile: 0.85;
@@ -66,157 +66,157 @@
   --transition-slow: 500ms;
   
   /* Radius */
-  --radius: 0rem; /* Changed to 0 for sharp corners */
+  --radius: 0rem; /* 8VC uses square corners */
   
-  /* Military-style, Palantir/Anduril-inspired theme */
+  /* 8VC Dark Theme Color Palette */
   /* Base colors */
-  --background: 220 15% 16%;
-  --foreground: 220 15% 92%;
+  --background: 0 0% 0%; /* Black */
+  --foreground: 0 0% 100%; /* White */
   
   /* Card and container colors */
-  --card: 0 0% 0%;  /* Changed to pure black */
-  --card-foreground: 220 15% 94%;
+  --card: 0 0% 7%; /* Dark gray #111111 */
+  --card-foreground: 0 0% 100%; /* White */
   
   /* Popover colors */
-  --popover: 220 15% 18%;
-  --popover-foreground: 220 15% 94%;
+  --popover: 0 0% 7%; /* Dark gray #111111 */
+  --popover-foreground: 0 0% 100%; /* White */
   
-  /* Primary colors - Military blue shade */
-  --primary: 210 100% 20%;
-  --primary-foreground: 0 0% 98%;
-  --primary-50: 212 100% 97%;
-  --primary-100: 212 100% 92%;
-  --primary-200: 212 100% 80%;
-  --primary-300: 212 90% 65%;
-  --primary-400: 210 90% 40%;
-  --primary-500: 210 100% 20%;
-  --primary-600: 210 100% 18%;
-  --primary-700: 210 100% 16%;
-  --primary-800: 215 95% 14%;
-  --primary-900: 220 90% 12%;
+  /* Primary colors - Purple shade */
+  --primary: 264 64% 52%; /* 8VC Purple #6941C6 */
+  --primary-foreground: 0 0% 100%;
+  --primary-50: 264 100% 97%;
+  --primary-100: 264 100% 94%;
+  --primary-200: 264 95% 88%;
+  --primary-300: 264 90% 80%;
+  --primary-400: 264 85% 70%;
+  --primary-500: 264 64% 52%; /* Main purple */
+  --primary-600: 264 70% 48%;
+  --primary-700: 264 75% 42%;
+  --primary-800: 264 80% 35%;
+  --primary-900: 264 85% 30%;
   
-  /* Secondary colors - Military olive/tan */
-  --secondary: 85 40% 30%;
-  --secondary-foreground: 0 0% 95%;
+  /* Secondary colors */
+  --secondary: 264 46% 60%; /* Lighter purple #9E77ED */
+  --secondary-foreground: 0 0% 100%;
   
   /* Muted colors */
-  --muted: 220 15% 25%;
-  --muted-foreground: 220 15% 65%;
+  --muted: 0 0% 7%; /* Dark gray #111111 */
+  --muted-foreground: 0 0% 67%; /* Gray #AAAAAA */
   
   /* Accent colors */
-  --accent: 160 60% 20%;
-  --accent-foreground: 0 0% 98%;
+  --accent: 264 64% 52%; /* Same as primary */
+  --accent-foreground: 0 0% 100%;
   
   /* States */
-  --destructive: 0 70% 40%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive: 0 70% 50%;
+  --destructive-foreground: 0 0% 100%;
   
-  --success: 160 65% 25%;
-  --success-foreground: 0 0% 98%;
+  --success: 142 76% 36%;
+  --success-foreground: 0 0% 100%;
   
-  --warning: 40 100% 50%;
-  --warning-foreground: 0 0% 10%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 0%;
   
-  --info: 200 90% 45%;
-  --info-foreground: 0 0% 98%;
+  --info: 218 81% 59%;
+  --info-foreground: 0 0% 100%;
   
   /* Border & input */
-  --border: 220 15% 25%;
-  --input: 220 15% 22%;
-  --ring: 210 100% 25%;
+  --border: 0 0% 10%;
+  --input: 0 0% 7%;
+  --ring: 264 64% 52%;
   
   /* Chart colors */
-  --chart-1: 210 100% 30%;
-  --chart-2: 160 70% 30%;
-  --chart-3: 340 80% 40%;
-  --chart-4: 40 90% 50%;
-  --chart-5: 260 80% 50%;
+  --chart-1: 264 64% 52%;
+  --chart-2: 244 63% 50%;
+  --chart-3: 324 64% 55%;
+  --chart-4: 38 92% 50%;
+  --chart-5: 184 80% 45%;
   
   /* Sidebar colors */
   --sidebar-background: 0 0% 0%; /* Black background for sidebar */
-  --sidebar-foreground: 0 0% 95%; /* Light text for contrast */
-  --sidebar-primary: 210 100% 25%;
-  --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 210 100% 25%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-border: 0 0% 15%; /* Dark border for black sidebar */
-  --sidebar-ring: 210 100% 25%;
+  --sidebar-foreground: 0 0% 100%; /* White text for contrast */
+  --sidebar-primary: 264 64% 52%; /* 8VC Purple */
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 264 64% 52%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 0 0% 10%; /* rgba(255,255,255,0.1) */
+  --sidebar-ring: 264 64% 52%;
 }
 
-/* Light mode - Military professional style */
+/* Light mode - 8VC Light Theme */
 .light {
-  /* Base colors - Light military theme */
-  --background: 210 30% 98%; /* Light blue-tinted background */
-  --foreground: 220 25% 12%; /* Dark blue-gray text */
+  /* Base colors - 8VC Light Theme */
+  --background: 0 0% 100%; /* White */
+  --foreground: 0 0% 7%; /* Dark gray #111111 */
   
-  /* Card colors - White cards with borders */
-  --card: 0 0% 100%; /* White card backgrounds for light mode */
-  --card-foreground: 220 25% 12%; /* Dark text on cards */
+  /* Card colors */
+  --card: 0 0% 96%; /* Light gray #F5F5F5 */
+  --card-foreground: 0 0% 7%; /* Dark gray text */
   
   /* Popover colors */
   --popover: 0 0% 100%;
-  --popover-foreground: 220 25% 12%;
+  --popover-foreground: 0 0% 7%;
   
-  /* Primary colors - Military blue shade */
-  --primary: 210 100% 30%;
-  --primary-foreground: 0 0% 98%;
-  --primary-50: 212 100% 97%;
-  --primary-100: 212 100% 92%;
-  --primary-200: 212 100% 80%;
-  --primary-300: 212 90% 65%;
-  --primary-400: 210 90% 40%;
-  --primary-500: 210 100% 30%;
-  --primary-600: 210 100% 28%;
-  --primary-700: 210 100% 25%;
-  --primary-800: 215 95% 22%;
-  --primary-900: 220 90% 18%;
+  /* Primary colors - 8VC Purple */
+  --primary: 264 64% 52%; /* 8VC Purple #6941C6 */
+  --primary-foreground: 0 0% 100%;
+  --primary-50: 264 100% 97%;
+  --primary-100: 264 100% 94%;
+  --primary-200: 264 95% 88%;
+  --primary-300: 264 90% 80%;
+  --primary-400: 264 85% 70%;
+  --primary-500: 264 64% 52%; /* Main purple */
+  --primary-600: 264 70% 48%;
+  --primary-700: 264 75% 42%;
+  --primary-800: 264 80% 35%;
+  --primary-900: 264 85% 30%;
   
-  /* Secondary colors - Military olive */
-  --secondary: 85 40% 30%;
-  --secondary-foreground: 0 0% 98%;
+  /* Secondary colors */
+  --secondary: 264 46% 60%; /* Lighter purple #9E77ED */
+  --secondary-foreground: 0 0% 100%;
   
   /* Muted colors */
-  --muted: 210 30% 95%;
-  --muted-foreground: 220 15% 45%;
+  --muted: 0 0% 96%; /* Light gray #F5F5F5 */
+  --muted-foreground: 0 0% 40%; /* Medium gray #666666 */
   
   /* Accent colors */
-  --accent: 160 60% 20%;
-  --accent-foreground: 0 0% 98%;
+  --accent: 264 64% 52%; /* Same as primary */
+  --accent-foreground: 0 0% 100%;
   
   /* States */
-  --destructive: 0 70% 45%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive: 0 70% 50%;
+  --destructive-foreground: 0 0% 100%;
   
-  --success: 160 65% 25%;
-  --success-foreground: 0 0% 98%;
+  --success: 142 76% 36%;
+  --success-foreground: 0 0% 100%;
   
-  --warning: 40 100% 50%;
-  --warning-foreground: 0 0% 10%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 0%;
   
-  --info: 200 90% 45%;
-  --info-foreground: 0 0% 98%;
+  --info: 218 81% 59%;
+  --info-foreground: 0 0% 100%;
   
   /* Border & input */
-  --border: 210 25% 85%;
-  --input: 210 25% 95%;
-  --ring: 210 100% 30%;
+  --border: 0 0% 90%; /* rgba(0,0,0,0.1) */
+  --input: 0 0% 96%;
+  --ring: 264 64% 52%;
   
   /* Chart colors */
-  --chart-1: 210 100% 30%;
-  --chart-2: 160 70% 30%;
-  --chart-3: 340 80% 40%;
-  --chart-4: 40 90% 50%;
-  --chart-5: 260 80% 50%;
+  --chart-1: 264 64% 52%;
+  --chart-2: 244 63% 50%;
+  --chart-3: 324 64% 55%;
+  --chart-4: 38 92% 50%;
+  --chart-5: 184 80% 45%;
   
-  /* Updated sidebar colors for light mode */
-  --sidebar-background: 0 0% 98%;
-  --sidebar-foreground: 210 50% 20%;
-  --sidebar-primary: 210 100% 30%;
+  /* Sidebar colors for light mode */
+  --sidebar-background: 0 0% 100%; /* White */
+  --sidebar-foreground: 0 0% 7%; /* Dark gray */
+  --sidebar-primary: 264 64% 52%; /* 8VC Purple */
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 210 100% 30%;
+  --sidebar-accent: 264 64% 52%;
   --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 210 25% 85%;
-  --sidebar-ring: 210 100% 30%;
+  --sidebar-border: 0 0% 90%; /* rgba(0,0,0,0.1) */
+  --sidebar-ring: 264 64% 52%;
 }
 
 /* Responsive adjustments for tablet and larger devices */
