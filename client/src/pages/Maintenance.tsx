@@ -1377,9 +1377,10 @@ const MaintenanceItemRow: React.FC<MaintenanceItemRowProps> = ({
 // Status badge component
 interface MaintenanceStatusBadgeProps {
   status: string;
+  size?: 'default' | 'sm' | 'lg';
 }
 
-const MaintenanceStatusBadge: React.FC<MaintenanceStatusBadgeProps> = ({ status }) => {
+const MaintenanceStatusBadge: React.FC<MaintenanceStatusBadgeProps> = ({ status, size = 'default' }) => {
   let badgeClass = "";
   let statusLabel = "";
   
@@ -1405,15 +1406,23 @@ const MaintenanceStatusBadge: React.FC<MaintenanceStatusBadgeProps> = ({ status 
       statusLabel = status;
   }
   
+  // Add size-specific classes
+  if (size === 'lg') {
+    badgeClass += " text-sm py-1 px-3";
+  } else if (size === 'sm') {
+    badgeClass += " text-xs py-0 px-2";
+  }
+  
   return <Badge className={badgeClass}>{statusLabel}</Badge>;
 };
 
 // Priority badge component
 interface MaintenancePriorityBadgeProps {
   priority: string;
+  size?: 'default' | 'sm' | 'lg';
 }
 
-const MaintenancePriorityBadge: React.FC<MaintenancePriorityBadgeProps> = ({ priority }) => {
+const MaintenancePriorityBadge: React.FC<MaintenancePriorityBadgeProps> = ({ priority, size = 'default' }) => {
   let badgeClass = "";
   let priorityLabel = "";
   
@@ -1437,6 +1446,15 @@ const MaintenancePriorityBadge: React.FC<MaintenancePriorityBadgeProps> = ({ pri
     default:
       badgeClass = "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-800";
       priorityLabel = priority;
+  }
+  
+  // Add size-specific classes
+  if (size === 'lg') {
+    badgeClass += " text-sm py-1 px-3";
+    priorityLabel = priority.charAt(0).toUpperCase() + priority.slice(1);
+  } else if (size === 'sm') {
+    badgeClass += " text-xs py-0 px-2";
+    priorityLabel = priority.charAt(0).toUpperCase() + priority.slice(1);
   }
   
   return <Badge className={badgeClass} variant="outline">{priorityLabel}</Badge>;
