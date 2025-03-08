@@ -246,7 +246,7 @@ const QRManagement = () => {
                 placeholder="Search by name or serial number"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 bg-white dark:bg-white/10"
+                className="pl-8 bg-white"
               />
               {searchTerm && (
                 <Button 
