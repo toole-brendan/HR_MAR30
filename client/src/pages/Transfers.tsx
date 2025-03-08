@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { transfers } from "@/lib/mockData";
 import { Transfer } from "@/types";
+import { useAuth } from "@/context/AuthContext";
 import { 
   Card, 
   CardContent, 
@@ -61,7 +62,12 @@ import {
   Fingerprint,
   Share2,
   MoreVertical,
-  History
+  History,
+  Inbox,
+  ExternalLink,
+  AlertCircle,
+  CornerDownLeft,
+  Award
 } from "lucide-react";
 import { format } from "date-fns";
 import QRCodeGenerator from "@/components/common/QRCodeGenerator";
@@ -69,6 +75,7 @@ import QRCodeGenerator from "@/components/common/QRCodeGenerator";
 // Define sorting options
 type SortField = 'date' | 'name' | 'from' | 'to';
 type SortOrder = 'asc' | 'desc';
+type TransferView = 'incoming' | 'outgoing' | 'history';
 
 interface SortConfig {
   field: SortField;
@@ -76,14 +83,19 @@ interface SortConfig {
 }
 
 const Transfers: React.FC = () => {
+  const { user } = useAuth();
   const [transferList, setTransferList] = useState(transfers);
   const [searchTerm, setSearchTerm] = useState("");
   const [showScanner, setShowScanner] = useState(false);
   const [showNewTransfer, setShowNewTransfer] = useState(false);
   const [showTransferDetails, setShowTransferDetails] = useState<Transfer | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [activeView, setActiveView] = useState<TransferView>('incoming');
   const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'date', order: 'desc' });
   const { toast } = useToast();
+
+  // Simulate current user (in a real app, this would come from auth context)
+  const currentUser = user?.name || "John Doe";
 
   // Handle approving a transfer request
   const handleApprove = (id: string) => {
@@ -97,7 +109,7 @@ const Transfers: React.FC = () => {
     
     toast({
       title: "Transfer Approved",
-      description: "The transfer request has been approved successfully",
+      description: "You have approved the transfer request. The item is now assigned to the recipient.",
       variant: "default",
     });
   };
@@ -114,7 +126,7 @@ const Transfers: React.FC = () => {
     
     toast({
       title: "Transfer Rejected",
-      description: "The transfer request has been rejected",
+      description: "You have rejected the transfer request. The item remains assigned to you.",
       variant: "destructive",
     });
   };
@@ -163,8 +175,14 @@ const Transfers: React.FC = () => {
     }
   };
 
-  // Filter transfers based on search term and status filter
+  // Filter transfers based on active view, search term and status filter
   const filteredTransfers = transferList.filter(transfer => {
+    // Filter by view (incoming, outgoing, history)
+    const matchesView = 
+      (activeView === 'incoming' && transfer.to === currentUser) ||
+      (activeView === 'outgoing' && transfer.from === currentUser) ||
+      (activeView === 'history' && (transfer.to === currentUser || transfer.from === currentUser));
+    
     // Filter by search term
     const matchesSearch = 
       transfer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -177,7 +195,7 @@ const Transfers: React.FC = () => {
       filterStatus === "all" || 
       transfer.status === filterStatus;
     
-    return matchesSearch && matchesStatus;
+    return matchesView && matchesSearch && matchesStatus;
   });
 
   // Sort the filtered transfers
@@ -209,6 +227,11 @@ const Transfers: React.FC = () => {
   const approvedTransfers = sortedTransfers.filter(transfer => transfer.status === "approved");
   const rejectedTransfers = sortedTransfers.filter(transfer => transfer.status === "rejected");
 
+  // Get incoming pending transfers count
+  const incomingPendingCount = transferList.filter(
+    transfer => transfer.to === currentUser && transfer.status === "pending"
+  ).length;
+
   // Handle sorting
   const handleSort = (field: SortField) => {
     setSortConfig(prevConfig => ({
@@ -223,7 +246,7 @@ const Transfers: React.FC = () => {
       id: `TR${Math.floor(Math.random() * 10000)}`,
       name: data.itemName,
       serialNumber: data.serialNumber,
-      from: data.from,
+      from: currentUser,
       to: data.to,
       date: format(new Date(), 'yyyy-MM-dd'),
       status: "pending"
@@ -234,7 +257,7 @@ const Transfers: React.FC = () => {
     
     toast({
       title: "Transfer Created",
-      description: `Transfer request for ${data.itemName} has been created`,
+      description: `Transfer request for ${data.itemName} has been sent to ${data.to}`,
     });
   };
 
@@ -254,6 +277,26 @@ const Transfers: React.FC = () => {
     }, 1500);
   };
 
+  // Reset filters
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setFilterStatus("all");
+    setSortConfig({ field: 'date', order: 'desc' });
+  };
+
+  // Automatically show notification when page loads with pending transfers
+  useEffect(() => {
+    if (incomingPendingCount > 0) {
+      setTimeout(() => {
+        toast({
+          title: `${incomingPendingCount} Pending Transfer${incomingPendingCount > 1 ? 's' : ''}`,
+          description: `You have ${incomingPendingCount} pending transfer request${incomingPendingCount > 1 ? 's' : ''} waiting for your approval.`,
+          variant: "default",
+        });
+      }, 1000);
+    }
+  }, []);
+
   // Page actions
   const actions = (
     <div className="flex items-center gap-2">
@@ -270,11 +313,14 @@ const Transfers: React.FC = () => {
       <Button 
         size="sm" 
         variant="default" 
-        onClick={() => setShowNewTransfer(true)}
+        onClick={() => {
+          setShowNewTransfer(true);
+          setActiveView('outgoing');
+        }}
         className="flex items-center gap-1"
       >
         <Plus className="h-4 w-4" />
-        <span className="hidden sm:inline">New Transfer</span>
+        <span className="hidden sm:inline">Initiate Transfer</span>
       </Button>
     </div>
   );
@@ -302,7 +348,7 @@ const Transfers: React.FC = () => {
           size="sm"
           onClick={() => handleSort('from')}
         >
-          <span>From</span>
+          <span>{activeView === 'incoming' ? 'From' : 'Sender'}</span>
           <ArrowUpDown className="ml-2 h-3.5 w-3.5 text-muted-foreground/70" />
         </Button>
         
@@ -311,7 +357,7 @@ const Transfers: React.FC = () => {
           size="sm"
           onClick={() => handleSort('to')}
         >
-          <span>To</span>
+          <span>{activeView === 'outgoing' ? 'To' : 'Recipient'}</span>
           <ArrowUpDown className="ml-2 h-3.5 w-3.5 text-muted-foreground/70" />
         </Button>
         
@@ -338,8 +384,20 @@ const Transfers: React.FC = () => {
       day: 'numeric'
     });
     
+    // Determine if the current user is the recipient (to handle approve/reject)
+    const isRecipient = transfer.to === currentUser;
+    const isSender = transfer.from === currentUser;
+    
+    // For pending transfers, show action buttons only to the recipient
+    const showActions = transfer.status === "pending" && isRecipient;
+    
+    // For history view, highlight the user's role
+    const userRole = isRecipient ? "recipient" : (isSender ? "sender" : "");
+    
     return (
-      <div className="px-4 py-3 flex flex-col md:flex-row md:items-center justify-between border-b last:border-0">
+      <div className={`px-4 py-3 flex flex-col md:flex-row md:items-center justify-between border-b last:border-0 ${
+        transfer.status === "pending" && isRecipient ? "bg-amber-50/40 dark:bg-amber-900/10" : ""
+      }`}>
         <div className="flex items-center gap-3 mb-2 md:mb-0 flex-1 min-w-0">
           <div className="h-10 w-10 flex-shrink-0 bg-[#4B5320] dark:bg-[#5A6433] rounded-full flex items-center justify-center text-white">
             <Fingerprint className="h-5 w-5" />
@@ -352,30 +410,49 @@ const Transfers: React.FC = () => {
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 md:hidden">
               <div className="text-xs text-muted-foreground flex items-center gap-1">
                 <Share2 className="h-3 w-3" />
-                <span>From: {transfer.from}</span>
+                <span>{isRecipient ? 'From: ' : 'Sender: '}{transfer.from}</span>
               </div>
               <div className="text-xs text-muted-foreground flex items-center gap-1">
                 <Send className="h-3 w-3" />
-                <span>To: {transfer.to}</span>
+                <span>{isSender ? 'To: ' : 'Recipient: '}{transfer.to}</span>
               </div>
               <div className="text-xs text-muted-foreground flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 <span>{formattedDate}</span>
               </div>
+              
+              {/* Show user's role indicator in history view */}
+              {activeView === 'history' && userRole && (
+                <div className="text-xs bg-muted px-2 py-0.5 rounded-full">
+                  {userRole === "recipient" ? "To You" : "From You"}
+                </div>
+              )}
             </div>
           </div>
         </div>
         
         {/* Desktop view only */}
         <div className="hidden md:flex items-center space-x-4">
-          <div className="w-24 truncate">{transfer.from}</div>
-          <div className="w-24 truncate">{transfer.to}</div>
+          <div className="w-24 truncate">
+            {transfer.from}
+            {/* Show pill if user is sender in history view */}
+            {activeView === 'history' && isSender && (
+              <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">You</span>
+            )}
+          </div>
+          <div className="w-24 truncate">
+            {transfer.to}
+            {/* Show pill if user is recipient in history view */}
+            {activeView === 'history' && isRecipient && (
+              <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">You</span>
+            )}
+          </div>
           <div className="w-24 text-sm">{formattedDate}</div>
           <div className="w-24 text-right">
             <StatusBadge status={transfer.status} />
           </div>
           <div className="w-16 flex justify-end">
-            {transfer.status === "pending" ? (
+            {showActions ? (
               <div className="flex space-x-1">
                 <Button 
                   size="icon"
@@ -425,7 +502,7 @@ const Transfers: React.FC = () => {
           <StatusBadge status={transfer.status} />
           
           <div className="flex">
-            {transfer.status === "pending" ? (
+            {showActions ? (
               <div className="flex space-x-1">
                 <Button 
                   size="icon"
@@ -460,38 +537,118 @@ const Transfers: React.FC = () => {
   };
 
   // Empty state component
-  const EmptyState = ({ status }: { status: string }) => (
-    <div className="py-8 text-center">
-      <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
-        <History className="h-6 w-6 text-muted-foreground" />
+  const EmptyState = ({ view, status }: { view: TransferView, status?: string }) => {
+    let title = '';
+    let description = '';
+    let icon = <History className="h-6 w-6 text-muted-foreground" />;
+    
+    if (view === 'incoming') {
+      if (status === 'pending') {
+        title = 'No Incoming Transfers';
+        description = 'You have no pending transfer requests to review.';
+        icon = <Inbox className="h-6 w-6 text-muted-foreground" />;
+      } else {
+        title = 'No Incoming Transfers';
+        description = 'You have no incoming transfers with this status.';
+      }
+    } else if (view === 'outgoing') {
+      title = 'No Outgoing Transfers';
+      description = 'You have not initiated any transfer requests.';
+      icon = <ExternalLink className="h-6 w-6 text-muted-foreground" />;
+    } else {
+      title = 'No Transfer History';
+      description = 'You have no transfer history to display.';
+    }
+    
+    return (
+      <div className="py-8 text-center">
+        <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
+          {icon}
+        </div>
+        <h3 className="text-lg font-medium">{title}</h3>
+        <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
+          {description}
+        </p>
+        {view === 'outgoing' && (
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => setShowNewTransfer(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Initiate New Transfer
+          </Button>
+        )}
       </div>
-      <h3 className="text-lg font-medium">No {status} transfers</h3>
-      <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
-        {status === 'pending' 
-          ? "There are no pending transfer requests to review at this time."
-          : `No ${status.toLowerCase()} transfers found matching your criteria.`}
-      </p>
-      {status === 'pending' && (
-        <Button 
-          variant="outline" 
-          className="mt-4"
-          onClick={() => setShowNewTransfer(true)}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Create New Transfer
-        </Button>
-      )}
-    </div>
-  );
+    );
+  };
+
+  // Get page description based on active view
+  const getPageDescription = () => {
+    switch (activeView) {
+      case 'incoming':
+        return "Review and manage transfer requests sent to you";
+      case 'outgoing':
+        return "Track transfer requests you've initiated";
+      case 'history':
+        return "View your complete transfer history";
+      default:
+        return "Manage equipment transfer requests and assignments";
+    }
+  };
+
+  // Get page title based on active view
+  const getPageTitle = () => {
+    switch (activeView) {
+      case 'incoming':
+        return "Incoming Transfers";
+      case 'outgoing':
+        return "Outgoing Transfers";
+      case 'history':
+        return "Transfer History";
+      default:
+        return "Transfer Requests";
+    }
+  };
 
   return (
     <PageWrapper withPadding={true}>
       <PageHeader
-        title="Transfer Requests"
-        description="Manage equipment transfer requests and assignments"
+        title={getPageTitle()}
+        description={getPageDescription()}
         actions={actions}
         className="mb-4 sm:mb-5 md:mb-6"
       />
+      
+      {/* View Selection Tabs */}
+      <div className="mb-4">
+        <Tabs 
+          defaultValue="incoming" 
+          value={activeView}
+          onValueChange={(value) => setActiveView(value as TransferView)}
+          className="w-full"
+        >
+          <TabsList className="w-full justify-start mb-4">
+            <TabsTrigger value="incoming" className="flex items-center">
+              <Inbox className="h-4 w-4 mr-2" />
+              <span>Incoming</span>
+              {incomingPendingCount > 0 && (
+                <span className="ml-2 bg-amber-500 text-white text-xs rounded-full px-2">
+                  {incomingPendingCount}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="outgoing" className="flex items-center">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              <span>Outgoing</span>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="flex items-center">
+              <History className="h-4 w-4 mr-2" />
+              <span>History</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
       
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
@@ -520,11 +677,11 @@ const Transfers: React.FC = () => {
             </SelectContent>
           </Select>
           
-          <Button variant="outline" size="icon" onClick={() => {
-            setSearchTerm("");
-            setFilterStatus("all");
-            setSortConfig({ field: 'date', order: 'desc' });
-          }}>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleResetFilters}
+          >
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
@@ -533,74 +690,143 @@ const Transfers: React.FC = () => {
       {/* Main Content */}
       <Card>
         <CardHeader>
-          <CardTitle>Equipment Transfer Management</CardTitle>
+          <CardTitle>
+            {activeView === 'incoming' && (
+              <div className="flex items-center">
+                <Inbox className="h-5 w-5 mr-2" />
+                <span>Incoming Transfers</span>
+              </div>
+            )}
+            {activeView === 'outgoing' && (
+              <div className="flex items-center">
+                <Send className="h-5 w-5 mr-2" />
+                <span>Outgoing Transfers</span>
+              </div>
+            )}
+            {activeView === 'history' && (
+              <div className="flex items-center">
+                <History className="h-5 w-5 mr-2" />
+                <span>Transfer History</span>
+              </div>
+            )}
+          </CardTitle>
           <CardDescription>
-            Review and process transfer requests for equipment and inventory items
+            {activeView === 'incoming' && "Review transfer requests sent to you for approval"}
+            {activeView === 'outgoing' && "Track transfer requests you've initiated to others"}
+            {activeView === 'history' && "Complete record of all your equipment transfers"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="pending">
-            <TabsList className="mb-4">
-              <TabsTrigger value="pending">
-                Pending <span className="ml-2 bg-amber-500 text-white text-xs rounded-full px-2">{pendingTransfers.length}</span>
-              </TabsTrigger>
-              <TabsTrigger value="approved">Approved</TabsTrigger>
-              <TabsTrigger value="rejected">Rejected</TabsTrigger>
-              <TabsTrigger value="all">All Transfers</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="pending">
-              {TableHeader()}
-              <div className="rounded-md border">
-                {pendingTransfers.length === 0 ? (
-                  <EmptyState status="pending" />
-                ) : (
-                  pendingTransfers.map((transfer) => (
-                    <TransferRow key={transfer.id} transfer={transfer} />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="approved">
-              {TableHeader()}
-              <div className="rounded-md border">
-                {approvedTransfers.length === 0 ? (
-                  <EmptyState status="approved" />
-                ) : (
-                  approvedTransfers.map((transfer) => (
-                    <TransferRow key={transfer.id} transfer={transfer} />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="rejected">
-              {TableHeader()}
-              <div className="rounded-md border">
-                {rejectedTransfers.length === 0 ? (
-                  <EmptyState status="rejected" />
-                ) : (
-                  rejectedTransfers.map((transfer) => (
-                    <TransferRow key={transfer.id} transfer={transfer} />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="all">
+          {/* Transfer Status Tabs - Only show on incoming view */}
+          {activeView === 'incoming' && (
+            <Tabs defaultValue="pending" className="mb-4">
+              <TabsList className="mb-4">
+                <TabsTrigger value="pending">
+                  Pending <span className="ml-2 bg-amber-500 text-white text-xs rounded-full px-2">{pendingTransfers.length}</span>
+                </TabsTrigger>
+                <TabsTrigger value="approved">Approved</TabsTrigger>
+                <TabsTrigger value="rejected">Rejected</TabsTrigger>
+                <TabsTrigger value="all">All</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="pending">
+                {TableHeader()}
+                <div className="rounded-md border">
+                  {pendingTransfers.length === 0 ? (
+                    <EmptyState view={activeView} status="pending" />
+                  ) : (
+                    pendingTransfers.map((transfer) => (
+                      <TransferRow key={transfer.id} transfer={transfer} />
+                    ))
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="approved">
+                {TableHeader()}
+                <div className="rounded-md border">
+                  {approvedTransfers.length === 0 ? (
+                    <EmptyState view={activeView} status="approved" />
+                  ) : (
+                    approvedTransfers.map((transfer) => (
+                      <TransferRow key={transfer.id} transfer={transfer} />
+                    ))
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="rejected">
+                {TableHeader()}
+                <div className="rounded-md border">
+                  {rejectedTransfers.length === 0 ? (
+                    <EmptyState view={activeView} status="rejected" />
+                  ) : (
+                    rejectedTransfers.map((transfer) => (
+                      <TransferRow key={transfer.id} transfer={transfer} />
+                    ))
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="all">
+                {TableHeader()}
+                <div className="rounded-md border">
+                  {sortedTransfers.length === 0 ? (
+                    <EmptyState view={activeView} />
+                  ) : (
+                    sortedTransfers.map((transfer) => (
+                      <TransferRow key={transfer.id} transfer={transfer} />
+                    ))
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
+          
+          {/* For outgoing and history, just show the list without status tabs */}
+          {(activeView === 'outgoing' || activeView === 'history') && (
+            <>
               {TableHeader()}
               <div className="rounded-md border">
                 {sortedTransfers.length === 0 ? (
-                  <EmptyState status="matching" />
+                  <EmptyState view={activeView} />
                 ) : (
                   sortedTransfers.map((transfer) => (
                     <TransferRow key={transfer.id} transfer={transfer} />
                   ))
                 )}
               </div>
-            </TabsContent>
-          </Tabs>
+            </>
+          )}
+          
+          {/* Helpful hints section */}
+          {activeView === 'incoming' && pendingTransfers.length > 0 && (
+            <div className="mt-6 rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/50 p-4">
+              <div className="flex items-start">
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 mr-3 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-amber-800 dark:text-amber-300">Pending Approval Required</h4>
+                  <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                    You have pending transfer requests that require your action. Review and approve or reject these requests to update your equipment inventory.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {activeView === 'outgoing' && (
+            <div className="mt-6 rounded-md border border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900/50 p-4">
+              <div className="flex items-start">
+                <Share2 className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-blue-800 dark:text-blue-300">Outgoing Transfers</h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
+                    Track the status of transfer requests you've initiated. Recipients will need to approve transfers before the equipment is reassigned.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
         <CardFooter className="flex justify-between text-sm text-muted-foreground">
           <div>Showing {sortedTransfers.length} transfer requests</div>
@@ -621,9 +847,9 @@ const Transfers: React.FC = () => {
       <Dialog open={showNewTransfer} onOpenChange={setShowNewTransfer}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Create New Transfer</DialogTitle>
+            <DialogTitle>Initiate Equipment Transfer</DialogTitle>
             <DialogDescription>
-              Create a new equipment transfer request
+              Create a new transfer request to reassign equipment to another person
             </DialogDescription>
           </DialogHeader>
           
@@ -640,12 +866,13 @@ const Transfers: React.FC = () => {
             
             <div className="grid gap-2">
               <Label htmlFor="from">From (Current Holder)</Label>
-              <Input id="from" placeholder="Enter current holder" />
+              <Input id="from" value={currentUser} disabled className="bg-muted/50" />
+              <p className="text-xs text-muted-foreground">You are transferring this item from your inventory</p>
             </div>
             
             <div className="grid gap-2">
               <Label htmlFor="to">To (New Holder)</Label>
-              <Input id="to" placeholder="Enter new holder" />
+              <Input id="to" placeholder="Enter recipient's name" />
             </div>
           </div>
           
@@ -656,10 +883,11 @@ const Transfers: React.FC = () => {
             <Button onClick={() => handleCreateTransfer({
               itemName: (document.getElementById('item-name') as HTMLInputElement)?.value || 'Unknown Item',
               serialNumber: (document.getElementById('serial-number') as HTMLInputElement)?.value || 'NA',
-              from: (document.getElementById('from') as HTMLInputElement)?.value || 'Unknown',
+              from: currentUser,
               to: (document.getElementById('to') as HTMLInputElement)?.value || 'Unknown',
             })}>
-              Create Transfer
+              <Send className="h-4 w-4 mr-2" />
+              Send Transfer Request
             </Button>
           </div>
         </DialogContent>
@@ -690,11 +918,21 @@ const Transfers: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">From</p>
-                    <p className="font-medium">{showTransferDetails.from}</p>
+                    <p className="font-medium flex items-center">
+                      {showTransferDetails.from}
+                      {showTransferDetails.from === currentUser && (
+                        <Badge variant="outline" className="ml-2 text-xs">You</Badge>
+                      )}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">To</p>
-                    <p className="font-medium">{showTransferDetails.to}</p>
+                    <p className="font-medium flex items-center">
+                      {showTransferDetails.to}
+                      {showTransferDetails.to === currentUser && (
+                        <Badge variant="outline" className="ml-2 text-xs">You</Badge>
+                      )}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Request Date</p>
@@ -768,6 +1006,20 @@ const Transfers: React.FC = () => {
                   )}
                 </div>
               </div>
+              
+              {/* Chain of custody */}
+              {showTransferDetails.status === 'approved' && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Chain of Custody Record</h4>
+                  <div className="rounded-md border p-3 text-sm">
+                    <p className="text-muted-foreground mb-2">This transfer is part of the permanent, tamper-proof chain of custody record for this item.</p>
+                    <div className="flex items-center gap-2">
+                      <Award className="h-4 w-4 text-blue-500" />
+                      <span>Blockchain verified on {format(new Date(), 'MMM d, yyyy')}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           
@@ -777,7 +1029,7 @@ const Transfers: React.FC = () => {
             </Button>
             
             <div className="flex gap-2">
-              {showTransferDetails?.status === "pending" && (
+              {showTransferDetails?.status === "pending" && showTransferDetails.to === currentUser && (
                 <>
                   <Button 
                     variant="outline" 
@@ -803,7 +1055,7 @@ const Transfers: React.FC = () => {
                 </>
               )}
               
-              {showTransferDetails?.status !== "pending" && (
+              {(showTransferDetails?.status !== "pending" || showTransferDetails?.to !== currentUser) && (
                 <Button onClick={() => handleExportTransfer(showTransferDetails?.id || "")}>
                   <FileText className="h-4 w-4 mr-2" />
                   Export PDF
