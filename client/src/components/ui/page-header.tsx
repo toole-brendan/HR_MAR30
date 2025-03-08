@@ -21,7 +21,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <div className={cn(
       'flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 md:gap-4', 
-      'pt-0 pb-1 sm:pb-2', /* Reduced top and bottom padding */
+      'pt-8 sm:pt-10 md:pt-12 pb-2 sm:pb-3', /* Added significant top padding to move title down */
       'transition-all duration-200',
       className
     )}>
@@ -34,7 +34,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         )}
       </div>
       {actions && (
-        <div className="flex-shrink-0 flex items-center mt-1 sm:mt-0">
+        <div className="flex-shrink-0 flex items-center mt-2 sm:mt-0">
           {actions}
         </div>
       )}
