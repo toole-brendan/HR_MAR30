@@ -145,7 +145,7 @@ const Sidebar = ({
         </div>
         
         {/* First divider after logo */}
-        <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
+        <div className="border-t border-gray-700/50 dark:border-white/10 my-3"></div>
         
         {/* User Profile section */}
         <div className="flex items-center cursor-pointer mb-3">
@@ -159,7 +159,7 @@ const Sidebar = ({
         </div>
         
         {/* Second divider after user profile */}
-        <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
+        <div className="border-t border-gray-700/50 dark:border-white/10 my-3"></div>
         
         {/* Main navigation section */}
         <div className="flex-1 space-y-1">
@@ -201,7 +201,7 @@ const Sidebar = ({
         {/* Footer section */}
         <div className="mt-auto pt-4 space-y-3">
           {/* Footer divider */}
-          <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
+          <div className="border-t border-gray-700/50 dark:border-white/10 my-3"></div>
           
           {/* QR Scanner button */}
           <div 
@@ -236,7 +236,7 @@ const Sidebar = ({
           </Link>
           
           {/* Footer controls divider */}
-          <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
+          <div className="border-t border-gray-700/50 dark:border-white/10 my-3"></div>
           
           {/* Theme toggle button */}
           <div className="flex items-center justify-between px-2">
@@ -259,7 +259,7 @@ const Sidebar = ({
   return (
     <aside className={`sidebar hidden md:flex flex-col ${sidebarCollapsed ? 'collapsed' : ''}`}>
       {/* Logo section */}
-      <div className="p-4 border-b border-gray-700/50 dark:border-border-primary">
+      <div className="p-4 border-b border-gray-700/50 dark:border-white/10">
         {!sidebarCollapsed ? (
           <div 
             className="flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
