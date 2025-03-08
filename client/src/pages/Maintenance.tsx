@@ -1063,9 +1063,12 @@ const Maintenance: React.FC = () => {
             </Button>
             <Button 
               onClick={handleSubmitNewRequest}
-              className="bg-[#3B5BDB] hover:bg-[#364FC7] flex items-center justify-center"
+              className="bg-[#3B5BDB] hover:bg-[#364FC7] w-full"
             >
-              Submit Request
+              <div className="flex items-center justify-center w-full">
+                <Send className="h-4 w-4 mr-2" />
+                Submit Request
+              </div>
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1148,9 +1151,12 @@ const Maintenance: React.FC = () => {
             </Button>
             <Button 
               onClick={handleSubmitBulletin}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-[#3B5BDB] hover:bg-[#364FC7] w-full"
             >
-              Post Bulletin
+              <div className="flex items-center justify-center w-full">
+                <Bell className="h-4 w-4 mr-2" />
+                Post Bulletin
+              </div>
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1352,20 +1358,26 @@ const MaintenanceItemRow: React.FC<MaintenanceItemRowProps> = ({
           {item.status === 'scheduled' && (
             <Button 
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-[#3B5BDB] hover:bg-[#364FC7] w-full"
               onClick={() => onStartMaintenance(item)}
             >
-              Start
+              <div className="flex items-center justify-center w-full">
+                <Play className="h-4 w-4 mr-2" />
+                Start
+              </div>
             </Button>
           )}
           
           {item.status === 'in-progress' && (
             <Button 
               size="sm"
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-[#3B5BDB] hover:bg-[#364FC7] w-full"
               onClick={() => onCompleteMaintenance(item)}
             >
-              Complete
+              <div className="flex items-center justify-center w-full">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Complete
+              </div>
             </Button>
           )}
         </div>
