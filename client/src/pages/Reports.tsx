@@ -21,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageWrapper } from "@/components/ui/page-wrapper";
 import { useToast } from "@/hooks/use-toast";
-import { usePageLayout } from "@/hooks/use-page-layout";
 import { StandardPageLayout } from "@/components/layout/StandardPageLayout";
 import { 
   BarChart,

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { usePageLayout } from "@/hooks/use-page-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,8 +40,6 @@ const QRManagement = () => {
   const [newItemInfo, setNewItemInfo] = useState({ name: "", serialNumber: "" });
   const [reportReason, setReportReason] = useState("");
   const { toast } = useToast();
-  const { layoutClasses } = usePageLayout({ fullWidth: false });
-
   // Apply filters
   useEffect(() => {
     let result = qrItems;
@@ -218,8 +215,7 @@ const QRManagement = () => {
         </Button>
       }
     >
-      <div className={layoutClasses}>
-        <Tabs defaultValue="all">
+      <Tabs defaultValue="all">
           <div className="flex items-center justify-between mb-4">
             <TabsList>
               <TabsTrigger value="all">All QR Codes</TabsTrigger>
@@ -527,7 +523,6 @@ const QRManagement = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
 
       {/* Report Damaged QR Code Dialog */}
       <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
