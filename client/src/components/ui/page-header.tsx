@@ -24,13 +24,13 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       'transition-all duration-200',
       className
     )}>
-      {/* Black background container for page title */}
-      <div className="bg-black text-white rounded-md shadow-md w-full mb-4 px-4 py-3 sm:py-4">
+      {/* Theme-aware background container for page title */}
+      <div className="bg-white dark:bg-black text-black dark:text-white rounded-md shadow-md w-full mb-4 px-4 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 md:gap-4">
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate">{title}</h1>
             {description && (
-              <div className="mt-1 sm:mt-1.5 text-xs sm:text-sm text-gray-300">
+              <div className="mt-1 sm:mt-1.5 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                 {description}
               </div>
             )}
