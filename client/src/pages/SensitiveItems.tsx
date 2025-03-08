@@ -279,7 +279,7 @@ const SensitiveItems: React.FC = () => {
                       // Define icon based on category
                       let CategoryIcon = Filter;
                       switch (item.category) {
-                        case 'weapon': CategoryIcon = Gun; break;
+                        case 'weapon': CategoryIcon = Sword; break;
                         case 'communication': CategoryIcon = Radio; break;
                         case 'optics': CategoryIcon = Eye; break;
                         case 'crypto': CategoryIcon = Key; break;
@@ -412,7 +412,7 @@ const SensitiveItems: React.FC = () => {
                   // Define icon based on category
                   let CategoryIcon = Filter;
                   switch (category.icon) {
-                    case 'gun': CategoryIcon = Gun; break;
+                    case 'gun': CategoryIcon = Sword; break;
                     case 'radio': CategoryIcon = Radio; break;
                     case 'eye': CategoryIcon = Eye; break;
                     case 'key': CategoryIcon = Key; break;
