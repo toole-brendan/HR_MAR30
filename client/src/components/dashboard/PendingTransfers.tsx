@@ -2,10 +2,17 @@ import { useState } from "react";
 import { transfers } from "@/lib/mockData";
 import StatusBadge from "../common/StatusBadge";
 import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Check, X, RepeatIcon, ArrowRightLeft } from "lucide-react";
+import { useLocation } from "wouter";
+import { Transfer } from "@/types";
+import { Badge } from "@/components/ui/badge";
 
 const PendingTransfers: React.FC = () => {
   const [transferList, setTransferList] = useState(transfers);
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   const handleApprove = (id: string) => {
     setTransferList(
@@ -37,56 +44,86 @@ const PendingTransfers: React.FC = () => {
     });
   };
 
-  const pendingTransfers = transferList.filter(transfer => transfer.status === "pending");
+  const pendingTransfers = transferList
+    .filter(transfer => transfer.status === "pending")
+    .slice(0, 2); // Only show 2 items on dashboard
 
-  return (
-    <div className="bg-white rounded-lg shadow mb-6 overflow-hidden">
-      <div className="p-4 bg-[#1C2541] text-white flex justify-between items-center">
-        <h3 className="font-bold">Pending Transfer Requests</h3>
-        <a href="#" className="text-sm text-gray-200 hover:text-white">View All</a>
-      </div>
-      
-      {pendingTransfers.length === 0 ? (
-        <div className="p-4 text-center text-gray-500">
-          No pending transfer requests
-        </div>
-      ) : (
-        pendingTransfers.map((transfer) => (
-          <div key={transfer.id} className="border-b border-gray-200">
-            <div className="p-4 hover:bg-gray-50 flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="h-10 w-10 bg-[#4B5320] rounded-full flex items-center justify-center text-white">
-                  <i className="fas fa-box"></i>
-                </div>
-                <div className="ml-4">
-                  <h4 className="font-medium">{transfer.name}</h4>
-                  <p className="text-sm text-gray-500 font-mono">SN: {transfer.serialNumber}</p>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <StatusBadge status={transfer.status} className="mr-4" />
-                <div className="flex space-x-2">
-                  <button 
-                    className="p-2 rounded-full bg-[#28A745] text-white hover:bg-opacity-90" 
-                    title="Approve"
-                    onClick={() => handleApprove(transfer.id)}
-                  >
-                    <i className="fas fa-check"></i>
-                  </button>
-                  <button 
-                    className="p-2 rounded-full bg-[#DC3545] text-white hover:bg-opacity-90" 
-                    title="Reject"
-                    onClick={() => handleReject(transfer.id)}
-                  >
-                    <i className="fas fa-times"></i>
-                  </button>
-                </div>
-              </div>
+  const TransferItem = ({ transfer }: { transfer: Transfer }) => (
+    <div className="border-b border-border">
+      <div className="p-4 hover:bg-muted/10 flex items-center justify-between">
+        <div className="flex items-center">
+          <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+            <ArrowRightLeft className="h-5 w-5" />
+          </div>
+          <div className="ml-4">
+            <h4 className="font-medium">{transfer.name}</h4>
+            <div className="flex items-center space-x-3">
+              <p className="text-sm text-muted-foreground font-mono">SN: {transfer.serialNumber}</p>
+              <Badge variant="outline" className="text-xs">From: {transfer.from}</Badge>
             </div>
           </div>
-        ))
-      )}
+        </div>
+        <div className="flex items-center">
+          <StatusBadge status={transfer.status} className="mr-4" />
+          <div className="flex space-x-2">
+            <Button 
+              size="icon"
+              variant="outline"
+              className="h-8 w-8 rounded-full bg-green-500/20 text-green-600 border-green-200 hover:bg-green-500/30 hover:text-green-700"
+              title="Approve"
+              onClick={() => handleApprove(transfer.id)}
+            >
+              <Check className="h-4 w-4" />
+            </Button>
+            <Button 
+              size="icon"
+              variant="outline"
+              className="h-8 w-8 rounded-full bg-red-500/20 text-red-600 border-red-200 hover:bg-red-500/30 hover:text-red-700" 
+              title="Reject"
+              onClick={() => handleReject(transfer.id)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
+  );
+
+  return (
+    <Card className="overflow-hidden border border-border mb-6">
+      <CardHeader className="bg-muted/40 pb-3">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <RepeatIcon className="h-5 w-5 text-primary" />
+            <CardTitle>Pending Transfer Requests</CardTitle>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-xs flex items-center gap-1"
+            onClick={() => navigate("/transfers")}
+          >
+            View All
+          </Button>
+        </div>
+        <CardDescription>Equipment transfer requests requiring approval</CardDescription>
+      </CardHeader>
+      
+      <CardContent className="p-0">
+        {pendingTransfers.length === 0 ? (
+          <div className="p-6 text-center text-muted-foreground">
+            No pending transfer requests
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {pendingTransfers.map((transfer) => (
+              <TransferItem key={transfer.id} transfer={transfer} />
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
