@@ -277,7 +277,7 @@ const Sidebar = ({
       </div>
       
       {/* User Profile section after logo */}
-      <div className="py-3 px-4 border-b border-gray-700/50 dark:border-gray-200/20">
+      <div className="py-3 px-4 border-b border-gray-700/50 dark:border-white/10">
         {!sidebarCollapsed ? (
           <div className="flex items-center cursor-pointer">
             <div className="w-8 h-8 rounded-full bg-venture-purple flex items-center justify-center text-white text-sm font-medium mr-3">
@@ -337,7 +337,7 @@ const Sidebar = ({
         {/* Bottom action links section */}
         <div className={`mt-auto px-2 pt-2 pb-4 space-y-3 ${sidebarCollapsed ? 'text-center' : ''}`}>
           {/* Divider before quick actions */}
-          <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
+          <div className="border-t border-gray-700/50 dark:border-white/10 my-3"></div>
           
           {/* QR Scanner button */}
           <div 
@@ -372,7 +372,7 @@ const Sidebar = ({
           </Link>
           
           {/* Divider before controls */}
-          <div className="border-t border-gray-700/50 dark:border-gray-200/20 my-3"></div>
+          <div className="border-t border-gray-700/50 dark:border-white/10 my-3"></div>
           
           {/* Theme toggle and sidebar collapse buttons */}
           {!sidebarCollapsed ? (

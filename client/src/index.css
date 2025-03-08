@@ -217,14 +217,14 @@
   --chart-4: 38 92% 50%;
   --chart-5: 184 80% 45%;
   
-  /* Sidebar colors - darker */
-  --sidebar-background: 0 0% 0%; /* Black background for sidebar */
+  /* Sidebar colors - 8VC style darker */
+  --sidebar-background: 0 0% 0%; /* Pure black background for sidebar */
   --sidebar-foreground: 0 0% 100%; /* White text for contrast */
   --sidebar-primary: 264 64% 52%; /* 8VC Purple */
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 264 64% 52%;
   --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 10%; /* rgba(255,255,255,0.1) */
+  --sidebar-border: 0 0% 5%; /* Very subtle borders */
   --sidebar-ring: 264 64% 52%;
 }
 
@@ -380,7 +380,7 @@
     }
   }
   
-  /* Sidebar Styles - Military theme */
+  /* Sidebar Styles - 8VC theme */
   .sidebar {
     @apply h-screen bg-sidebar border-r border-sidebar-border flex-shrink-0 flex-col transition-all duration-300 fixed left-0 top-0;
     width: var(--sidebar-width);
@@ -392,23 +392,23 @@
   }
 
   .sidebar-item {
-    @apply flex items-center px-4 py-2.5 text-primary-700 hover:bg-primary-50 rounded-sm cursor-pointer my-0.5 transition-colors;
-    letter-spacing: -0.01em;
+    @apply flex items-center px-4 py-2.5 text-primary-700 hover:bg-primary-50 rounded-none cursor-pointer my-0.5 transition-colors;
+    letter-spacing: 0.02em;
     font-family: 'D-Din', sans-serif;
   }
   
   /* Dark mode sidebar text */
   .dark .sidebar-item {
-    @apply text-white hover:bg-sidebar-accent/10;
+    @apply text-gray-100 hover:bg-white/5;
   }
 
   .sidebar-item.active {
-    @apply bg-primary-100 text-primary-700 font-medium;
+    @apply bg-primary-100 text-primary-700 font-medium border-l-2 border-primary;
   }
   
   /* Dark mode active sidebar item */
   .dark .sidebar-item.active {
-    @apply bg-sidebar-accent/20 text-white font-medium;
+    @apply bg-white/5 text-white font-medium border-l-2 border-primary;
   }
 
   .sidebar-item-icon {
