@@ -325,7 +325,8 @@
   }
   
   .text-nav-item {
-    @apply uppercase text-xs tracking-widest font-light;
+    @apply uppercase text-xs tracking-wider font-light;
+    letter-spacing: 0.075em;
   }
   
   .text-category-tag {
@@ -393,7 +394,7 @@
 
   .sidebar-item {
     @apply flex items-center px-4 py-2.5 text-primary-700 hover:bg-primary-50 rounded-none cursor-pointer my-0.5 transition-colors;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.075em;
     font-family: 'D-Din', sans-serif;
   }
   

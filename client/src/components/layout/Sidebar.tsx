@@ -284,8 +284,8 @@ const Sidebar = ({
               M
             </div>
             <div>
-              <p className="text-sm font-medium profile-name">CPT Rodriguez, Michael</p>
-              <p className="text-xs profile-role text-gray-500">Company Commander</p>
+              <p className="text-sm font-medium tracking-wider profile-name">CPT Rodriguez, Michael</p>
+              <p className="text-xs tracking-wide text-gray-400">Company Commander</p>
             </div>
           </div>
         ) : (
@@ -356,7 +356,7 @@ const Sidebar = ({
               onClick={() => handleLinkClick()}
             >
               {settingsAction.icon}
-              {!sidebarCollapsed && <span>{settingsAction.label}</span>}
+              {!sidebarCollapsed && <span className="text-nav-item">{settingsAction.label}</span>}
             </div>
           </Link>
           
@@ -367,7 +367,7 @@ const Sidebar = ({
               onClick={() => handleLinkClick()}
             >
               <User className="sidebar-item-icon" />
-              {!sidebarCollapsed && <span>Profile</span>}
+              {!sidebarCollapsed && <span className="text-nav-item">Profile</span>}
             </div>
           </Link>
           
