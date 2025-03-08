@@ -74,7 +74,7 @@
   --foreground: 220 15% 92%;
   
   /* Card and container colors */
-  --card: 220 15% 19%;
+  --card: 0 0% 0%;  /* Changed to pure black */
   --card-foreground: 220 15% 94%;
   
   /* Popover colors */
@@ -148,8 +148,8 @@
   --background: 0 0% 97%;
   --foreground: 220 15% 15%;
   
-  --card: 0 0% 100%;
-  --card-foreground: 220 15% 15%;
+  --card: 0 0% 0%; /* Changed to black in light mode too */
+  --card-foreground: 220 15% 94%;
   
   --popover: 0 0% 100%;
   --popover-foreground: 220 15% 15%;
