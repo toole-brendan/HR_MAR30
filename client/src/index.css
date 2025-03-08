@@ -406,6 +406,15 @@
     hover:bg-destructive/90 transition-all duration-200;
   }
   
+  /* Light mode button variations */
+  .light .btn-military {
+    @apply shadow-sm;
+  }
+  
+  .light .btn-military-outline {
+    @apply border-primary-400 text-primary-600 hover:bg-primary-50 hover:border-primary-500;
+  }
+  
   /* Card styles with military aesthetic */
   .card-military {
     @apply bg-card border border-border rounded-sm shadow-military p-4 text-card-foreground;
@@ -530,6 +539,14 @@
     @apply bg-muted text-primary-800 text-xs uppercase tracking-wider font-medium;
   }
   
+  .light .data-table-military td {
+    @apply border-border;
+  }
+  
+  .light .data-table-military tr:hover td {
+    @apply bg-primary-50;
+  }
+  
   /* Status indicators */
   .status-dot {
     @apply w-2 h-2 rounded-full inline-block mr-2;
@@ -549,6 +566,19 @@
   
   .status-dot.error {
     @apply bg-destructive;
+  }
+  
+  /* Light mode status indicators - slightly brighter */
+  .light .status-dot.active {
+    @apply bg-success ring-1 ring-success/30;
+  }
+  
+  .light .status-dot.warning {
+    @apply bg-warning ring-1 ring-warning/30;
+  }
+  
+  .light .status-dot.error {
+    @apply bg-destructive ring-1 ring-destructive/30;
   }
   
   /* Military-inspired form controls */
@@ -633,6 +663,15 @@
     @apply text-sm uppercase font-medium mb-2 text-muted-foreground tracking-wider;
   }
   
+  /* Light mode section headers */
+  .light .section-header {
+    @apply border-border text-primary-800;
+  }
+  
+  .light .section-subheader {
+    @apply text-primary-700;
+  }
+  
   /* Dashboard specific - Sharp corners */
   .dashboard-container * {
     border-radius: 0 !important;
@@ -641,6 +680,11 @@
   /* Override specific rounded elements on the dashboard */
   .dashboard-card {
     @apply rounded-none border-border overflow-hidden;
+  }
+  
+  /* Light mode dashboard card */
+  .light .dashboard-card {
+    @apply bg-white border-border shadow-sm;
   }
   
   /* Button overrides for sharp corners */
