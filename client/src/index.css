@@ -74,7 +74,7 @@
   --foreground: 220 15% 92%;
   
   /* Card and container colors */
-  --card: 220 15% 10%;  /* Dark gray instead of pure black for better contrast */
+  --card: 0 0% 0%;  /* Changed to pure black */
   --card-foreground: 220 15% 94%;
   
   /* Popover colors */
@@ -133,23 +133,23 @@
   --chart-5: 260 80% 50%;
   
   /* Sidebar colors */
-  --sidebar-background: 220 15% 12%; /* Dark gray background for sidebar */
+  --sidebar-background: 0 0% 0%; /* Black background for sidebar */
   --sidebar-foreground: 0 0% 95%; /* Light text for contrast */
   --sidebar-primary: 210 100% 25%;
   --sidebar-primary-foreground: 0 0% 98%;
   --sidebar-accent: 210 100% 25%;
   --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-border: 220 15% 18%; /* Dark border for sidebar */
+  --sidebar-border: 0 0% 15%; /* Dark border for black sidebar */
   --sidebar-ring: 210 100% 25%;
 }
 
-/* Light mode overrides */
+/* Light mode overrides - only activate if explicitly requested */
 .light {
-  --background: 0 0% 100%; /* Pure white background */
+  --background: 0 0% 97%;
   --foreground: 220 15% 15%;
   
-  --card: 0 0% 98%; /* Off-white cards instead of black */
-  --card-foreground: 220 15% 20%; /* Dark text for light cards */
+  --card: 0 0% 0%; /* Changed to black in light mode too */
+  --card-foreground: 220 15% 94%;
   
   --popover: 0 0% 100%;
   --popover-foreground: 220 15% 15%;
@@ -160,7 +160,7 @@
   --secondary: 85 40% 30%;
   --secondary-foreground: 0 0% 98%;
   
-  --muted: 220 15% 94%;
+  --muted: 220 15% 92%;
   --muted-foreground: 220 15% 40%;
   
   --accent: 160 60% 20%;
@@ -169,17 +169,17 @@
   --destructive: 0 70% 45%;
   --destructive-foreground: 0 0% 98%;
   
-  --border: 220 15% 90%;
-  --input: 220 15% 96%;
+  --border: 220 15% 88%;
+  --input: 220 15% 92%;
   --ring: 210 100% 30%;
   
-  --sidebar-background: 0 0% 98%; /* Light off-white sidebar */
-  --sidebar-foreground: 220 15% 20%; /* Dark text for light sidebar */
+  --sidebar-background: 0 0% 0%; /* Keep sidebar black even in light mode */
+  --sidebar-foreground: 0 0% 95%; /* Light text for sidebar */
   --sidebar-primary: 210 100% 30%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 210 100% 30%;
   --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 220 15% 90%; /* Light border for sidebar */
+  --sidebar-border: 0 0% 15%; /* Dark border for black sidebar */
   --sidebar-ring: 210 100% 30%;
 }
 
