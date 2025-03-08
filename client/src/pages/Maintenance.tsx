@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, subDays, addDays } from "date-fns";
 import { 
   Card, 
   CardContent, 
@@ -47,41 +47,105 @@ import {
   User, 
   Tag,
   ChevronRight,
-  Hammer
+  Hammer,
+  MessageSquare,
+  Bell,
+  ListChecks,
+  MailQuestion,
+  Settings,
+  PlusCircle as CirclePlus,
+  QrCode,
+  Paperclip,
+  Camera as CameraIcon,
+  Upload as UploadIcon
 } from "lucide-react";
 
 import { maintenanceItems, maintenanceLogs, maintenanceStats, MaintenanceItem, MaintenanceLog } from "@/lib/maintenanceData";
 
+// Maintenance notifications/bulletins data
+interface MaintenanceBulletin {
+  id: string;
+  title: string;
+  message: string;
+  category: 'parts-shortage' | 'delay' | 'update' | 'facility' | 'general';
+  affectedItems?: string[];
+  postedBy: string;
+  postedDate: string;
+  resolvedDate?: string;
+  resolved: boolean;
+}
+
+const maintenanceBulletins: MaintenanceBulletin[] = [
+  {
+    id: "b1",
+    title: "Parts Shortage: M4 Firing Pin",
+    message: "We are currently experiencing a shortage of M4 firing pins. Maintenance requests requiring this part will be delayed by approximately 2 weeks. We've placed an emergency order and expect delivery by April 15.",
+    category: 'parts-shortage',
+    affectedItems: ["M4A1 Carbine"],
+    postedBy: "SFC Wright",
+    postedDate: format(subDays(new Date(), 2), 'yyyy-MM-dd'),
+    resolved: false
+  },
+  {
+    id: "b2",
+    title: "HMMWV Maintenance Delay",
+    message: "Due to increased operational tempo, all non-critical HMMWV maintenance is being rescheduled. Critical repairs remain prioritized. Contact the maintenance team if you believe your request should be escalated.",
+    category: 'delay',
+    affectedItems: ["HMMWV"],
+    postedBy: "CPT Miller",
+    postedDate: format(subDays(new Date(), 5), 'yyyy-MM-dd'),
+    resolved: false
+  },
+  {
+    id: "b3",
+    title: "Maintenance Bay Closure",
+    message: "Bay 3 will be closed for renovation from April 10-15. All scheduled maintenance in this bay is being rescheduled. You will receive notification of your new maintenance appointment date.",
+    category: 'facility',
+    postedBy: "1SG Robinson",
+    postedDate: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
+    resolved: false
+  },
+  {
+    id: "b4",
+    title: "NVG Repair Process Improved",
+    message: "We've received new calibration equipment for night vision devices. Repair turnaround time has been reduced from 72 hours to 24 hours for most issues.",
+    category: 'update',
+    affectedItems: ["Night Vision Goggles"],
+    postedBy: "SPC Adams",
+    postedDate: format(subDays(new Date(), 10), 'yyyy-MM-dd'),
+    resolved: true,
+    resolvedDate: format(subDays(new Date(), 1), 'yyyy-MM-dd')
+  }
+];
+
 const Maintenance: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [filterPriority, setFilterPriority] = useState("all");
-  const [tabValue, setTabValue] = useState("pending");
   const [selectedItem, setSelectedItem] = useState<MaintenanceItem | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [newRequestModalOpen, setNewRequestModalOpen] = useState(false);
+  const [addBulletinModalOpen, setAddBulletinModalOpen] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("my-requests");
   const isMobile = useIsMobile();
   const { toast } = useToast();
 
-  // Filter maintenance items based on search term and filters
-  const filteredItems = maintenanceItems.filter(item => {
+  // Filter maintenance items for current user
+  // In a real app, this would filter by the current user's ID
+  const myMaintenanceRequests = maintenanceItems.filter(item => 
+    item.reportedBy === "CPT Rodriguez" || 
+    item.reportedBy === "SSG Wilson"
+  );
+
+  // Get filtered maintenance requests based on search term and status
+  const filteredRequests = myMaintenanceRequests.filter(item => {
     const matchesSearch = 
       item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = filterCategory === "all" || item.category === filterCategory;
     const matchesStatus = filterStatus === "all" || item.status === filterStatus;
-    const matchesPriority = filterPriority === "all" || item.priority === filterPriority;
     
-    // Filter by tab
-    const matchesTab = 
-      (tabValue === "pending" && (item.status === "scheduled" || item.status === "in-progress")) ||
-      (tabValue === "completed" && item.status === "completed") ||
-      (tabValue === "all");
-    
-    return matchesSearch && matchesCategory && matchesStatus && matchesPriority && matchesTab;
+    return matchesSearch && matchesStatus;
   });
 
   // Get maintenance logs for a specific item
@@ -98,6 +162,7 @@ const Maintenance: React.FC = () => {
 
   // Handler for starting maintenance
   const handleStartMaintenance = (item: MaintenanceItem) => {
+    // In a real app, this would update the item status in the database
     toast({
       title: "Maintenance Started",
       description: `Maintenance for ${item.itemName} has been started.`,
@@ -107,6 +172,7 @@ const Maintenance: React.FC = () => {
 
   // Handler for completing maintenance
   const handleCompleteMaintenance = (item: MaintenanceItem) => {
+    // In a real app, this would update the item status in the database
     toast({
       title: "Maintenance Completed",
       description: `Maintenance for ${item.itemName} has been marked as complete.`,
@@ -129,6 +195,21 @@ const Maintenance: React.FC = () => {
     });
   };
 
+  // Handler for adding a new bulletin
+  const handleAddBulletinClick = () => {
+    setAddBulletinModalOpen(true);
+  };
+
+  // Handler for submitting a new bulletin
+  const handleSubmitBulletin = () => {
+    setAddBulletinModalOpen(false);
+    toast({
+      title: "Bulletin Posted",
+      description: "Your maintenance bulletin has been posted successfully.",
+      variant: "default",
+    });
+  };
+
   // Page actions
   const actions = (
     <div className="flex gap-2">
@@ -137,7 +218,7 @@ const Maintenance: React.FC = () => {
         className="flex items-center gap-1 bg-blue-700 hover:bg-blue-800"
         onClick={handleNewRequestClick}
       >
-        <Plus className="h-4 w-4" />
+        <CirclePlus className="h-4 w-4" />
         <span className={isMobile ? "" : "hidden sm:inline"}>New Request</span>
       </Button>
     </div>
@@ -146,162 +227,495 @@ const Maintenance: React.FC = () => {
   return (
     <PageWrapper withPadding={true}>
       <PageHeader
-        title="Maintenance Management"
-        description="Schedule, track, and manage equipment maintenance"
+        title="Equipment Maintenance"
+        description="Submit, track, and manage maintenance requests for your equipment"
         actions={actions}
         className="mb-4 sm:mb-5 md:mb-6"
       />
 
-      {/* Status Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-blue-800 dark:text-blue-400">In Progress</p>
-              <p className="text-2xl font-bold">{maintenanceStats.inProgress}</p>
-              <p className="text-xs text-blue-600 dark:text-blue-500">Active maintenance tasks</p>
-            </div>
-            <div className="bg-blue-200 dark:bg-blue-700/30 p-3 rounded-full">
-              <Wrench className="h-5 w-5 text-blue-700 dark:text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
+      {/* Main layout with left sidebar and main content */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Left sidebar for new request and tracking status */}
+        <div className="lg:w-80 xl:w-96 space-y-6">
+          {/* Create New Request Card */}
+          <Card className="border-l-4 border-l-blue-600">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center text-blue-700 dark:text-blue-400">
+                <CirclePlus className="h-5 w-5 mr-2" />
+                Create a Request
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm mb-4">Submit a new maintenance request for your equipment quickly.</p>
+              <Button 
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                onClick={handleNewRequestClick}
+              >
+                New Maintenance Request
+              </Button>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-800">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-amber-800 dark:text-amber-400">Scheduled</p>
-              <p className="text-2xl font-bold">{maintenanceStats.scheduled}</p>
-              <p className="text-xs text-amber-600 dark:text-amber-500">Upcoming maintenance</p>
-            </div>
-            <div className="bg-amber-200 dark:bg-amber-700/30 p-3 rounded-full">
-              <Calendar className="h-5 w-5 text-amber-700 dark:text-amber-500" />
-            </div>
-          </CardContent>
-        </Card>
+          {/* Maintenance Status Card */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Your Maintenance Status</CardTitle>
+              <CardDescription>Overview of your current requests</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Pending</p>
+                    <p className="text-xs text-muted-foreground">Awaiting service</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/10">
+                  {myMaintenanceRequests.filter(item => item.status === 'scheduled').length}
+                </Badge>
+              </div>
 
-        <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-red-800 dark:text-red-400">Critical Priority</p>
-              <p className="text-2xl font-bold">{maintenanceStats.criticalPending}</p>
-              <p className="text-xs text-red-600 dark:text-red-500">Require immediate attention</p>
-            </div>
-            <div className="bg-red-200 dark:bg-red-700/30 p-3 rounded-full">
-              <AlertTriangle className="h-5 w-5 text-red-700 dark:text-red-500" />
-            </div>
-          </CardContent>
-        </Card>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mr-3">
+                    <Wrench className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">In Progress</p>
+                    <p className="text-xs text-muted-foreground">Currently being worked on</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="bg-amber-50 dark:bg-amber-900/10">
+                  {myMaintenanceRequests.filter(item => item.status === 'in-progress').length}
+                </Badge>
+              </div>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-green-800 dark:text-green-400">Completed</p>
-              <p className="text-2xl font-bold">{maintenanceStats.completedThisMonth}</p>
-              <p className="text-xs text-green-600 dark:text-green-500">This month</p>
-            </div>
-            <div className="bg-green-200 dark:bg-green-700/30 p-3 rounded-full">
-              <CheckCircle className="h-5 w-5 text-green-700 dark:text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mr-3">
+                    <CheckCircle className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Completed</p>
+                    <p className="text-xs text-muted-foreground">Ready for pickup</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="bg-green-50 dark:bg-green-900/10">
+                  {myMaintenanceRequests.filter(item => item.status === 'completed').length}
+                </Badge>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mr-3">
+                    <AlertTriangle className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Critical</p>
+                    <p className="text-xs text-muted-foreground">High priority items</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="bg-red-50 dark:bg-red-900/10">
+                  {myMaintenanceRequests.filter(item => item.priority === 'critical').length}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Maintenance Timeline Card */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center">
+                <CalendarClock className="h-5 w-5 mr-2" />
+                Maintenance Schedule
+              </CardTitle>
+              <CardDescription>Your upcoming appointments</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {myMaintenanceRequests
+                  .filter(item => item.scheduledDate)
+                  .sort((a, b) => new Date(a.scheduledDate!).getTime() - new Date(b.scheduledDate!).getTime())
+                  .slice(0, 3)
+                  .map(item => (
+                    <div key={item.id} className="flex items-start">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3 mt-0.5">
+                        <Calendar className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{item.itemName}</p>
+                        <p className="text-xs text-muted-foreground">{item.scheduledDate}</p>
+                        <div className="flex items-center mt-1">
+                          <Badge className={`px-1.5 py-0 text-xs ${
+                            item.priority === 'critical' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
+                            item.priority === 'high' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400' :
+                            'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+                          }`}>
+                            {item.priority.charAt(0).toUpperCase() + item.priority.slice(1)}
+                          </Badge>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="ml-auto" 
+                        onClick={() => handleViewDetails(item)}
+                      >
+                        Details
+                      </Button>
+                    </div>
+                  ))
+                }
+
+                {myMaintenanceRequests.filter(item => item.scheduledDate).length === 0 && (
+                  <div className="py-2 text-center text-sm text-muted-foreground">
+                    No upcoming maintenance scheduled
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right main content area */}
+        <div className="flex-1">
+          <Tabs 
+            value={selectedTab} 
+            onValueChange={setSelectedTab} 
+            className="space-y-4"
+          >
+            <TabsList className="bg-muted/50 p-1 grid grid-cols-1 sm:grid-cols-3 h-auto">
+              <TabsTrigger value="my-requests" className="py-2 data-[state=active]:bg-primary/10">
+                <ListChecks className="h-4 w-4 mr-2" />
+                My Requests
+              </TabsTrigger>
+              <TabsTrigger value="bulletins" className="py-2 data-[state=active]:bg-primary/10">
+                <Bell className="h-4 w-4 mr-2" />
+                Maintenance Bulletins
+              </TabsTrigger>
+              <TabsTrigger value="help" className="py-2 data-[state=active]:bg-primary/10">
+                <MailQuestion className="h-4 w-4 mr-2" />
+                Help & FAQ
+              </TabsTrigger>
+            </TabsList>
+
+            {/* My Requests Tab */}
+            <TabsContent value="my-requests" className="space-y-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                    <div>
+                      <CardTitle>My Maintenance Requests</CardTitle>
+                      <CardDescription>View and track your maintenance requests</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Select value={filterStatus} onValueChange={setFilterStatus}>
+                        <SelectTrigger className="w-full sm:w-40">
+                          <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="scheduled">Pending</SelectItem>
+                          <SelectItem value="in-progress">In Progress</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative mb-4">
+                    <Input
+                      placeholder="Search by name, serial number, or description"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  </div>
+
+                  <div className="rounded-md border">
+                    <div className="grid grid-cols-1 divide-y">
+                      {filteredRequests.length === 0 ? (
+                        <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <Wrench className="h-8 w-8 opacity-30" />
+                            <p>No maintenance requests found</p>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="mt-2"
+                              onClick={handleNewRequestClick}
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Create New Request
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        filteredRequests.map((item) => (
+                          <div key={item.id} className="p-4 hover:bg-muted/30 transition-colors">
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-medium">{item.itemName}</h4>
+                                  <MaintenanceStatusBadge status={item.status} />
+                                </div>
+                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mb-2">
+                                  <span className="flex items-center">
+                                    <Tag className="h-3 w-3 mr-1" /> 
+                                    {item.serialNumber}
+                                  </span>
+                                  <span className="flex items-center">
+                                    <Calendar className="h-3 w-3 mr-1" /> 
+                                    Reported: {item.reportedDate}
+                                  </span>
+                                  {item.scheduledDate && (
+                                    <span className="flex items-center">
+                                      <Clock className="h-3 w-3 mr-1" /> 
+                                      Scheduled: {item.scheduledDate}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm">{item.description}</p>
+                                
+                                {/* Progress indicator for in-progress items */}
+                                {item.status === 'in-progress' && (
+                                  <div className="mt-3 space-y-1">
+                                    <div className="flex justify-between text-xs">
+                                      <span>Progress</span>
+                                      <span>60%</span>
+                                    </div>
+                                    <Progress value={60} className="h-2" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 sm:flex-col sm:items-end mt-2 sm:mt-0">
+                                <MaintenancePriorityBadge priority={item.priority} />
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="mt-2"
+                                  onClick={() => handleViewDetails(item)}
+                                >
+                                  View Details
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Maintenance Bulletins Tab */}
+            <TabsContent value="bulletins" className="space-y-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                    <div>
+                      <CardTitle>Maintenance Bulletins</CardTitle>
+                      <CardDescription>Updates on parts, schedules, and other important information</CardDescription>
+                    </div>
+                    {/* Only show for maintenance staff */}
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      className="flex items-center gap-1"
+                      onClick={handleAddBulletinClick}
+                    >
+                      <CirclePlus className="h-4 w-4" />
+                      Post Bulletin
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {maintenanceBulletins.map(bulletin => (
+                      <Card key={bulletin.id} className={`border-l-4 ${
+                        bulletin.category === 'parts-shortage' ? 'border-l-amber-500' :
+                        bulletin.category === 'delay' ? 'border-l-red-500' :
+                        bulletin.category === 'update' ? 'border-l-green-500' :
+                        bulletin.category === 'facility' ? 'border-l-blue-500' :
+                        'border-l-gray-500'
+                      }`}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="font-semibold text-lg flex items-center">
+                              {bulletin.category === 'parts-shortage' && <Package className="h-4 w-4 mr-2 text-amber-500" />}
+                              {bulletin.category === 'delay' && <Clock className="h-4 w-4 mr-2 text-red-500" />}
+                              {bulletin.category === 'update' && <Info className="h-4 w-4 mr-2 text-green-500" />}
+                              {bulletin.category === 'facility' && <Settings className="h-4 w-4 mr-2 text-blue-500" />}
+                              {bulletin.category === 'general' && <Bell className="h-4 w-4 mr-2 text-gray-500" />}
+                              {bulletin.title}
+                            </h3>
+                            {bulletin.resolved ? (
+                              <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/10 dark:text-green-400">
+                                Resolved
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-amber-50 text-amber-700 dark:bg-amber-900/10 dark:text-amber-400">
+                                Active
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <p className="text-sm mb-3">{bulletin.message}</p>
+                          
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {bulletin.affectedItems?.map(item => (
+                              <Badge key={item} variant="secondary" className="bg-muted/50">
+                                {item}
+                              </Badge>
+                            ))}
+                          </div>
+                          
+                          <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                            <span>Posted by: {bulletin.postedBy}</span>
+                            <span>Date: {bulletin.postedDate}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Help & FAQ Tab */}
+            <TabsContent value="help" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Maintenance Help & FAQ</CardTitle>
+                  <CardDescription>Common questions and guidance about the maintenance process</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-medium flex items-center text-lg mb-2">
+                        <MailQuestion className="h-5 w-5 mr-2 text-primary" />
+                        How do I submit a maintenance request?
+                      </h3>
+                      <p className="text-sm ml-7">
+                        Click the "New Request" button at the top of the page or use the quick action in the sidebar. 
+                        Fill out the form with details about your equipment and the issue you're experiencing.
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium flex items-center text-lg mb-2">
+                        <Clock className="h-5 w-5 mr-2 text-primary" />
+                        How long will my maintenance request take?
+                      </h3>
+                      <p className="text-sm ml-7">
+                        Standard maintenance typically takes 3-5 business days depending on parts availability and current workload. 
+                        Critical requests are prioritized based on operational needs. Check the "Maintenance Bulletins" tab for any 
+                        announcements about delays or parts shortages.
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium flex items-center text-lg mb-2">
+                        <AlertTriangle className="h-5 w-5 mr-2 text-primary" />
+                        How do I report an emergency maintenance issue?
+                      </h3>
+                      <p className="text-sm ml-7">
+                        For emergency issues that affect mission readiness, submit a request with "Critical" priority. 
+                        Additionally, contact the Maintenance Control Office directly at extension 5432.
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium flex items-center text-lg mb-2">
+                        <MessageSquare className="h-5 w-5 mr-2 text-primary" />
+                        How can I check the status of my request?
+                      </h3>
+                      <p className="text-sm ml-7">
+                        Your maintenance requests are displayed in the "My Requests" tab with their current status. 
+                        Click "View Details" on any request to see the complete maintenance history and current progress.
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium flex items-center text-lg mb-2">
+                        <Truck className="h-5 w-5 mr-2 text-primary" />
+                        What if my equipment needs external repair?
+                      </h3>
+                      <p className="text-sm ml-7">
+                        If your equipment requires repair at an external facility, the maintenance team will coordinate 
+                        the process and keep you updated through the system. External repairs typically require additional 
+                        processing time and appropriate approvals.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Alert className="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 mt-6">
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Need more help?</AlertTitle>
+                    <AlertDescription>
+                      Contact the Maintenance Control Office at extension 5432 or email maintenance@handreceipt.mil
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-
-      {/* Main Content Tabs */}
-      <Tabs 
-        defaultValue="pending" 
-        value={tabValue} 
-        onValueChange={setTabValue}
-        className="space-y-4"
-      >
-        <TabsList className="grid grid-cols-1 md:grid-cols-3 h-auto">
-          <TabsTrigger value="pending" className="py-2 data-[state=active]:bg-primary/10">
-            <Clock className="h-4 w-4 mr-2" />
-            Pending Maintenance
-          </TabsTrigger>
-          <TabsTrigger value="completed" className="py-2 data-[state=active]:bg-primary/10">
-            <CheckCircle className="h-4 w-4 mr-2" />
-            Completed
-          </TabsTrigger>
-          <TabsTrigger value="all" className="py-2 data-[state=active]:bg-primary/10">
-            <ClipboardList className="h-4 w-4 mr-2" />
-            All Maintenance
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Tab content is the same for all tabs, but filtered differently */}
-        <TabsContent value="pending" className="space-y-4">
-          <MaintenanceList 
-            items={filteredItems}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            filterCategory={filterCategory}
-            setFilterCategory={setFilterCategory}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
-            filterPriority={filterPriority}
-            setFilterPriority={setFilterPriority}
-            onViewDetails={handleViewDetails}
-            onStartMaintenance={handleStartMaintenance}
-            onCompleteMaintenance={handleCompleteMaintenance}
-          />
-        </TabsContent>
-
-        <TabsContent value="completed" className="space-y-4">
-          <MaintenanceList 
-            items={filteredItems}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            filterCategory={filterCategory}
-            setFilterCategory={setFilterCategory}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
-            filterPriority={filterPriority}
-            setFilterPriority={setFilterPriority}
-            onViewDetails={handleViewDetails}
-            onStartMaintenance={handleStartMaintenance}
-            onCompleteMaintenance={handleCompleteMaintenance}
-          />
-        </TabsContent>
-
-        <TabsContent value="all" className="space-y-4">
-          <MaintenanceList 
-            items={filteredItems}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            filterCategory={filterCategory}
-            setFilterCategory={setFilterCategory}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
-            filterPriority={filterPriority}
-            setFilterPriority={setFilterPriority}
-            onViewDetails={handleViewDetails}
-            onStartMaintenance={handleStartMaintenance}
-            onCompleteMaintenance={handleCompleteMaintenance}
-          />
-        </TabsContent>
-      </Tabs>
 
       {/* Maintenance Details Modal */}
       {selectedItem && (
         <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl flex items-center">
                 <Wrench className="mr-2 h-5 w-5" />
-                Maintenance Details
+                Maintenance Request Details
               </DialogTitle>
               <DialogDescription>
-                Complete information about this maintenance request
+                Tracking information for maintenance request #{selectedItem.id.substring(1)}
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-4">
+            {/* Status badges at the top */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <MaintenanceStatusBadge status={selectedItem.status} size="lg" />
+              <MaintenancePriorityBadge priority={selectedItem.priority} size="lg" />
+              {selectedItem.maintenanceType && (
+                <Badge variant="outline" className="text-sm px-3 py-1 capitalize">
+                  {selectedItem.maintenanceType} Maintenance
+                </Badge>
+              )}
+            </div>
+
+            <div className="space-y-6">
+              {/* Progress indicator for in-progress items */}
+              {selectedItem.status === 'in-progress' && (
+                <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-lg">
+                  <div className="flex justify-between mb-2">
+                    <h3 className="font-medium text-blue-800 dark:text-blue-400">Current Progress</h3>
+                    <span className="text-blue-800 dark:text-blue-400">60%</span>
+                  </div>
+                  <Progress value={60} className="h-2 mb-2" />
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <Clock className="inline h-3 w-3 mr-1" /> 
+                    Estimated completion: {selectedItem.estimatedCompletionTime || "Unknown"}
+                  </p>
+                </div>
+              )}
+              
               {/* Item Information */}
               <div className="border rounded-md p-4">
-                <h3 className="text-lg font-medium mb-2 flex items-center">
-                  <Info className="mr-2 h-4 w-4" />
-                  Item Information
+                <h3 className="text-lg font-medium mb-3 flex items-center">
+                  <Tag className="mr-2 h-4 w-4" />
+                  Equipment Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
@@ -319,62 +733,52 @@ const Maintenance: React.FC = () => {
                 </div>
               </div>
               
-              {/* Maintenance Information */}
+              {/* Issue Description */}
               <div className="border rounded-md p-4">
-                <h3 className="text-lg font-medium mb-2 flex items-center">
-                  <Wrench className="mr-2 h-4 w-4" />
-                  Maintenance Information
+                <h3 className="text-lg font-medium mb-3 flex items-center">
+                  <MailQuestion className="mr-2 h-4 w-4" />
+                  Reported Issue
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Maintenance Type</p>
-                    <p className="font-medium capitalize">{selectedItem.maintenanceType}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Status</p>
-                    <MaintenanceStatusBadge status={selectedItem.status} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Priority</p>
-                    <MaintenancePriorityBadge priority={selectedItem.priority} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Reported Date</p>
+                <p className="mb-3">{selectedItem.description}</p>
+                <div className="flex flex-col md:flex-row md:items-center gap-3 text-sm text-muted-foreground">
+                  <span>Reported by: <span className="font-medium">{selectedItem.reportedBy}</span></span>
+                  <span className="hidden md:inline">•</span>
+                  <span>Date: <span className="font-medium">{selectedItem.reportedDate}</span></span>
+                </div>
+              </div>
+              
+              {/* Maintenance Schedule */}
+              <div className="border rounded-md p-4">
+                <h3 className="text-lg font-medium mb-3 flex items-center">
+                  <CalendarClock className="mr-2 h-4 w-4" />
+                  Maintenance Schedule
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="border-l-2 border-l-blue-500 pl-3">
+                    <p className="text-sm text-muted-foreground">Reported</p>
                     <p className="font-medium">{selectedItem.reportedDate}</p>
                   </div>
-                  {selectedItem.scheduledDate && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Scheduled Date</p>
-                      <p className="font-medium">{selectedItem.scheduledDate}</p>
-                    </div>
-                  )}
-                  {selectedItem.completedDate && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Completed Date</p>
-                      <p className="font-medium">{selectedItem.completedDate}</p>
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm text-muted-foreground">Reported By</p>
-                    <p className="font-medium">{selectedItem.reportedBy}</p>
+                  
+                  <div className={`border-l-2 pl-3 ${selectedItem.scheduledDate ? 'border-l-amber-500' : 'border-l-gray-300 dark:border-l-gray-700'}`}>
+                    <p className="text-sm text-muted-foreground">Scheduled</p>
+                    <p className="font-medium">{selectedItem.scheduledDate || "Not scheduled yet"}</p>
                   </div>
-                  {selectedItem.assignedTo && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Assigned To</p>
-                      <p className="font-medium">{selectedItem.assignedTo}</p>
-                    </div>
-                  )}
+                  
+                  <div className={`border-l-2 pl-3 ${selectedItem.completedDate ? 'border-l-green-500' : 'border-l-gray-300 dark:border-l-gray-700'}`}>
+                    <p className="text-sm text-muted-foreground">Completed</p>
+                    <p className="font-medium">{selectedItem.completedDate || "Pending"}</p>
+                  </div>
                 </div>
                 
-                <div className="mt-3">
-                  <p className="text-sm text-muted-foreground">Description</p>
-                  <p>{selectedItem.description}</p>
+                <div className="mt-4">
+                  <p className="text-sm text-muted-foreground">Assigned Technician</p>
+                  <p className="font-medium">{selectedItem.assignedTo || "Not assigned yet"}</p>
                 </div>
                 
                 {selectedItem.notes && (
-                  <div className="mt-3">
-                    <p className="text-sm text-muted-foreground">Notes</p>
-                    <p>{selectedItem.notes}</p>
+                  <div className="mt-4 bg-muted/30 p-3 rounded-md">
+                    <p className="text-sm font-medium mb-1">Technician Notes:</p>
+                    <p className="text-sm">{selectedItem.notes}</p>
                   </div>
                 )}
               </div>
@@ -382,7 +786,7 @@ const Maintenance: React.FC = () => {
               {/* Parts Information */}
               {selectedItem.partsRequired && selectedItem.partsRequired.length > 0 && (
                 <div className="border rounded-md p-4">
-                  <h3 className="text-lg font-medium mb-2 flex items-center">
+                  <h3 className="text-lg font-medium mb-3 flex items-center">
                     <Hammer className="mr-2 h-4 w-4" />
                     Required Parts
                   </h3>
@@ -424,7 +828,7 @@ const Maintenance: React.FC = () => {
               
               {/* Maintenance History */}
               <div className="border rounded-md p-4">
-                <h3 className="text-lg font-medium mb-2 flex items-center">
+                <h3 className="text-lg font-medium mb-3 flex items-center">
                   <History className="mr-2 h-4 w-4" />
                   Maintenance History
                 </h3>
@@ -459,36 +863,49 @@ const Maintenance: React.FC = () => {
               </div>
             </div>
             
-            <DialogFooter className="gap-2 sm:justify-between sm:gap-0">
-              <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>
-                Close
-              </Button>
+            <DialogFooter className="gap-2 flex-col sm:flex-row">
+              {/* Request actions */}
+              <div className="flex gap-2 flex-1 justify-start">
+                {selectedItem.status === 'in-progress' && (
+                  <Button variant="outline" className="text-blue-600 border-blue-600">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Send Message
+                  </Button>
+                )}
+              </div>
               
-              {selectedItem.status === 'scheduled' && (
-                <Button 
-                  className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => {
-                    handleStartMaintenance(selectedItem);
-                    setDetailsModalOpen(false);
-                  }}
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  Start Maintenance
+              {/* Status change actions */}
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>
+                  Close
                 </Button>
-              )}
-              
-              {selectedItem.status === 'in-progress' && (
-                <Button 
-                  className="bg-green-600 hover:bg-green-700"
-                  onClick={() => {
-                    handleCompleteMaintenance(selectedItem);
-                    setDetailsModalOpen(false);
-                  }}
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Mark as Complete
-                </Button>
-              )}
+                
+                {selectedItem.status === 'scheduled' && (
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => {
+                      handleStartMaintenance(selectedItem);
+                      setDetailsModalOpen(false);
+                    }}
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    Start Maintenance
+                  </Button>
+                )}
+                
+                {selectedItem.status === 'in-progress' && (
+                  <Button 
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={() => {
+                      handleCompleteMaintenance(selectedItem);
+                      setDetailsModalOpen(false);
+                    }}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Mark as Complete
+                  </Button>
+                )}
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -496,28 +913,62 @@ const Maintenance: React.FC = () => {
 
       {/* New Maintenance Request Modal */}
       <Dialog open={newRequestModalOpen} onOpenChange={setNewRequestModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl flex items-center">
-              <Plus className="mr-2 h-5 w-5" />
+              <CirclePlus className="mr-2 h-5 w-5" />
               New Maintenance Request
             </DialogTitle>
             <DialogDescription>
-              Submit a new maintenance request for equipment
+              Submit a maintenance request for your equipment
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Item Name</label>
-                <Input placeholder="Enter item name" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Serial Number</label>
-                <Input placeholder="Enter serial number" />
-              </div>
-            </div>
+            {/* Equipment Selection Method */}
+            <Tabs defaultValue="manual" className="w-full">
+              <TabsList className="grid grid-cols-2 mb-4">
+                <TabsTrigger value="manual">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Manual Entry
+                </TabsTrigger>
+                <TabsTrigger value="scan">
+                  <QrCode className="h-4 w-4 mr-2" />
+                  Scan QR Code
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="manual">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Item Name</label>
+                    <Input placeholder="Enter item name" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Serial Number</label>
+                    <Input placeholder="Enter serial number" />
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="scan">
+                <Card>
+                  <CardContent className="py-4">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <div className="bg-primary/10 p-4 rounded-full mb-3">
+                        <QrCode className="h-8 w-8 text-primary" />
+                      </div>
+                      <h3 className="font-medium mb-2">Scan Equipment QR Code</h3>
+                      <p className="text-sm text-muted-foreground mb-3">Scan the QR code on your equipment to automatically fill details</p>
+                      <Button>
+                        <QrCode className="h-4 w-4 mr-2" />
+                        Open Scanner
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -567,23 +1018,43 @@ const Maintenance: React.FC = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Requested Date</label>
+                <label className="text-sm font-medium">Preferred Date (if any)</label>
                 <Input type="date" />
               </div>
             </div>
             
             <div className="space-y-2">
               <label className="text-sm font-medium">Description of Issue</label>
-              <Textarea placeholder="Describe the maintenance needed or issue observed" />
+              <Textarea 
+                placeholder="Describe the maintenance needed or issue observed in detail. Include when the issue started and any troubleshooting steps already taken." 
+                className="min-h-[120px]"
+              />
             </div>
             
-            <Alert className="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-              <Info className="h-4 w-4" />
-              <AlertTitle>QR Code Scan</AlertTitle>
-              <AlertDescription>
-                You can also scan the item's QR code to automatically fill in equipment details.
-              </AlertDescription>
-            </Alert>
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center">
+                <Paperclip className="h-4 w-4 mr-2" />
+                Attachments (Optional)
+              </label>
+              <div className="border-2 border-dashed rounded-md p-4 text-center">
+                <CameraIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground mb-2">Drag & drop photos or click to browse</p>
+                <Button variant="outline" size="sm">
+                  <UploadIcon className="h-4 w-4 mr-2" />
+                  Upload Image
+                </Button>
+              </div>
+            </div>
+            
+            <Card className="bg-amber-50 text-amber-800 dark:bg-amber-900/10 dark:text-amber-400 border-amber-200 dark:border-amber-800">
+              <CardContent className="py-3 px-4 flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-amber-800 dark:text-amber-400">Important Notice</h4>
+                  <p className="text-sm mt-1">For critical equipment affecting operational readiness, please also notify your supervisor after submitting this request.</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
           
           <DialogFooter className="gap-2">
@@ -595,6 +1066,91 @@ const Maintenance: React.FC = () => {
               className="bg-blue-600 hover:bg-blue-700"
             >
               Submit Request
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Post Maintenance Bulletin Modal */}
+      <Dialog open={addBulletinModalOpen} onOpenChange={setAddBulletinModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center">
+              <Bell className="mr-2 h-5 w-5" />
+              Post Maintenance Bulletin
+            </DialogTitle>
+            <DialogDescription>
+              Share important maintenance updates with personnel
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Bulletin Title</label>
+              <Input placeholder="Enter bulletin title" />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Category</label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="parts-shortage">Parts Shortage</SelectItem>
+                    <SelectItem value="delay">Maintenance Delay</SelectItem>
+                    <SelectItem value="update">Process Update</SelectItem>
+                    <SelectItem value="facility">Facility Notice</SelectItem>
+                    <SelectItem value="general">General Information</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Priority</label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Message</label>
+              <Textarea 
+                placeholder="Provide detailed information about the maintenance update" 
+                className="min-h-[120px]"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Affected Equipment (Optional)</label>
+              <Input placeholder="Enter equipment types affected by this bulletin" />
+              <p className="text-xs text-muted-foreground">Separate multiple items with commas</p>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Expected Resolution Date (Optional)</label>
+              <Input type="date" />
+            </div>
+          </div>
+          
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setAddBulletinModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmitBulletin}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Post Bulletin
             </Button>
           </DialogFooter>
         </DialogContent>
