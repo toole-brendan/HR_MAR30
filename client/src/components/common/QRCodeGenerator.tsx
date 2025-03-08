@@ -86,12 +86,10 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
       <Button 
         variant="outline" 
         onClick={() => setIsDialogOpen(true)}
-        className="bg-[#3B5BDB] hover:bg-[#364FC7] text-white w-full"
+        className="bg-[#3B5BDB] hover:bg-[#364FC7] text-white inline-flex items-center justify-center px-4 py-2 min-w-[180px] max-w-[200px]"
       >
-        <div className="flex items-center justify-center w-full">
-          <i className="fas fa-qrcode mr-2"></i>
-          <span>Generate QR Code</span>
-        </div>
+        <i className="fas fa-qrcode mr-2"></i>
+        <span>Generate QR Code</span>
       </Button>
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -126,10 +124,11 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
           
           {!qrImage ? (
             <div className="flex justify-center py-4">
-              <Button onClick={generateQRCode} className="bg-[#3B5BDB] hover:bg-[#364FC7] w-full">
-                <div className="flex items-center justify-center w-full">
-                  Generate QR Code
-                </div>
+              <Button 
+                onClick={generateQRCode} 
+                className="bg-[#3B5BDB] hover:bg-[#364FC7] inline-flex items-center justify-center px-4 py-2 min-w-[180px] max-w-[200px]"
+              >
+                Generate QR Code
               </Button>
             </div>
           ) : (
@@ -141,10 +140,20 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
                   <p className="font-mono">{serialNumber}</p>
                 </div>
                 <div className="flex space-x-2">
-                  <Button size="sm" variant="outline" onClick={handlePrint}>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={handlePrint}
+                    className="inline-flex items-center justify-center px-4 py-1 min-w-[100px]"
+                  >
                     <i className="fas fa-print mr-2"></i> Print
                   </Button>
-                  <Button size="sm" variant="outline" className="text-red-500" onClick={handleReport}>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="text-red-500 inline-flex items-center justify-center px-4 py-1 min-w-[100px]" 
+                    onClick={handleReport}
+                  >
                     <i className="fas fa-exclamation-triangle mr-2"></i> Report Issue
                   </Button>
                 </div>
@@ -153,7 +162,11 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
           )}
           
           <DialogFooter className="sm:justify-start">
-            <Button variant="secondary" onClick={() => setIsDialogOpen(false)}>
+            <Button 
+              variant="secondary" 
+              onClick={() => setIsDialogOpen(false)}
+              className="inline-flex items-center justify-center px-4 py-2 min-w-[100px]"
+            >
               Close
             </Button>
           </DialogFooter>
