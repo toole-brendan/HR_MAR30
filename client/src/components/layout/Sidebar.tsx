@@ -246,8 +246,8 @@ const Sidebar = ({
               title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
             >
               {theme === 'light' ? 
-                <Moon className="h-5 w-5 text-gray-800 dark:text-gray-200" /> : 
-                <Sun className="h-5 w-5 text-gray-800 dark:text-gray-200" />
+                <Moon className="h-5 w-5 text-primary-700 dark:text-gray-200" /> : 
+                <Sun className="h-5 w-5 text-gray-200 dark:text-gray-200" />
               }
             </button>
           </div>
@@ -383,8 +383,8 @@ const Sidebar = ({
                 title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               >
                 {theme === 'light' ? 
-                  <Moon className="h-5 w-5 text-gray-800 dark:text-gray-200" /> : 
-                  <Sun className="h-5 w-5 text-gray-800 dark:text-gray-200" />
+                  <Moon className="h-5 w-5 text-primary-700 dark:text-gray-200" /> : 
+                  <Sun className="h-5 w-5 text-gray-200 dark:text-gray-200" />
                 }
               </button>
               
@@ -393,7 +393,7 @@ const Sidebar = ({
                 className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
                 title="Collapse sidebar"
               >
-                <ChevronLeft className="h-5 w-5 text-black dark:text-white" />
+                <ChevronLeft className="h-5 w-5 text-primary-700 dark:text-white" />
               </button>
             </div>
           ) : (
@@ -404,8 +404,8 @@ const Sidebar = ({
                 title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               >
                 {theme === 'light' ? 
-                  <Moon className="h-5 w-5 text-gray-800 dark:text-gray-200" /> : 
-                  <Sun className="h-5 w-5 text-gray-800 dark:text-gray-200" />
+                  <Moon className="h-5 w-5 text-primary-700 dark:text-gray-200" /> : 
+                  <Sun className="h-5 w-5 text-gray-200 dark:text-gray-200" />
                 }
               </button>
               
@@ -415,7 +415,7 @@ const Sidebar = ({
                 className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors mx-auto block"
                 title="Expand sidebar"
               >
-                <ChevronRight className="h-5 w-5 text-black dark:text-white" />
+                <ChevronRight className="h-5 w-5 text-primary-700 dark:text-white" />
               </button>
             </>
           )}
