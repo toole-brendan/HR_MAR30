@@ -1,6 +1,5 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
-import StandardPageLayout from '@/components/layout/StandardPageLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -8,19 +7,22 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, Calendar, Tag, Award, Truck, Radio, Eye, AlertTriangle, Star, FileText } from 'lucide-react';
+import { PageWrapper } from '@/components/ui/page-wrapper';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function Profile() {
   const { user } = useAuth();
 
   if (!user) {
     return (
-      <StandardPageLayout title="Profile">
+      <PageWrapper withPadding={true}>
+        <PageHeader title="Profile" className="mb-4 sm:mb-5 md:mb-6" />
         <Card>
           <CardContent className="pt-6">
             <p>Please log in to view your profile.</p>
           </CardContent>
         </Card>
-      </StandardPageLayout>
+      </PageWrapper>
     );
   }
 
@@ -33,10 +35,12 @@ export default function Profile() {
   };
 
   return (
-    <StandardPageLayout 
-      title="Personnel Profile" 
-      description="View and manage your military personnel information"
-    >
+    <PageWrapper withPadding={true}>
+      <PageHeader 
+        title="Personnel Profile" 
+        description="View and manage your military personnel information"
+        className="mb-4 sm:mb-5 md:mb-6"
+      />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Profile Card */}
         <Card className="md:col-span-1">
@@ -230,7 +234,7 @@ export default function Profile() {
           </Tabs>
         </div>
       </div>
-    </StandardPageLayout>
+    </PageWrapper>
   );
 }
 
