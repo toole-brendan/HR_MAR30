@@ -65,7 +65,7 @@ export function StandardPageLayout({
           title={title}
           description={description}
           actions={actions}
-          className="mb-4 sm:mb-5 md:mb-6"
+          className="mb-2 sm:mb-3 md:mb-4" /* Reduced bottom margin */
         />
       )}
       <div className={cn(
