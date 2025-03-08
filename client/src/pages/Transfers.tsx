@@ -658,7 +658,7 @@ const Transfers: React.FC = () => {
             placeholder="Search by name, serial number, personnel..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 bg-white"
+            className="pl-9 bg-white dark:bg-white/10"
           />
         </div>
         <div className="flex gap-2">
