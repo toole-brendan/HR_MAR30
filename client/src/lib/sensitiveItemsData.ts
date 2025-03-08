@@ -279,33 +279,33 @@ export const verificationLogs: VerificationLog[] = [
 export const sensitiveItemCategories: SensitiveItemCategory[] = [
   {
     id: "cat-1",
-    name: "Weapons",
+    name: "Crew-Served Weapons",
     count: 3,
-    verificationFrequency: "Twice Daily",
+    verificationFrequency: "Twice Daily (0600/1800)",
     riskLevel: "critical",
     icon: "gun"
   },
   {
     id: "cat-2",
-    name: "Communication Devices",
+    name: "COMSEC Devices",
     count: 3,
-    verificationFrequency: "Daily",
+    verificationFrequency: "Daily (0600)",
     riskLevel: "high",
     icon: "radio"
   },
   {
     id: "cat-3",
-    name: "Optical Systems",
+    name: "NVG Systems",
     count: 2,
-    verificationFrequency: "Daily",
+    verificationFrequency: "Daily (0600)",
     riskLevel: "high",
     icon: "eye"
   },
   {
     id: "cat-4",
-    name: "Cryptographic Equipment",
+    name: "CCI Equipment",
     count: 2,
-    verificationFrequency: "Daily",
+    verificationFrequency: "Daily (0600)",
     riskLevel: "critical",
     icon: "key"
   }
