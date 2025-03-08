@@ -40,8 +40,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { PageWrapper } from "@/components/ui/page-wrapper";
-import { PageHeader } from "@/components/ui/page-header";
 import { 
   Save, 
   LogOut, 
@@ -61,7 +59,8 @@ import {
   Cloud,
   Loader2
 } from "lucide-react";
-import { StandardPageLayout } from "@/components/layout/StandardPageLayout";
+import { PageWrapper } from "@/components/ui/page-wrapper";
+import { PageHeader } from "@/components/ui/page-header";
 
 // Form schema for profile
 const profileFormSchema = z.object({
@@ -243,11 +242,12 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <StandardPageLayout 
-      title="Settings" 
-      description="Manage your account settings and preferences"
-      size="lg"
-    >
+    <PageWrapper withPadding={true}>
+      <PageHeader
+        title="Settings" 
+        description="Manage your account settings and preferences"
+        className="mb-4 sm:mb-5 md:mb-6"
+      />
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid grid-cols-5 mb-6">
           <TabsTrigger value="profile" className="flex items-center gap-2">
@@ -1105,7 +1105,7 @@ const Settings: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </StandardPageLayout>
+    </PageWrapper>
   );
 };
 
