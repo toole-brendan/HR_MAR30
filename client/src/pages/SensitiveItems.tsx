@@ -122,7 +122,10 @@ const SensitiveItems: React.FC = () => {
         <ClipboardCheck className="h-4 w-4" />
         <span className={isMobile ? "" : "hidden sm:inline"}>Start Verification</span>
       </Button>
-      <Button size="sm" className="flex items-center gap-1">
+      <Button 
+        size="sm" 
+        className="flex items-center gap-1 bg-[#3B5BDB] hover:bg-[#364FC7]"
+      >
         <Plus className="h-4 w-4" />
         <span className={isMobile ? "" : "hidden sm:inline"}>Add Item</span>
       </Button>
