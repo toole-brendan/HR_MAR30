@@ -1,0 +1,52 @@
+HandReceipt Product Description
+
+**HandReceipt: Modernizing Supply Chain Management**
+
+HandReceipt is a blockchain-powered inventory and supply chain management solution that streamlines property tracking and transfers.
+
+**Military Application:**
+HandReceipt digitizes the currently paper-based process of equipment transfers between military personnel. Using scannable QR codes linked to blockchain-secured digital records, we make property accountability simple, reliable, and auditable. Seeks to implement best practices and advantages enabled by private sector systems like SAP, NetSuite, Oracle, and Microsoft Dynamics.
+
+**Key Benefits:**
+- Secure digital property records that can't be altered
+- Simple QR-code scanning for transfers and verification (user uses mobile app to scan a QR code on property or inventory to initiate a transfer request, counterparty who currently in possession of (or is assigned) that piece of property receives notification of transfer request which they can either accept or decline)
+- Reduced paperwork and manual processes
+- Transparent tracking throughout the supply chain
+- Sensitive item visibility 
+- Reports and analytics
+- Officers having full visibility into their unit’s property status
+- Easing PCS moves and personnel swaps (leading to property swaps)
+- Integrate with CIF 
+- Ability to spot shortages
+- Easing ammo draws and ammo accountability
+- QR code management and ‘digital twin’ management (QR code assigned to property), able to report damaged QR codes and able to print out new ones 
+
+
+
+TASK:   ATTACHED/ ABOVE IS APP DESCRIPTION. PLEASE CREATE THE “PROFILE” PAGE
+
+Mock user should be this:
+Mock User
+
+
+Mock Users for Your Defense Frontend Demo
+Primary Mock User Profile
+Captain Michael Rodriguez
+* Position: Company Commander, Bravo Company, 2-87 Infantry Battalion, 2nd Brigade Combat Team, 10th Mountain Division
+* Rank/Grade: O-3 (Captain)
+* Responsibility: Primary Hand Receipt Holder for company-level property valued at $4.2M
+* Background:
+    * 6 years of service
+    * Recently assumed command (3 months ago)
+    * Preparing for National Training Center rotation in 4 months
+    * Managing post-deployment equipment reset
+* Equipment Profile:
+    * 72 tactical vehicles (HMMWVs, FMTVs, LMTV variants)
+    * 143 weapons systems (M4 rifles, M249 SAWs, M240B machine guns)
+    * 95 communication devices (SINCGARS, JCR systems)
+    * 63 night vision/optics systems
+    * 210+ sensitive item serial numbers requiring regular inventory
+This profile is ideal because:
+* Company Commanders are the "pain point" level where accountability responsibility meets daily operational demands
+* They're influential in new system adoption recommendations
+* They represent the user with the most accountability pressure and documentation burden
