@@ -74,7 +74,7 @@ export default function Dashboard() {
         size="sm" 
         variant="default" 
         onClick={() => navigate('/transfers')}
-        className="flex items-center gap-1"
+        className="flex items-center gap-1 bg-[#3B5BDB] hover:bg-[#364FC7]"
       >
         <Send className="h-4 w-4" />
         <span className="hidden sm:inline">New Transfer</span>
