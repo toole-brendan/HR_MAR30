@@ -263,37 +263,64 @@
     @apply outline-2 outline-offset-2 outline-primary ring-2 ring-primary/20;
   }
 
-  /* Typography scale enhancements */
+  /* 8VC Typography scale enhancements */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-semibold tracking-tight text-foreground;
+    @apply font-display tracking-tight text-foreground;
   }
 
   h1 {
-    @apply text-3xl sm:text-4xl leading-tight;
-    letter-spacing: -0.03em;
+    @apply text-3xl sm:text-4xl leading-tight font-medium;
+    letter-spacing: -0.025em;
   }
 
   h2 {
-    @apply text-2xl sm:text-3xl leading-tight;
+    @apply text-2xl sm:text-3xl leading-tight font-medium;
     letter-spacing: -0.02em;
   }
 
   h3 {
-    @apply text-xl sm:text-2xl leading-snug;
-    letter-spacing: -0.02em;
+    @apply text-xl sm:text-2xl leading-snug font-medium;
+    letter-spacing: -0.015em;
   }
 
   h4 {
-    @apply text-lg sm:text-xl leading-snug;
+    @apply text-lg sm:text-xl leading-snug font-normal;
     letter-spacing: -0.01em;
   }
 
   h5 {
-    @apply text-base sm:text-lg font-medium leading-normal;
+    @apply text-base sm:text-lg font-normal leading-normal;
+    letter-spacing: -0.005em;
   }
 
   h6 {
-    @apply text-sm sm:text-base font-medium leading-normal;
+    @apply text-sm sm:text-base font-normal leading-normal;
+    letter-spacing: -0.005em;
+  }
+  
+  /* 8VC specific typography styles */
+  .text-logo {
+    @apply font-serif font-light tracking-widest;
+  }
+  
+  .text-section-header {
+    @apply font-medium uppercase text-sm tracking-wider;
+  }
+  
+  .text-subtitle {
+    @apply font-light text-base tracking-wide;
+  }
+  
+  .text-body {
+    @apply font-light text-base leading-relaxed;
+  }
+  
+  .text-nav-item {
+    @apply uppercase text-xs tracking-widest font-light;
+  }
+  
+  .text-category-tag {
+    @apply uppercase text-xs font-medium tracking-widest;
   }
 
   /* Code & monospace */

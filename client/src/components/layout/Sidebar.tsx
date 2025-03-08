@@ -308,7 +308,7 @@ const Sidebar = ({
                 className={`sidebar-item ${isActive(item.path) ? "active" : ""}`}
               >
                 {item.icon}
-                {!sidebarCollapsed && <span>{item.label}</span>}
+                {!sidebarCollapsed && <span className="text-nav-item">{item.label}</span>}
                 {item.notificationCount && !sidebarCollapsed && (
                   <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-venture-purple rounded-full">
                     {item.notificationCount}
@@ -322,7 +322,7 @@ const Sidebar = ({
                   onClick={() => handleLinkClick()}
                 >
                   {item.icon}
-                  {!sidebarCollapsed && <span>{item.label}</span>}
+                  {!sidebarCollapsed && <span className="text-nav-item">{item.label}</span>}
                   {item.notificationCount && !sidebarCollapsed && (
                     <span className="ml-auto inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-venture-purple rounded-full">
                       {item.notificationCount}
@@ -346,7 +346,7 @@ const Sidebar = ({
             className={`sidebar-item ${isActive(qrScanAction.path) ? "active" : ""} bg-venture-purple/10 hover:bg-venture-purple/20`}
           >
             {qrScanAction.icon}
-            {!sidebarCollapsed && <span>{qrScanAction.label}</span>}
+            {!sidebarCollapsed && <span className="text-nav-item">{qrScanAction.label}</span>}
           </div>
           
           {/* Settings link */}
