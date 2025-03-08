@@ -156,25 +156,27 @@ const Reports = () => {
   };
 
   return (
-    <StandardPageLayout
-      title="Reports & Analytics"
-      description="Generate customized reports and view analytics for inventory, transfers, and equipment status"
-      actions={
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => handlePrintReport()}>
-            <Printer className="h-4 w-4 mr-2" />
-            Print
-          </Button>
-          <Button 
-            className="bg-[#4B5320] hover:bg-[#3a4019]"
-            onClick={() => handleGenerateReport("Custom")}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Generate Report
-          </Button>
-        </div>
-      }
-    >
+    <PageWrapper withPadding={true}>
+      <PageHeader
+        title="Reports & Analytics"
+        description="Generate customized reports and view analytics for inventory, transfers, and equipment status"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => handlePrintReport()}>
+              <Printer className="h-4 w-4 mr-2" />
+              Print
+            </Button>
+            <Button 
+              className="bg-[#4B5320] hover:bg-[#3a4019]"
+              onClick={() => handleGenerateReport("Custom")}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Generate Report
+            </Button>
+          </div>
+        }
+        className="mb-4 sm:mb-5 md:mb-6"
+      />
       <Tabs defaultValue="dashboard" onValueChange={setActiveTab}>
           <div className="flex items-center justify-between mb-4">
             <TabsList>
@@ -817,7 +819,7 @@ const Reports = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </StandardPageLayout>
+      </PageWrapper>
   );
 };
 
