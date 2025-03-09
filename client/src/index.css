@@ -479,23 +479,23 @@
   
   /* 8VC Dashboard Cards */
   .dashboard-card {
-    @apply bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-none overflow-hidden;
+    @apply bg-black border border-white/10 rounded-none overflow-hidden;
   }
   
   .dashboard-card .card-header {
-    @apply border-b border-gray-200 dark:border-white/10 pb-3;
+    @apply border-b border-white/10 pb-3;
   }
   
   .dashboard-card .card-title {
-    @apply uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400;
+    @apply uppercase text-xs tracking-wider font-medium text-gray-400;
   }
   
   .dashboard-card .card-value {
-    @apply text-2xl font-normal tracking-tight text-gray-900 dark:text-white;
+    @apply text-4xl font-light tracking-tight text-white;
   }
   
   .dashboard-card .card-metric {
-    @apply text-xs tracking-wide uppercase text-gray-500 dark:text-gray-400;
+    @apply text-xs tracking-wide uppercase text-gray-400;
   }
   
   /* 8VC Style Typography */
@@ -785,12 +785,12 @@
   
   /* Override specific rounded elements on the dashboard */
   .dashboard-card {
-    @apply rounded-none border-border overflow-hidden bg-white shadow-sm;
+    @apply rounded-none border-white/10 overflow-hidden bg-black;
   }
   
-  /* Dark mode dashboard card */
+  /* Dark mode dashboard card - redundant now since we're using black background by default */
   .dark .dashboard-card {
-    @apply bg-card border-border/50;
+    @apply bg-black border-white/10;
   }
   
   /* Button overrides for sharp corners */

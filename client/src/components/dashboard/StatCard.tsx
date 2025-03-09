@@ -17,21 +17,14 @@ interface StatCardProps {
 
 export function StatCard({ title, value, icon, change, className }: StatCardProps) {
   return (
-    <Card className={cn(
-      "rounded-md border border-neutral-800 bg-gradient-to-b from-neutral-950 to-neutral-900 dashboard-card shadow-sm overflow-hidden",
+    <div className={cn(
+      "border border-white/10 bg-black overflow-hidden",
       className
     )}>
-      <CardContent className="p-5">
-        <div className="flex justify-between items-start mb-4">
-          <div className="text-gray-400 font-medium text-sm">{title}</div>
-          {icon && (
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-neutral-800">
-              {icon}
-            </div>
-          )}
-        </div>
+      <div className="p-6">
+        <div className="uppercase text-xs tracking-wider font-medium text-gray-400 mb-2">{title}</div>
         
-        <div className="text-2xl font-semibold mb-4">{value}</div>
+        <div className="text-4xl font-light text-white mb-4">{value}</div>
         
         {change && (
           <div className="flex items-center text-xs">
@@ -53,7 +46,13 @@ export function StatCard({ title, value, icon, change, className }: StatCardProp
             <div className="text-gray-500">{change.label}</div>
           </div>
         )}
-      </CardContent>
-    </Card>
+        
+        {icon && (
+          <div className="absolute top-6 right-6 flex items-center justify-center w-10 h-10 bg-neutral-800/50 border border-white/10">
+            {icon}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
