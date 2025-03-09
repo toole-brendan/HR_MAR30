@@ -17,7 +17,7 @@ const MyInventory: React.FC = () => {
   ).slice(0, 3); // Only show 3 items on dashboard
   
   return (
-    <Card className="overflow-hidden border border-border mb-6">
+    <Card className="overflow-hidden border border-border mb-6 dashboard-card">
       <CardHeader className="bg-muted/40 pb-2">
         <div className="flex items-center gap-2">
           <Package className="h-5 w-5 text-primary" />
