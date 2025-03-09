@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { QrCode, Printer, AlertTriangle } from "lucide-react";
 
 interface QRCodeGeneratorProps {
   itemName: string;
@@ -49,7 +50,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
           ).join('')}
         </g>
         <rect x="60" y="60" width="80" height="80" fill="white" />
-        <text x="100" y="100" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#4B5320">${serialNumber}</text>
+        <text x="100" y="100" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#6941C6">${serialNumber}</text>
       </svg>
     `;
 
@@ -83,87 +84,109 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
 
   return (
     <>
-      <div className="flex justify-center">
-        <button 
-          onClick={() => setIsDialogOpen(true)}
-          className="bg-[#3B5BDB] hover:bg-[#364FC7] text-white rounded-md h-9 px-4 text-sm font-medium w-[160px] flex items-center justify-center"
-        >
-          Generate QR Code
-        </button>
-      </div>
+      <Button 
+        size="icon"
+        variant="ghost"
+        className="h-8 w-8 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:text-gray-500 dark:hover:text-purple-400"
+        onClick={() => setIsDialogOpen(true)}
+        title="Generate QR Code"
+      >
+        <QrCode className="h-4 w-4" />
+      </Button>
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Generate QR Code</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-md bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none">
+          <DialogHeader className="border-b border-gray-200 dark:border-white/10 pb-4">
+            <div className="text-category-tag mb-1 text-muted-foreground">
+              QR CODE GENERATOR
+            </div>
+            <DialogTitle className="font-normal text-xl tracking-tight">Generate Equipment QR Code</DialogTitle>
+            <DialogDescription className="text-sm tracking-wide text-muted-foreground mt-1">
               Create a QR code for tracking and transferring this equipment item.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid gap-4 py-4">
+          <div className="py-4 space-y-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">Item</Label>
-              <Input id="name" value={itemName} readOnly className="col-span-3" />
+              <Label htmlFor="name" className="text-xs uppercase tracking-wider text-muted-foreground text-right">Item</Label>
+              <Input 
+                id="name" 
+                value={itemName} 
+                readOnly 
+                className="col-span-3 rounded-none bg-white dark:bg-black border-gray-200 dark:border-white/10" 
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="serial" className="text-right">Serial #</Label>
-              <Input id="serial" value={serialNumber} readOnly className="col-span-3 font-mono" />
+              <Label htmlFor="serial" className="text-xs uppercase tracking-wider text-muted-foreground text-right">Serial #</Label>
+              <Input 
+                id="serial" 
+                value={serialNumber} 
+                readOnly 
+                className="col-span-3 font-mono rounded-none bg-white dark:bg-black border-gray-200 dark:border-white/10" 
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="notes" className="text-right">Notes</Label>
+              <Label htmlFor="notes" className="text-xs uppercase tracking-wider text-muted-foreground text-right">Notes</Label>
               <Input 
                 id="notes" 
                 placeholder="Additional information" 
                 value={additionalInfo}
                 onChange={(e) => setAdditionalInfo(e.target.value)}
-                className="col-span-3" 
+                className="col-span-3 rounded-none bg-white dark:bg-black border-gray-200 dark:border-white/10" 
               />
             </div>
           </div>
           
           {!qrImage ? (
             <div className="flex justify-center py-4">
-              <button 
+              <Button 
                 onClick={generateQRCode}
-                className="bg-[#3B5BDB] hover:bg-[#364FC7] text-white rounded-md h-9 px-4 text-sm font-medium w-[160px] flex items-center justify-center"
+                className="bg-primary hover:bg-primary-600 text-white rounded-none h-9 px-4 text-xs uppercase tracking-wider"
               >
                 Generate QR Code
-              </button>
+              </Button>
             </div>
           ) : (
-            <Card className="border-dashed">
+            <Card className="rounded-none border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
               <CardContent className="p-4 flex flex-col items-center">
                 <img src={qrImage} alt="QR Code for equipment" className="mb-4 max-w-[200px]" />
                 <div className="text-xs text-center mb-4">
-                  <p className="font-bold">{itemName}</p>
-                  <p className="font-mono">{serialNumber}</p>
+                  <p className="font-medium uppercase tracking-wider">{itemName}</p>
+                  <p className="font-mono text-muted-foreground">{serialNumber}</p>
                 </div>
                 <div className="flex space-x-4">
-                  <button 
+                  <Button 
+                    size="sm"
+                    variant="outline"
                     onClick={handlePrint}
-                    className="border border-gray-300 bg-white text-gray-700 rounded-md h-8 px-3 text-sm font-medium w-[80px] flex items-center justify-center"
+                    className="rounded-none text-xs uppercase tracking-wider flex items-center gap-2 border-gray-200 dark:border-white/10"
                   >
+                    <Printer className="h-3.5 w-3.5" />
                     Print
-                  </button>
-                  <button 
+                  </Button>
+                  <Button 
+                    size="sm"
+                    variant="outline"
                     onClick={handleReport}
-                    className="border border-red-300 bg-white text-red-500 rounded-md h-8 px-3 text-sm font-medium w-[80px] flex items-center justify-center"
+                    className="rounded-none text-xs uppercase tracking-wider flex items-center gap-2 text-red-500 dark:text-red-400 border-red-200 dark:border-red-900/30"
                   >
+                    <AlertTriangle className="h-3.5 w-3.5" />
                     Report
-                  </button>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           )}
           
-          <DialogFooter className="sm:justify-start">
-            <button 
+          <DialogFooter className="border-t border-gray-200 dark:border-white/10 pt-4">
+            <Button 
+              size="sm"
+              variant="outline"
               onClick={() => setIsDialogOpen(false)}
-              className="bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md h-8 px-3 text-sm font-medium w-[80px] flex items-center justify-center"
+              className="rounded-none text-xs uppercase tracking-wider border-gray-200 dark:border-white/10"
             >
               Close
-            </button>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

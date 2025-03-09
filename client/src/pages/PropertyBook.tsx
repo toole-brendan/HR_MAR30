@@ -155,6 +155,19 @@ const PropertyBook: React.FC = () => {
   // Actions for page header
   const actions = (
     <div className="flex gap-2">
+      <Button 
+        variant="ghost" 
+        className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1.5"
+        onClick={() => {
+          toast({
+            title: "Export Generated",
+            description: "Property book report has been generated"
+          });
+        }}
+      >
+        <FileText className="h-4 w-4" />
+        EXPORT REPORT
+      </Button>
       <QRCodeGenerator 
         itemName="Bulk Scan" 
         serialNumber="PROPERTY-BOOK"
@@ -165,18 +178,6 @@ const PropertyBook: React.FC = () => {
           });
         }}
       />
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={() => {
-          toast({
-            title: "Export Generated",
-            description: "Property book report has been generated"
-          });
-        }}
-      >
-        Export Report
-      </Button>
     </div>
   );
 
