@@ -1,6 +1,13 @@
-import { useLocation } from "wouter";
-import { Home, QrCode, Send, ClipboardList, Settings } from "lucide-react";
+import { useLocation, Link } from "wouter";
+import { 
+  LayoutDashboard, 
+  Package, 
+  QrCode, 
+  Send, 
+  Wrench
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useApp } from "@/context/AppContext";
 
 interface MobileNavProps {
   openQRScanner?: () => void;
@@ -8,65 +15,57 @@ interface MobileNavProps {
 
 const MobileNav: React.FC<MobileNavProps> = ({ openQRScanner }) => {
   const [location] = useLocation();
+  const { theme } = useApp();
 
   const isActive = (path: string) => {
     return location === path;
   };
 
-  const navItems = [
-    { path: "/", icon: <Home className="h-5 w-5" />, label: "Home" },
-    { path: "/inventory", icon: <ClipboardList className="h-5 w-5" />, label: "Inventory" },
-    { 
-      path: "/scan", 
-      icon: <QrCode className="h-5 w-5" />, 
-      label: "Scan", 
-      onClick: openQRScanner,
-      highlight: true
-    },
-    { path: "/transfers", icon: <Send className="h-5 w-5" />, label: "Transfers" },
-    { path: "/settings", icon: <Settings className="h-5 w-5" />, label: "Settings" }
-  ];
+  const handleQRScanClick = () => {
+    if (openQRScanner) {
+      openQRScanner();
+    }
+  };
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around items-center py-3 z-10">
-      {navItems.map((item) => (
-        <div 
-          key={item.path} 
-          className="flex flex-col items-center"
-          onClick={item.onClick}
-        >
-          {item.onClick ? (
-            <button
-              className={cn(
-                "flex flex-col items-center justify-center px-2",
-                item.highlight && "text-blue-500 dark:text-blue-400",
-                !item.highlight && "text-gray-600 dark:text-gray-400"
-              )}
-            >
-              <div className="flex items-center justify-center h-8 w-8">
-                {item.icon}
-              </div>
-              <span className="text-xs mt-1">{item.label}</span>
-            </button>
-          ) : (
-            <a
-              href={item.path}
-              className={cn(
-                "flex flex-col items-center justify-center px-2",
-                isActive(item.path) 
-                  ? "text-blue-500 dark:text-blue-400" 
-                  : "text-gray-600 dark:text-gray-400"
-              )}
-            >
-              <div className="flex items-center justify-center h-8 w-8">
-                {item.icon}
-              </div>
-              <span className="text-xs mt-1">{item.label}</span>
-            </a>
-          )}
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-black border-t border-gray-200 dark:border-white/10 flex justify-around p-3 z-10">
+      <Link href="/">
+        <div className={`flex flex-col items-center justify-center ${isActive('/') ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500 dark:text-gray-400'}`}>
+          <LayoutDashboard className="h-5 w-5" />
+          <span className="text-xs uppercase tracking-wider font-light mt-1">Dashboard</span>
         </div>
-      ))}
-    </div>
+      </Link>
+      
+      <Link href="/inventory">
+        <div className={`flex flex-col items-center justify-center ${isActive('/inventory') ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500 dark:text-gray-400'}`}>
+          <Package className="h-5 w-5" />
+          <span className="text-xs uppercase tracking-wider font-light mt-1">Inventory</span>
+        </div>
+      </Link>
+      
+      <div 
+        className={`flex flex-col items-center justify-center cursor-pointer 
+                   p-2 bg-purple-600 dark:bg-purple-600 rounded-full -mt-6 border-4 
+                   ${theme === 'dark' ? 'border-black' : 'border-white'}`}
+        onClick={handleQRScanClick}
+      >
+        <QrCode className="h-6 w-6 text-white" />
+      </div>
+      
+      <Link href="/transfers">
+        <div className={`flex flex-col items-center justify-center ${isActive('/transfers') ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500 dark:text-gray-400'}`}>
+          <Send className="h-5 w-5" />
+          <span className="text-xs uppercase tracking-wider font-light mt-1">Transfers</span>
+        </div>
+      </Link>
+      
+      <Link href="/maintenance">
+        <div className={`flex flex-col items-center justify-center ${isActive('/maintenance') ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500 dark:text-gray-400'}`}>
+          <Wrench className="h-5 w-5" />
+          <span className="text-xs uppercase tracking-wider font-light mt-1">Maintenance</span>
+        </div>
+      </Link>
+    </nav>
   );
 };
 
