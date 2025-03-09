@@ -9,39 +9,37 @@ interface PageHeaderProps {
 }
 
 /**
- * PageHeader - Responsive header component for page containers
- * Scales with viewport size
+ * PageHeader - 8VC style header component for page containers
  */
-export const PageHeader: React.FC<PageHeaderProps> = ({
-  title,
-  description,
-  actions,
-  className,
-}) => {
+export function PageHeader({ 
+  title, 
+  description, 
+  actions, 
+  className 
+}: PageHeaderProps) {
   return (
     <div className={cn(
-      'pt-8 sm:pt-10 md:pt-12 pb-2 sm:pb-3', /* Top padding to move title down */
-      'transition-all duration-200',
+      "flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-gray-200 dark:border-white/10",
       className
     )}>
-      {/* Theme-aware background container for page title */}
-      <div className="bg-white dark:bg-black text-black dark:text-white rounded-md shadow-md w-full mb-4 px-4 py-3 sm:py-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 md:gap-4">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate">{title}</h1>
-            {description && (
-              <div className="mt-1 sm:mt-1.5 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                {description}
-              </div>
-            )}
-          </div>
-          {actions && (
-            <div className="flex-shrink-0 flex items-center mt-2 sm:mt-0">
-              {actions}
-            </div>
-          )}
+      <div>
+        <div className="category-tag mb-1.5 uppercase text-xs tracking-wider font-medium text-purple-600 dark:text-purple-400">
+          {title.includes(' ') ? title.split(' ')[0] : 'Overview'}
         </div>
+        <h1 className="heading-large text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white tracking-tight">
+          {title}
+        </h1>
+        {description && (
+          <p className="mt-2 text-base text-gray-600 dark:text-gray-300 max-w-2xl">
+            {description}
+          </p>
+        )}
       </div>
+      {actions && (
+        <div className="flex flex-wrap items-center gap-3 mt-3 sm:mt-0">
+          {actions}
+        </div>
+      )}
     </div>
   );
 };
