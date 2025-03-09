@@ -248,12 +248,18 @@ const Reports = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Inventory by Category</CardTitle>
-                  <CardDescription>Distribution of equipment across categories</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                  <div>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      EQUIPMENT DISTRIBUTION
+                    </div>
+                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                      Inventory by Category
+                    </div>
+                  </div>
+                </div>
+                <CardContent className="p-4">
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -279,12 +285,18 @@ const Reports = () => {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Transfer Trends</CardTitle>
-                  <CardDescription>Monthly transfer activity summary</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                  <div>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      ACTIVITY METRICS
+                    </div>
+                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                      Transfer Trends
+                    </div>
+                  </div>
+                </div>
+                <CardContent className="p-4">
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={transfersData}>
