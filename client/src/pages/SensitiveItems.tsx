@@ -19,10 +19,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageWrapper } from "@/components/ui/page-wrapper";
+import { Separator } from "@/components/ui/separator";
 import QRCodeGenerator from "@/components/common/QRCodeGenerator";
 import TransferRequestModal from "@/components/modals/TransferRequestModal";
 import { StandardPageLayout } from "@/components/layout/StandardPageLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 import { 
   Search, 
@@ -39,6 +41,7 @@ import {
   Calendar, 
   Clock12, 
   ArrowUpRight,
+  ArrowRight,
   Printer,
   History,
   BarChart3,
@@ -113,85 +116,122 @@ const SensitiveItems: React.FC = () => {
 
   // Page actions
   const actions = (
-    <div className="flex gap-2">
+    <div className="flex items-center gap-2">
       <Button 
         size="sm" 
-        className="flex items-center gap-1 bg-green-700 hover:bg-green-800"
+        variant="outline" 
         onClick={handleStartVerification}
+        className="flex items-center gap-1 uppercase tracking-wider text-xs"
       >
         <ClipboardCheck className="h-4 w-4" />
-        <span className={isMobile ? "" : "hidden sm:inline"}>Start Verification</span>
+        <span className="hidden sm:inline">Start Verification</span>
       </Button>
       <Button 
         size="sm" 
-        className="flex items-center gap-1 bg-[#3B5BDB] hover:bg-[#364FC7]"
+        variant="default" 
+        className="flex items-center gap-1 bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs"
       >
         <Plus className="h-4 w-4" />
-        <span className={isMobile ? "" : "hidden sm:inline"}>Add Item</span>
+        <span className="hidden sm:inline">Add Item</span>
+      </Button>
+      <Button 
+        variant="ghost" 
+        size="sm"
+        className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1.5"
+        onClick={() => {
+          toast({
+            title: "Export Generated",
+            description: "Sensitive items report has been generated"
+          });
+        }}
+      >
+        <FileText className="h-4 w-4" />
+        EXPORT REPORT
       </Button>
     </div>
   );
 
   return (
     <PageWrapper withPadding={true}>
-      <PageHeader
-        title="Sensitive Items"
-        description="Track, verify, and manage sensitive military equipment"
-        actions={actions}
-        className="mb-4 sm:mb-5 md:mb-6"
-      />
+      {/* Header section with 8VC style formatting */}
+      <div className="mb-6 sm:mb-7 md:mb-8">
+        {/* Category label - Small all-caps category label */}
+        <div className="text-category-tag mb-1 text-muted-foreground">
+          SECURITY
+        </div>
+        
+        {/* Main title - following 8VC typography */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-light tracking-tight mb-1">Sensitive Items</h1>
+            <p className="text-subtitle text-muted-foreground">Track, verify, and manage sensitive military equipment</p>
+          </div>
+          {actions}
+        </div>
+        
+        {/* Subtle horizontal divider */}
+        <Separator className="mt-6" />
+      </div>
 
-      {/* Status Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-green-800 dark:text-green-400">Verified Today</p>
-              <p className="text-2xl font-bold">{sensitiveItemsStats.verifiedToday}/{sensitiveItemsStats.totalItems}</p>
-              <p className="text-xs text-green-600 dark:text-green-500">Last: {sensitiveItemsStats.lastFullVerification}</p>
+      {/* Status Summary Cards - in 8VC style */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <Card className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400">
+                VERIFIED TODAY
+              </div>
+              <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-sm">
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-500" />
+              </div>
             </div>
-            <div className="bg-green-200 dark:bg-green-700/30 p-3 rounded-full">
-              <CheckCircle className="h-5 w-5 text-green-700 dark:text-green-500" />
-            </div>
+            <div className="text-2xl font-light tracking-tight">{sensitiveItemsStats.verifiedToday}/{sensitiveItemsStats.totalItems}</div>
+            <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Last full check: {sensitiveItemsStats.lastFullVerification}</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-800">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-amber-800 dark:text-amber-400">Pending Verification</p>
-              <p className="text-2xl font-bold">{sensitiveItemsStats.pendingVerification}</p>
-              <p className="text-xs text-amber-600 dark:text-amber-500">Due: Today 1800hrs</p>
+        <Card className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400">
+                PENDING VERIFICATION
+              </div>
+              <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-sm">
+                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+              </div>
             </div>
-            <div className="bg-amber-200 dark:bg-amber-700/30 p-3 rounded-full">
-              <Clock className="h-5 w-5 text-amber-700 dark:text-amber-500" />
-            </div>
+            <div className="text-2xl font-light tracking-tight">{sensitiveItemsStats.pendingVerification}</div>
+            <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Due: Today 1800hrs</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-red-800 dark:text-red-400">High-Risk Items</p>
-              <p className="text-2xl font-bold">{sensitiveItemsStats.highRiskItems}</p>
-              <p className="text-xs text-red-600 dark:text-red-500">Verification: Twice Daily</p>
+        <Card className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400">
+                HIGH-RISK ITEMS
+              </div>
+              <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-sm">
+                <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-500" />
+              </div>
             </div>
-            <div className="bg-red-200 dark:bg-red-700/30 p-3 rounded-full">
-              <AlertTriangle className="h-5 w-5 text-red-700 dark:text-red-500" />
-            </div>
+            <div className="text-2xl font-light tracking-tight">{sensitiveItemsStats.highRiskItems}</div>
+            <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Verification: Twice Daily</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-blue-800 dark:text-blue-400">Compliance Status</p>
-              <p className="text-2xl font-bold">{sensitiveItemsStats.verificationCompliance}</p>
-              <p className="text-xs text-blue-600 dark:text-blue-500">All items accounted for</p>
+        <Card className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400">
+                COMPLIANCE STATUS
+              </div>
+              <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-sm">
+                <ShieldAlert className="h-4 w-4 text-blue-600 dark:text-blue-500" />
+              </div>
             </div>
-            <div className="bg-blue-200 dark:bg-blue-700/30 p-3 rounded-full">
-              <ShieldAlert className="h-5 w-5 text-blue-700 dark:text-blue-500" />
-            </div>
+            <div className="text-2xl font-light tracking-tight">{sensitiveItemsStats.verificationCompliance}</div>
+            <p className="text-xs tracking-wide text-muted-foreground mt-0.5">All items accounted for</p>
           </CardContent>
         </Card>
       </div>
@@ -201,682 +241,509 @@ const SensitiveItems: React.FC = () => {
         defaultValue="inventory" 
         value={tabValue} 
         onValueChange={setTabValue}
-        className="space-y-4"
+        className="w-full"
       >
-        <TabsList className="grid grid-cols-1 md:grid-cols-4 h-auto">
-          <TabsTrigger value="inventory" className="py-2 data-[state=active]:bg-primary/10">
-            <Filter className="h-4 w-4 mr-2" />
+        <TabsList className="grid grid-cols-4 mb-6 rounded-none bg-gray-50 dark:bg-white/5 h-10">
+          <TabsTrigger value="inventory" className="uppercase tracking-wider text-xs font-medium rounded-none">
             Inventory
           </TabsTrigger>
-          <TabsTrigger value="categories" className="py-2 data-[state=active]:bg-primary/10">
-            <BarChart3 className="h-4 w-4 mr-2" />
+          <TabsTrigger value="categories" className="uppercase tracking-wider text-xs font-medium rounded-none">
             Categories
           </TabsTrigger>
-          <TabsTrigger value="verification" className="py-2 data-[state=active]:bg-primary/10">
-            <ClipboardCheck className="h-4 w-4 mr-2" />
+          <TabsTrigger value="verification" className="uppercase tracking-wider text-xs font-medium rounded-none">
             Verification
           </TabsTrigger>
-          <TabsTrigger value="logs" className="py-2 data-[state=active]:bg-primary/10">
-            <History className="h-4 w-4 mr-2" />
+          <TabsTrigger value="logs" className="uppercase tracking-wider text-xs font-medium rounded-none">
             Logs
           </TabsTrigger>
         </TabsList>
 
         {/* Inventory Tab */}
-        <TabsContent value="inventory" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sensitive Items Inventory</CardTitle>
-              <CardDescription>
-                Track and manage items requiring special accountability procedures
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-6 flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Input
-                    placeholder="Search by name or serial number"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+        <TabsContent value="inventory" className="space-y-6">
+          {/* Filters Section with 8VC styling */}
+          <div className="mb-6">
+            <div className="text-section-header mb-4 text-muted-foreground">
+              SEARCH & FILTERS
+            </div>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <Input
+                  placeholder="Search by name or serial number"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none"
+                />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="w-full md:w-64">
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger className="bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none">
+                    <SelectValue placeholder="Filter by category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="weapon">Weapons</SelectItem>
+                    <SelectItem value="communication">Communications</SelectItem>
+                    <SelectItem value="optics">Optical Systems</SelectItem>
+                    <SelectItem value="crypto">Cryptographic</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-full md:w-64">
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="maintenance">In Maintenance</SelectItem>
+                    <SelectItem value="transferred">Transferred</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Sensitive Items List Card with 8VC styling */}
+          <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  SENSITIVE ITEMS
                 </div>
-                <div className="w-full md:w-48">
-                  <Select value={filterCategory} onValueChange={setFilterCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filter by category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="weapon">Weapons</SelectItem>
-                      <SelectItem value="communication">Communications</SelectItem>
-                      <SelectItem value="optics">Optical Systems</SelectItem>
-                      <SelectItem value="crypto">Cryptographic</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="w-full md:w-48">
-                  <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="maintenance">In Maintenance</SelectItem>
-                      <SelectItem value="transferred">Transferred</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  Inventory Listing
                 </div>
               </div>
+              
+              <Button 
+                variant="ghost" 
+                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+                onClick={() => {}}
+              >
+                PRINT INVENTORY
+              </Button>
+            </div>
+            
+            <CardContent className="p-0">
+              <div className="divide-y divide-gray-100 dark:divide-white/5 px-4">
+                {filteredItems.length === 0 ? (
+                  <div className="py-4 text-center text-gray-500 dark:text-gray-400">No items found</div>
+                ) : (
+                  filteredItems.map((item) => {
+                    // Define icon based on category
+                    let CategoryIcon = Filter;
+                    switch (item.category) {
+                      case 'weapon': CategoryIcon = Sword; break;
+                      case 'communication': CategoryIcon = Radio; break;
+                      case 'optics': CategoryIcon = Eye; break;
+                      case 'crypto': CategoryIcon = Key; break;
+                      default: CategoryIcon = Filter;
+                    }
 
-              <div className="rounded-md border">
-                <div className="grid grid-cols-1 divide-y">
-                  {filteredItems.length === 0 ? (
-                    <div className="py-4 text-center text-gray-500 dark:text-gray-400">No items found</div>
-                  ) : (
-                    filteredItems.map((item) => {
-                      // Define icon based on category
-                      let CategoryIcon = Filter;
-                      switch (item.category) {
-                        case 'weapon': CategoryIcon = Sword; break;
-                        case 'communication': CategoryIcon = Radio; break;
-                        case 'optics': CategoryIcon = Eye; break;
-                        case 'crypto': CategoryIcon = Key; break;
-                        default: CategoryIcon = Filter;
-                      }
+                    // Define status color and text
+                    let statusColor = "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
+                    let statusText = "Active";
+                    
+                    switch (item.status) {
+                      case 'pending':
+                        statusColor = "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400";
+                        statusText = "Pending";
+                        break;
+                      case 'maintenance':
+                        statusColor = "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
+                        statusText = "Maintenance";
+                        break;
+                      case 'transferred':
+                        statusColor = "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400";
+                        statusText = "Transferred";
+                        break;
+                    }
 
-                      // Define status color and text
-                      let statusColor = "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
-                      let statusText = "Active";
-                      
-                      switch (item.status) {
-                        case 'pending':
-                          statusColor = "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400";
-                          statusText = "Pending";
-                          break;
-                        case 'maintenance':
-                          statusColor = "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
-                          statusText = "Maintenance";
-                          break;
-                        case 'transferred':
-                          statusColor = "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400";
-                          statusText = "Transferred";
-                          break;
-                      }
+                    // Define security level color
+                    let securityColor = "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
+                    switch (item.securityLevel) {
+                      case 'routine':
+                        securityColor = "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
+                        break;
+                      case 'controlled':
+                        securityColor = "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
+                        break;
+                      case 'classified':
+                        securityColor = "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400";
+                        break;
+                      case 'secret':
+                        securityColor = "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400";
+                        break;
+                      case 'top-secret':
+                        securityColor = "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400";
+                        break;
+                    }
 
-                      // Define security level color
-                      let securityColor = "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
-                      switch (item.securityLevel) {
-                        case 'routine':
-                          securityColor = "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
-                          break;
-                        case 'controlled':
-                          securityColor = "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
-                          break;
-                        case 'classified':
-                          securityColor = "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400";
-                          break;
-                        case 'secret':
-                          securityColor = "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400";
-                          break;
-                        case 'top-secret':
-                          securityColor = "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400";
-                          break;
-                      }
-
-                      return (
-                        <div key={item.id} className="p-4">
-                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-start gap-3">
-                              <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white
-                                ${item.category === 'weapon' ? 'bg-red-700 dark:bg-red-800' : ''}
-                                ${item.category === 'communication' ? 'bg-blue-700 dark:bg-blue-800' : ''}
-                                ${item.category === 'optics' ? 'bg-amber-700 dark:bg-amber-800' : ''}
-                                ${item.category === 'crypto' ? 'bg-purple-700 dark:bg-purple-800' : ''}
-                                ${item.category === 'other' ? 'bg-gray-700 dark:bg-gray-800' : ''}
-                              `}>
-                                <CategoryIcon className="h-5 w-5" />
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <h4 className="font-medium">{item.name}</h4>
-                                  <Badge className={statusColor}>{statusText}</Badge>
-                                  <Badge className={securityColor}>{item.securityLevel.toUpperCase()}</Badge>
-                                </div>
-                                <div className="flex flex-col sm:flex-row sm:items-center text-sm text-gray-500 dark:text-gray-400 mt-1 gap-x-2">
-                                  <span className="font-mono">SN: {item.serialNumber}</span>
-                                  <span className="hidden sm:inline">•</span>
-                                  <span>Location: {item.location}</span>
-                                  <span className="hidden sm:inline">•</span>
-                                  <span>Last Verified: {item.lastVerified}</span>
-                                </div>
-                              </div>
+                    return (
+                      <div key={item.id} className="py-3 hover:bg-gray-50 dark:hover:bg-white/5">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="flex items-start gap-3">
+                            <div className={`h-10 w-10 rounded-none flex items-center justify-center text-white
+                              ${item.category === 'weapon' ? 'bg-red-600 dark:bg-red-700' : ''}
+                              ${item.category === 'communication' ? 'bg-blue-600 dark:bg-blue-700' : ''}
+                              ${item.category === 'optics' ? 'bg-amber-600 dark:bg-amber-700' : ''}
+                              ${item.category === 'crypto' ? 'bg-purple-600 dark:bg-purple-700' : ''}
+                              ${item.category === 'other' ? 'bg-gray-600 dark:bg-gray-700' : ''}
+                            `}>
+                              <CategoryIcon className="h-5 w-5" />
                             </div>
-                            <div className="flex flex-wrap gap-2 justify-end">
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleVerifyItem(item)}
-                                className="flex items-center gap-1"
-                              >
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                <span>Verify</span>
-                              </Button>
-                              <QRCodeGenerator 
-                                itemName={item.name} 
-                                serialNumber={item.serialNumber}
-                              />
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleViewDetails(item)}
-                                className="flex items-center gap-1"
-                              >
-                                <Info className="h-4 w-4" />
-                                <span>Details</span>
-                              </Button>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-medium text-sm">{item.name}</h4>
+                                <Badge className={`text-[10px] uppercase tracking-wider rounded-none ${statusColor}`}>
+                                  {statusText}
+                                </Badge>
+                                <Badge className={`text-[10px] uppercase tracking-wider rounded-none ${securityColor}`}>
+                                  {item.securityLevel}
+                                </Badge>
+                              </div>
+                              <div className="flex flex-col sm:flex-row sm:items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <span className="font-mono">SN: {item.serialNumber}</span>
+                                <span className="hidden sm:inline mx-2">•</span>
+                                <span>Last verified: {item.lastVerified}</span>
+                                <span className="hidden sm:inline mx-2">•</span>
+                                <span>Next check: {item.nextVerification}</span>
+                              </div>
                             </div>
                           </div>
+                          <div className="flex items-center gap-2 ml-auto">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleVerifyItem(item)}
+                              className="flex items-center gap-1"
+                            >
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                              <span>Verify</span>
+                            </Button>
+                            <QRCodeGenerator 
+                              itemName={item.name} 
+                              serialNumber={item.serialNumber}
+                            />
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewDetails(item)}
+                              className="flex items-center gap-1"
+                            >
+                              <Info className="h-4 w-4" />
+                              <span>Details</span>
+                            </Button>
+                          </div>
                         </div>
-                      );
-                    })
-                  )}
-                </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <div className="text-sm text-muted-foreground">
+            <div className="px-4 py-2 border-t border-gray-100 dark:border-white/5">
+              <div className="text-xs tracking-wide text-muted-foreground">
                 Showing {filteredItems.length} of {sensitiveItems.length} items
               </div>
-              <Button variant="outline" size="sm" className="flex items-center gap-1">
-                <Printer className="h-4 w-4" />
-                <span>Print Inventory</span>
-              </Button>
-            </CardFooter>
+            </div>
           </Card>
         </TabsContent>
 
         {/* Categories Tab */}
-        <TabsContent value="categories" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sensitive Item Categories</CardTitle>
-              <CardDescription>
-                View and manage different categories of sensitive items
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {sensitiveItemCategories.map(category => {
-                  // Define icon based on category
-                  let CategoryIcon = Filter;
-                  switch (category.icon) {
-                    case 'gun': CategoryIcon = Sword; break;
-                    case 'radio': CategoryIcon = Radio; break;
-                    case 'eye': CategoryIcon = Eye; break;
-                    case 'key': CategoryIcon = Key; break;
-                    default: CategoryIcon = Filter;
-                  }
-
-                  // Define risk level color
-                  let riskColor = "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
-                  switch (category.riskLevel) {
-                    case 'low':
-                      riskColor = "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
-                      break;
-                    case 'medium':
-                      riskColor = "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
-                      break;
-                    case 'high':
-                      riskColor = "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400";
-                      break;
-                    case 'critical':
-                      riskColor = "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400";
-                      break;
-                  }
-
-                  return (
-                    <Card key={category.id} className="border shadow-sm">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white
-                            ${category.icon === 'gun' ? 'bg-red-700 dark:bg-red-800' : ''}
-                            ${category.icon === 'radio' ? 'bg-blue-700 dark:bg-blue-800' : ''}
-                            ${category.icon === 'eye' ? 'bg-amber-700 dark:bg-amber-800' : ''}
-                            ${category.icon === 'key' ? 'bg-purple-700 dark:bg-purple-800' : ''}
-                          `}>
-                            <CategoryIcon className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-medium">{category.name}</h4>
-                              <Badge className={riskColor}>{category.riskLevel.toUpperCase()} RISK</Badge>
-                            </div>
-                            <div className="grid grid-cols-2 mt-2 gap-y-1 text-sm">
-                              <div>
-                                <span className="text-gray-500 dark:text-gray-400">Items: </span>
-                                <span className="font-medium">{category.count}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-500 dark:text-gray-400">Verification: </span>
-                                <span className="font-medium">{category.verificationFrequency}</span>
-                              </div>
-                            </div>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="mt-3 text-xs flex items-center gap-1"
-                              onClick={() => {
-                                setFilterCategory(category.icon === 'gun' ? 'weapon' : 
-                                                 category.icon === 'radio' ? 'communication' :
-                                                 category.icon === 'eye' ? 'optics' :
-                                                 category.icon === 'key' ? 'crypto' : 'other');
-                                setTabValue("inventory");
-                              }}
-                            >
-                              <span>View Items</span>
-                              <ArrowUpRight className="h-3 w-3" />
-                            </Button>
-                          </div>
+        <TabsContent value="categories" className="space-y-6">
+          <div className="mb-6">
+            <div className="text-section-header mb-4 text-muted-foreground">
+              CATEGORY OVERVIEW
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {sensitiveItemCategories.map(category => (
+                <Card key={category.id} className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                        {category.name}
+                      </div>
+                      <div className={`p-2 rounded-sm ${
+                        category.riskLevel === 'critical' ? 'bg-red-50 dark:bg-red-900/20' :
+                        category.riskLevel === 'high' ? 'bg-amber-50 dark:bg-amber-900/20' :
+                        category.riskLevel === 'medium' ? 'bg-blue-50 dark:bg-blue-900/20' :
+                        'bg-green-50 dark:bg-green-900/20'
+                      }`}>
+                        <div className={`h-5 w-5 ${
+                          category.riskLevel === 'critical' ? 'text-red-600 dark:text-red-500' :
+                          category.riskLevel === 'high' ? 'text-amber-600 dark:text-amber-500' :
+                          category.riskLevel === 'medium' ? 'text-blue-600 dark:text-blue-500' :
+                          'text-green-600 dark:text-green-500'
+                        }`}>
+                          {category.icon === 'weapon' ? <Sword className="h-5 w-5" /> :
+                           category.icon === 'communication' ? <Radio className="h-5 w-5" /> :
+                           category.icon === 'optics' ? <Eye className="h-5 w-5" /> :
+                           category.icon === 'crypto' ? <Key className="h-5 w-5" /> :
+                           <Filter className="h-5 w-5" />}
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              <div className="mt-6">
-                <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-400">
-                  <Info className="h-4 w-4" />
-                  <AlertTitle>Verification Requirements</AlertTitle>
-                  <AlertDescription className="text-sm">
-                    <ul className="list-disc pl-4 mt-2 space-y-1">
-                      <li>All weapons must be verified twice daily (0600 and 1800)</li>
-                      <li>Cryptographic equipment requires two-person verification</li>
-                      <li>All sensitive items must be secured in approved storage when not in use</li>
-                      <li>Report any missing or damaged items immediately to your commander</li>
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-              </div>
-            </CardContent>
-          </Card>
+                      </div>
+                    </div>
+                    <div className="text-2xl font-light tracking-tight">{category.count}</div>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="text-xs tracking-wide text-muted-foreground">Verification: {category.verificationFrequency}</p>
+                      <Badge className={`text-[10px] uppercase tracking-wider rounded-none ${
+                        category.riskLevel === 'critical' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
+                        category.riskLevel === 'high' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400' :
+                        category.riskLevel === 'medium' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
+                        'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                      }`}>
+                        {category.riskLevel} risk
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </TabsContent>
 
         {/* Verification Tab */}
-        <TabsContent value="verification" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sensitive Items Verification</CardTitle>
-              <CardDescription>
-                Schedule and perform regular verification of sensitive items
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <h3 className="font-medium text-lg mb-3 flex items-center">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Verification Schedule
-                  </h3>
-                  <div className="space-y-2">
-                    {verificationSchedule.map((schedule, index) => (
-                      <div 
-                        key={index} 
-                        className="border rounded-md p-3 flex justify-between items-center"
-                      >
-                        <div>
-                          <p className="font-medium">{schedule.date}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {schedule.time} - {schedule.itemsToVerify} items
-                          </p>
-                        </div>
-                        <div>
-                          {schedule.status === "pending" ? (
-                            <Button 
-                              size="sm" 
-                              className="bg-amber-600 hover:bg-amber-700"
-                              onClick={handleStartVerification}
-                            >
-                              Start Now
-                            </Button>
-                          ) : schedule.status === "scheduled" ? (
-                            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-                              Scheduled
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                              Completed
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+        <TabsContent value="verification" className="space-y-6">
+          <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  VERIFICATION SCHEDULE
                 </div>
-
-                <div>
-                  <h3 className="font-medium text-lg mb-3 flex items-center">
-                    <CalendarClock className="h-4 w-4 mr-2" />
-                    Today's Progress
-                  </h3>
-                  <Card className="border shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">Morning Verification (0600)</span>
-                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                          Completed
-                        </Badge>
-                      </div>
-                      <Progress value={100} className="h-2 mb-4" />
-                      
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">Evening Verification (1800)</span>
-                        <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
-                          Pending
-                        </Badge>
-                      </div>
-                      <Progress value={0} className="h-2 mb-4" />
-                      
-                      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-md p-3 mt-2">
-                        <h4 className="font-medium mb-2">Quick Stats</h4>
-                        <div className="grid grid-cols-2 gap-y-1 gap-x-4 text-sm">
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Last verified:</p>
-                            <p className="font-medium">{sensitiveItemsStats.lastFullVerification}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Compliance:</p>
-                            <p className="font-medium">{sensitiveItemsStats.verificationCompliance}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Pending:</p>
-                            <p className="font-medium">{sensitiveItemsStats.pendingVerification} items</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Next due:</p>
-                            <p className="font-medium">Today 1800hrs</p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <div className="mt-4">
-                    <Button 
-                      className="w-full flex items-center justify-center gap-2 bg-green-700 hover:bg-green-800"
-                      onClick={handleStartVerification}
-                    >
-                      <ClipboardCheck className="h-4 w-4" />
-                      Start Verification Process
-                    </Button>
-                  </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  Upcoming Checks
                 </div>
               </div>
-
-              <div className="mt-6">
-                <Alert className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-400">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Important Reminder</AlertTitle>
-                  <AlertDescription className="text-sm">
-                    All sensitive items must be verified before and after duty hours. 
-                    Use the Hand Receipt QR code scanner to quickly verify items.
-                    Report any discrepancies to your commander immediately.
-                  </AlertDescription>
-                </Alert>
+              
+              <Button 
+                variant="ghost" 
+                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+                onClick={handleStartVerification}
+              >
+                START VERIFICATION
+              </Button>
+            </div>
+            
+            <CardContent className="p-0">
+              <div className="divide-y divide-gray-100 dark:divide-white/5 px-4">
+                {verificationSchedule.map((schedule, index) => (
+                  <div key={index} className="py-3 hover:bg-gray-50 dark:hover:bg-white/5">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                      <div className="flex items-center">
+                        <div className={`mr-3 p-2 rounded-sm ${
+                          schedule.status === 'completed' ? 'bg-green-50 dark:bg-green-900/20' :
+                          schedule.status === 'in-progress' ? 'bg-blue-50 dark:bg-blue-900/20' :
+                          schedule.status === 'overdue' ? 'bg-red-50 dark:bg-red-900/20' :
+                          'bg-amber-50 dark:bg-amber-900/20'
+                        }`}>
+                          {schedule.status === 'completed' ? 
+                            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-500" /> :
+                            schedule.status === 'in-progress' ? 
+                            <Clock className="h-4 w-4 text-blue-600 dark:text-blue-500" /> :
+                            schedule.status === 'overdue' ? 
+                            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-500" /> :
+                            <Calendar className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+                          }
+                        </div>
+                        <div>
+                          <div className="font-medium text-sm">{schedule.description}</div>
+                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                            <Calendar className="mr-1 h-3 w-3" />
+                            <span>{schedule.date}</span>
+                            <span className="mx-2">•</span>
+                            <Clock className="mr-1 h-3 w-3" />
+                            <span>{schedule.time}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className={`text-[10px] uppercase tracking-wider rounded-none ${
+                          schedule.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+                          schedule.status === 'in-progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
+                          schedule.status === 'overdue' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
+                          'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400'
+                        }`}>
+                          {schedule.status}
+                        </Badge>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-xs"
+                          disabled={schedule.status === 'completed'}
+                        >
+                          {schedule.status === 'completed' ? 'Verified' : 'Start Check'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* Logs Tab */}
-        <TabsContent value="logs" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Verification History</CardTitle>
-              <CardDescription>
-                Complete record of all sensitive items verifications
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <div className="grid grid-cols-1 divide-y">
-                  {verificationLogs.slice(0, 5).map((log) => {
-                    const matchingItem = sensitiveItems.find(item => item.id === log.itemId);
-                    const statusColor = log.status === "verified" 
-                      ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400" 
-                      : log.status === "missing" 
-                        ? "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-                        : "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400";
-
-                    return (
-                      <div key={log.id} className="p-4">
-                        <div className="flex flex-col md:flex-row justify-between gap-4">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-medium">{matchingItem?.name || "Unknown Item"}</h4>
-                              <Badge className={statusColor}>
-                                {log.status.charAt(0).toUpperCase() + log.status.slice(1)}
-                              </Badge>
-                            </div>
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-x-2 text-sm text-gray-500 dark:text-gray-400 mt-1">
-                              <span className="font-mono">SN: {matchingItem?.serialNumber || "N/A"}</span>
-                              <span className="hidden sm:inline">•</span>
-                              <span>{log.date} {log.time}hrs</span>
-                              <span className="hidden sm:inline">•</span>
-                              <span>By: {log.verifiedBy}</span>
-                            </div>
-                            {log.notes && (
-                              <p className="text-xs italic mt-1">{log.notes}</p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm">
-                              <FileText className="h-4 w-4 mr-2" />
-                              Report
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+        <TabsContent value="logs" className="space-y-6">
+          <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  ACTIVITY LOGS
+                </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  Recent Verifications
                 </div>
               </div>
-
-              <div className="mt-6 flex justify-between">
-                <Button variant="outline" size="sm">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Export Log
-                </Button>
-                <Button variant="outline" size="sm">
-                  View All Records
-                </Button>
-              </div>
+              
+              <Button 
+                variant="ghost" 
+                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+                onClick={() => {}}
+              >
+                EXPORT LOGS
+              </Button>
+            </div>
+            
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-gray-50 dark:bg-white/5">
+                  <TableRow className="border-b border-gray-100 dark:border-white/5 hover:bg-transparent">
+                    <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium w-3/12">Item</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium w-2/12">Date / Time</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium w-2/12">Status</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium w-2/12">Verified By</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium w-3/12">Notes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {verificationLogs.slice(0, 5).map(log => {
+                    // Find the item for this log
+                    const item = sensitiveItems.find(i => i.id === log.itemId);
+                    
+                    return (
+                      <TableRow key={log.id} className="border-b border-gray-100 dark:border-white/5">
+                        <TableCell className="text-sm">
+                          {item ? (
+                            <div className="flex items-center">
+                              <div className="font-medium">{item.name}</div>
+                              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 font-mono">
+                                {item.serialNumber}
+                              </span>
+                            </div>
+                          ) : 'Unknown Item'}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <div className="flex flex-col">
+                            <span>{log.date}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{log.time}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`text-[10px] uppercase tracking-wider rounded-none ${
+                            log.status === 'verified' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+                            log.status === 'missing' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
+                            'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400'
+                          }`}>
+                            {log.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {log.verifiedBy}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500 dark:text-gray-400">
+                          {log.notes || '—'}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </CardContent>
+            <CardFooter className="flex justify-between py-2 px-4 border-t border-gray-100 dark:border-white/5">
+              <div className="text-xs tracking-wide text-muted-foreground">
+                Showing 5 of {verificationLogs.length} logs
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1"
+              >
+                VIEW ALL LOGS
+                <ArrowRight className="h-3 w-3 ml-1" />
+              </Button>
+            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Verification Modal */}
-      {verificationModalOpen && (
-        <Dialog open={verificationModalOpen} onOpenChange={setVerificationModalOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Sensitive Items Verification</DialogTitle>
-              <DialogDescription>
-                Scan QR codes to verify sensitive items
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-10 text-center">
-                <div className="flex flex-col items-center gap-2">
-                  <Search className="h-8 w-8 text-gray-400" />
-                  <p className="text-gray-500 dark:text-gray-400">Waiting for QR scan...</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">Please scan the QR code on the item</p>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <h4 className="font-medium text-sm mb-2">Verification Progress</h4>
-                <div className="flex justify-between text-xs mb-1">
-                  <span>9 of 10 items verified</span>
-                  <span>90%</span>
-                </div>
-                <Progress value={90} className="h-2" />
-              </div>
-
-              <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                <p>Recently verified:</p>
-                <ul className="mt-1 space-y-1">
-                  <li className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                    <CheckCircle className="h-3 w-3" /> M4A1 Carbine (M4-87654321)
-                  </li>
-                  <li className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                    <CheckCircle className="h-3 w-3" /> M9 Pistol (M9-12345678)
-                  </li>
-                  <li className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                    <CheckCircle className="h-3 w-3" /> AN/PRC-152 Radio (PRC-98765432)
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <DialogFooter className="flex flex-row justify-between">
-              <Button 
-                variant="destructive" 
-                onClick={() => setVerificationModalOpen(false)}
-                className="flex items-center gap-1"
-              >
-                <XCircle className="h-4 w-4" />
-                Cancel
-              </Button>
-              <Button 
-                onClick={() => {
-                  setVerificationModalOpen(false);
-                  toast({
-                    title: "Verification Paused",
-                    description: "Your progress has been saved. Continue later.",
-                  });
-                }}
-                className="flex items-center gap-1"
-              >
-                <CheckCircle className="h-4 w-4" />
-                Complete Verification
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-
+      
       {/* Item Details Modal */}
       {selectedItem && (
         <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-[550px]">
             <DialogHeader>
-              <DialogTitle>Sensitive Item Details</DialogTitle>
+              <DialogTitle>Item Details</DialogTitle>
               <DialogDescription>
-                Detailed information about this sensitive item
+                View detailed information about this sensitive item.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="border-b pb-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-medium text-lg">{selectedItem.name}</h3>
-                  <Badge className={
-                    selectedItem.securityLevel === 'top-secret' ? "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400" :
-                    selectedItem.securityLevel === 'secret' ? "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400" :
-                    selectedItem.securityLevel === 'classified' ? "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400" :
-                    "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
-                  }>
-                    {selectedItem.securityLevel.toUpperCase()}
-                  </Badge>
-                </div>
-                <p className="text-sm font-mono">SN: {selectedItem.serialNumber}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <p className="text-gray-500 dark:text-gray-400">Category</p>
-                  <p className="capitalize">{selectedItem.category}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 dark:text-gray-400">Status</p>
-                  <p className="capitalize">{selectedItem.status}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 dark:text-gray-400">Assigned Date</p>
-                  <p>{selectedItem.assignedDate}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 dark:text-gray-400">Last Verified</p>
-                  <p>{selectedItem.lastVerified}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 dark:text-gray-400">Next Verification</p>
-                  <p>{selectedItem.nextVerification}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 dark:text-gray-400">Location</p>
-                  <p>{selectedItem.location}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 dark:text-gray-400">Assigned To</p>
-                  <p>{selectedItem.assignedTo}</p>
-                </div>
-              </div>
-              {selectedItem.notes && (
-                <div>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">Notes</p>
-                  <p className="text-sm">{selectedItem.notes}</p>
-                </div>
-              )}
-              <div className="border-t pt-2">
-                <p className="text-gray-500 dark:text-gray-400 text-sm">Verification History</p>
-                <div className="mt-1 max-h-32 overflow-y-auto">
-                  {getItemVerificationLogs(selectedItem.id).map((log, index) => (
-                    <div key={index} className="text-xs flex items-center gap-1 mb-1">
-                      {log.status === 'verified' ? (
-                        <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-400" />
-                      ) : log.status === 'missing' ? (
-                        <XCircle className="h-3 w-3 text-red-600 dark:text-red-400" />
-                      ) : (
-                        <AlertTriangle className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-                      )}
-                      <span>{log.date} {log.time}hrs - By {log.verifiedBy}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="font-medium text-right text-sm">Name:</div>
+                <div className="col-span-3 text-sm">{selectedItem.name}</div>
+                
+                <div className="font-medium text-right text-sm">Serial Number:</div>
+                <div className="col-span-3 font-mono text-sm">{selectedItem.serialNumber}</div>
+                
+                <div className="font-medium text-right text-sm">Category:</div>
+                <div className="col-span-3 text-sm capitalize">{selectedItem.category}</div>
+                
+                <div className="font-medium text-right text-sm">Security Level:</div>
+                <div className="col-span-3 text-sm uppercase">{selectedItem.securityLevel}</div>
+                
+                <div className="font-medium text-right text-sm">Status:</div>
+                <div className="col-span-3 text-sm capitalize">{selectedItem.status}</div>
+                
+                <div className="font-medium text-right text-sm">Assigned To:</div>
+                <div className="col-span-3 text-sm">{selectedItem.assignedTo}</div>
+                
+                <div className="font-medium text-right text-sm">Location:</div>
+                <div className="col-span-3 text-sm">{selectedItem.location}</div>
+                
+                <div className="font-medium text-right text-sm">Assigned Date:</div>
+                <div className="col-span-3 text-sm">{selectedItem.assignedDate}</div>
+                
+                <div className="font-medium text-right text-sm">Last Verified:</div>
+                <div className="col-span-3 text-sm">{selectedItem.lastVerified}</div>
+                
+                <div className="font-medium text-right text-sm">Next Verification:</div>
+                <div className="col-span-3 text-sm">{selectedItem.nextVerification}</div>
+                
+                <div className="font-medium text-right text-sm">Notes:</div>
+                <div className="col-span-3 text-sm">{selectedItem.notes || "No notes available."}</div>
               </div>
             </div>
-            <DialogFooter className="flex justify-between">
+            <DialogFooter>
               <Button 
                 variant="outline" 
-                onClick={() => setDetailsModalOpen(false)}
+                className="flex items-center gap-1 mr-2"
+                onClick={() => handleVerifyItem(selectedItem)}
               >
-                Close
+                <CheckCircle className="h-4 w-4" />
+                Verify Item
               </Button>
-              <div className="flex gap-2">
-                <QRCodeGenerator 
-                  itemName={selectedItem.name} 
-                  serialNumber={selectedItem.serialNumber}
-                />
-                <Button 
-                  onClick={() => {
-                    handleVerifyItem(selectedItem);
-                    setDetailsModalOpen(false);
-                  }}
-                  className="flex items-center gap-1 bg-green-700 hover:bg-green-800"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  Verify Item
-                </Button>
-              </div>
+              <Button onClick={() => setDetailsModalOpen(false)}>Close</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
+      
+      {/* Verification started modal would go here */}
+      
     </PageWrapper>
   );
 };
