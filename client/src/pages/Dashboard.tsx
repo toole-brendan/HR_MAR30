@@ -108,84 +108,49 @@ export default function Dashboard() {
       
       {/* Summary Stats & Alerts */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card className="overflow-hidden border border-border dashboard-card">
-          <CardHeader className="pb-2 bg-muted/40">
-            <CardTitle className="text-lg flex items-center tracking-tight">
-              <Database className="h-5 w-5 mr-2 text-primary" />
-              Inventory Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-medium mb-1">{inventory.length}</div>
-            <p className="text-sm text-muted-foreground tracking-wide">Total inventory items</p>
-          </CardContent>
-          <CardFooter className="pt-0">
-            <Button variant="ghost" className="p-0 h-auto text-xs uppercase tracking-wider flex items-center" onClick={() => navigate('/property-book')}>
-              View Property Book
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </CardFooter>
-        </Card>
+        <StatCard 
+          title="Total Inventory"
+          value={inventory.length}
+          icon={<Package size={20} className="text-blue-500" />}
+          change={{
+            value: 3.2,
+            label: "from last month",
+            direction: "up"
+          }}
+        />
 
-        <Card className="overflow-hidden border border-border border-l-4 border-l-amber-500 dashboard-card">
-          <CardHeader className="pb-2 bg-muted/40">
-            <CardTitle className="text-lg flex items-center tracking-tight">
-              <RefreshCw className="h-5 w-5 mr-2 text-amber-500" />
-              Transfer Requests
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-medium mb-1">{pendingTransfersCount}</div>
-            <p className="text-sm text-muted-foreground tracking-wide">Pending approvals</p>
-          </CardContent>
-          <CardFooter className="pt-0">
-            <Button variant="ghost" className="p-0 h-auto text-xs uppercase tracking-wider flex items-center" onClick={() => navigate('/transfers')}>
-              Manage Transfers
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </CardFooter>
-        </Card>
+        <StatCard 
+          title="Pending Transfers"
+          value={pendingTransfersCount}
+          icon={<ArrowRightLeft size={20} className="text-purple-500" />}
+          change={{
+            value: 8.1,
+            label: "from last week",
+            direction: "down"
+          }}
+        />
 
-        <Card className="overflow-hidden border border-border border-l-4 border-l-red-500 dashboard-card">
-          <CardHeader className="pb-2 bg-muted/40">
-            <CardTitle className="text-lg flex items-center tracking-tight">
-              <Shield className="h-5 w-5 mr-2 text-red-500" />
-              Sensitive Items
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="flex justify-between items-center mb-2">
-              <div className="text-3xl font-medium">{sensitiveItemsStats.verifiedToday}</div>
-              <div className="text-sm text-muted-foreground tracking-wide">of {sensitiveItemsStats.totalItems} verified</div>
-            </div>
-            <Progress value={verificationPercentage} className="h-2" />
-          </CardContent>
-          <CardFooter className="pt-2">
-            <Button variant="ghost" className="p-0 h-auto text-xs uppercase tracking-wider flex items-center" onClick={() => navigate('/sensitive-items')}>
-              Verify Items
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </CardFooter>
-        </Card>
+        <StatCard 
+          title="Sensitive Items Verified"
+          value={`${sensitiveItemsStats.verifiedToday}/${sensitiveItemsStats.totalItems}`}
+          icon={<Shield size={20} className="text-green-500" />}
+          change={{
+            value: 12.4,
+            label: "verification rate",
+            direction: "up"
+          }}
+        />
 
-        <Card className="overflow-hidden border border-border border-l-4 border-l-blue-500 dashboard-card">
-          <CardHeader className="pb-2 bg-muted/40">
-            <CardTitle className="text-lg flex items-center tracking-tight">
-              <AlertTriangle className="h-5 w-5 mr-2 text-blue-500" />
-              Maintenance
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-medium mb-1">{pendingMaintenanceCount}</div>
-            <p className="text-sm text-muted-foreground tracking-wide">Scheduled maintenance items</p>
-          </CardContent>
-          <CardFooter className="pt-0">
-            <Button variant="ghost" className="p-0 h-auto text-xs uppercase tracking-wider flex items-center" onClick={() => navigate('/maintenance')}>
-              View Maintenance
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </CardFooter>
-        </Card>
+        <StatCard 
+          title="Items Needing Maintenance"
+          value={pendingMaintenanceCount}
+          icon={<AlertTriangle size={20} className="text-amber-500" />}
+          change={{
+            value: 2.3,
+            label: "from last week",
+            direction: "down"
+          }}
+        />
       </div>
 
       {/* Quick Actions */}

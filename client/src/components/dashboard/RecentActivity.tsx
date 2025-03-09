@@ -1,9 +1,9 @@
 import { activities } from "@/lib/mockData";
-import ActivityItem from "../common/ActivityItem";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Activity, ListChecks, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
+import { ActivityLogItem } from "@/components/dashboard/ActivityLogItem";
 
 const RecentActivity: React.FC = () => {
   const [, navigate] = useLocation();
@@ -26,9 +26,15 @@ const RecentActivity: React.FC = () => {
             <p>No activity recorded yet</p>
           </div>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border p-4">
             {recentActivities.map((activity) => (
-              <ActivityItem key={activity.id} activity={activity} />
+              <ActivityLogItem 
+                key={activity.id}
+                id={activity.id}
+                title={activity.description}
+                timestamp={activity.timeAgo}
+                verified={activity.type === 'transfer-approved' || activity.type === 'inventory-updated'}
+              />
             ))}
           </div>
         )}
