@@ -132,22 +132,21 @@ const Sidebar = ({
 
   if (isMobile) {
     return (
-      <nav className="flex-1 p-4 flex flex-col">
-        {/* Mobile Logo */}
-        <div 
-          className="flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity mb-2"
-          onClick={handleLogoClick}
-        >
-          <div className="border border-gray-800/70 dark:border-gray-100/70 px-4 py-1.5">
-            <h1 className="text-lg font-light tracking-widest text-gray-800 dark:text-gray-100 m-0 font-serif">HandReceipt</h1>
+      <nav className="flex-1 flex flex-col">
+        {/* Header - Logo */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+          <div 
+            className="flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={handleLogoClick}
+          >
+            <div className="border border-gray-800/70 dark:border-gray-100/70 px-4 py-1.5">
+              <h1 className="text-lg font-light tracking-widest text-gray-800 dark:text-gray-100 m-0 font-serif">HandReceipt</h1>
+            </div>
           </div>
         </div>
         
-        {/* First divider after logo */}
-        <div className="border-t border-gray-700/50 dark:border-white/10 my-3"></div>
-        
         {/* User Profile section */}
-        <div className="flex items-center cursor-pointer mb-3">
+        <div className="p-4 flex items-center cursor-pointer border-b border-gray-200 dark:border-gray-800">
           <div className="w-8 h-8 rounded-full bg-venture-purple flex items-center justify-center text-white text-sm font-medium mr-3">
             M
           </div>
@@ -157,11 +156,8 @@ const Sidebar = ({
           </div>
         </div>
         
-        {/* Second divider after user profile */}
-        <div className="border-t border-gray-700/50 dark:border-white/10 my-3"></div>
-        
         {/* Main navigation section */}
-        <div className="flex-1 space-y-1">
+        <div className="flex-1 space-y-1 p-4">
           {/* Main navigation items */}
           {navItems.map((item) => 
             item.onClick ? (
@@ -198,7 +194,7 @@ const Sidebar = ({
         </div>
         
         {/* Footer section */}
-        <div className="mt-auto pt-4 space-y-3">
+        <div className="mt-auto p-4 space-y-3">
           {/* Footer divider */}
           <div className="border-t border-gray-700/50 dark:border-white/10 my-3"></div>
           
@@ -257,8 +253,8 @@ const Sidebar = ({
 
   return (
     <aside className={`sidebar hidden md:flex flex-col ${sidebarCollapsed ? 'collapsed' : ''}`}>
-      {/* Logo section */}
-      <div className="p-4 border-b border-gray-700/50 dark:border-white/10">
+      {/* Header - Logo */}
+      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
         {!sidebarCollapsed ? (
           <div 
             className="flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
