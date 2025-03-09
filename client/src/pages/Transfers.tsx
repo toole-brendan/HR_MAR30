@@ -582,14 +582,14 @@ const Transfers: React.FC = () => {
       {/* Header section matching Inventory Management styling */}
       <div className="pt-16 pb-10">
         {/* Category label - Small all-caps category label */}
-        <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+        <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1 font-medium">
           TRANSFERS
         </div>
         
         {/* Main title - following Inventory Management typography */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-2xl font-medium mb-1">Transfer Management</h1>
+            <h1 className="text-3xl font-light tracking-tight mb-1">Transfer Management</h1>
             <p className="text-sm text-muted-foreground">{getPageDescription()}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

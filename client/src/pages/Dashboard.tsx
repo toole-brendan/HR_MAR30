@@ -100,23 +100,20 @@ export default function Dashboard() {
   return (
     <PageWrapper withPadding={true}>
       {/* Header section with 8VC style formatting */}
-      <div className="mb-6 sm:mb-7 md:mb-8">
+      <div className="pt-16 pb-10">
         {/* Category label - Small all-caps category label */}
-        <div className="text-category-tag mb-1 text-muted-foreground">
+        <div className="text-xs uppercase tracking-wider font-medium mb-1 text-muted-foreground">
           DASHBOARD
         </div>
         
         {/* Main title - following 8VC typography */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
           <div>
             <h1 className="text-3xl font-light tracking-tight mb-1">Welcome, CPT Rodriguez</h1>
-            <p className="text-subtitle text-muted-foreground">HandReceipt Supply Chain System</p>
+            <p className="text-sm text-muted-foreground">HandReceipt Supply Chain System</p>
           </div>
           {actions}
         </div>
-        
-        {/* Subtle horizontal divider */}
-        <Separator className="mt-6" />
       </div>
       
       {/* Summary Stats - Metric cards with 8VC styling */}
@@ -168,7 +165,7 @@ export default function Dashboard() {
 
       {/* Quick Actions with 8VC styled header */}
       <div className="mb-8">
-        <div className="text-section-header mb-4 text-muted-foreground">
+        <div className="text-xs uppercase tracking-wider font-medium mb-4 text-muted-foreground">
           QUICK ACTIONS
         </div>
         <QuickActions openScanner={() => setShowQRScannerModal(true)} />

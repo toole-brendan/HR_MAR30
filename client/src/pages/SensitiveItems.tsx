@@ -159,14 +159,14 @@ const SensitiveItems: React.FC = () => {
       {/* Header section with 8VC style formatting */}
       <div className="pt-16 pb-10">
         {/* Category label - Small all-caps category label */}
-        <div className="text-xs uppercase tracking-wider mb-1 text-muted-foreground">
+        <div className="text-xs uppercase tracking-wider mb-1 text-muted-foreground font-medium">
           SECURITY
         </div>
         
         {/* Main title - following 8VC typography */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-2xl font-medium mb-1">Sensitive Items</h1>
+            <h1 className="text-3xl font-light tracking-tight mb-1">Sensitive Items</h1>
             <p className="text-sm text-muted-foreground">Track, verify, and manage sensitive military equipment</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -297,7 +297,7 @@ const SensitiveItems: React.FC = () => {
         <TabsContent value="inventory" className="space-y-6">
           {/* Filters Section with 8VC styling */}
           <div className="mb-6">
-            <div className="text-section-header mb-4 text-muted-foreground">
+            <div className="text-xs uppercase tracking-wider font-medium text-muted-foreground mb-4">
               SEARCH & FILTERS
             </div>
             <div className="flex flex-col md:flex-row gap-4">
@@ -492,7 +492,7 @@ const SensitiveItems: React.FC = () => {
         {/* Categories Tab */}
         <TabsContent value="categories" className="space-y-6">
           <div className="mb-6">
-            <div className="text-section-header mb-4 text-muted-foreground">
+            <div className="text-xs uppercase tracking-wider font-medium text-muted-foreground mb-4">
               CATEGORY OVERVIEW
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -586,7 +586,7 @@ const SensitiveItems: React.FC = () => {
                           }
                         </div>
                         <div>
-                          <div className="font-medium text-sm">{schedule.description}</div>
+                          <div className="font-medium text-sm">{`${schedule.itemsToVerify} items to verify`}</div>
                           <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
                             <Calendar className="mr-1 h-3 w-3" />
                             <span>{schedule.date}</span>
