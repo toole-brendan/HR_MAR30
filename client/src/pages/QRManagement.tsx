@@ -234,18 +234,32 @@ const QRManagement = () => {
       </div>
       
       <Tabs defaultValue="all">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <TabsList className="h-8 rounded-none bg-gray-50 dark:bg-white/5">
-              <TabsTrigger value="all" className="uppercase tracking-wider text-[10px] font-medium">ALL QR CODES</TabsTrigger>
-              <TabsTrigger value="damaged" className="uppercase tracking-wider text-[10px] font-medium">DAMAGED</TabsTrigger>
-              <TabsTrigger value="reports" className="uppercase tracking-wider text-[10px] font-medium">REPORTS</TabsTrigger>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <TabsList className="h-12 rounded-none bg-gray-50 dark:bg-white/5 p-1 w-full sm:w-auto">
+              <TabsTrigger 
+                value="all" 
+                className="uppercase tracking-wider text-xs font-medium h-10 px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:shadow-sm"
+              >
+                ALL QR CODES
+              </TabsTrigger>
+              <TabsTrigger 
+                value="damaged" 
+                className="uppercase tracking-wider text-xs font-medium h-10 px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:shadow-sm"
+              >
+                DAMAGED
+              </TabsTrigger>
+              <TabsTrigger 
+                value="reports" 
+                className="uppercase tracking-wider text-xs font-medium h-10 px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:shadow-sm"
+              >
+                REPORTS
+              </TabsTrigger>
             </TabsList>
             
             <Button 
               variant="outline" 
               onClick={handleBatchReplaceDamaged}
-              className="flex items-center uppercase tracking-wider text-xs h-8"
-              size="sm"
+              className="flex items-center uppercase tracking-wider text-xs h-10 border-gray-200 dark:border-white/10"
             >
               <RefreshCw className="mr-2 h-3.5 w-3.5" />
               Replace Damaged
