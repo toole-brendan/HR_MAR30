@@ -9,6 +9,7 @@ import {
   RefreshCw,
   ChevronRight,
   ArrowRight,
+  ArrowRightLeft,
   BarChart3,
   Users,
   CheckCircle,
@@ -21,7 +22,8 @@ import {
   Search,
   Filter,
   Plus,
-  Activity
+  Activity,
+  Package
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +40,9 @@ import MyInventory from '@/components/dashboard/MyInventory';
 import PendingTransfers from '@/components/dashboard/PendingTransfers';
 import QuickActions from '@/components/dashboard/QuickActions';
 import RecentActivity from '@/components/dashboard/RecentActivity';
+import { StatCard } from '@/components/dashboard/StatCard';
+import { TransferItem } from '@/components/dashboard/TransferItem';
+import { ActivityLogItem } from '@/components/dashboard/ActivityLogItem';
 
 // Mock data imports
 import { sensitiveItems, sensitiveItemsStats } from '@/lib/sensitiveItemsData';
