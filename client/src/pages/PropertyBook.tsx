@@ -36,7 +36,8 @@ import {
   Calendar, 
   ShieldCheck, 
   Send, 
-  CheckCircle 
+  CheckCircle,
+  FileText
 } from "lucide-react";
 
 const PropertyBook: React.FC = () => {
