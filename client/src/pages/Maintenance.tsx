@@ -409,61 +409,70 @@ const Maintenance: React.FC = () => {
           <Tabs 
             value={selectedTab} 
             onValueChange={setSelectedTab} 
-            className="space-y-4"
+            className="w-full"
           >
-            <TabsList className="bg-muted/50 p-1 grid grid-cols-1 sm:grid-cols-3 h-auto">
-              <TabsTrigger value="my-requests" className="py-2 data-[state=active]:bg-primary/10">
+            <TabsList className="grid grid-cols-1 sm:grid-cols-3 w-full rounded-none bg-gray-50 dark:bg-white/5 h-10 mb-6">
+              <TabsTrigger value="my-requests" className="uppercase tracking-wider text-xs font-medium rounded-none">
                 <ListChecks className="h-4 w-4 mr-2" />
                 My Requests
               </TabsTrigger>
-              <TabsTrigger value="bulletins" className="py-2 data-[state=active]:bg-primary/10">
+              <TabsTrigger value="bulletins" className="uppercase tracking-wider text-xs font-medium rounded-none">
                 <Bell className="h-4 w-4 mr-2" />
                 Maintenance Bulletins
               </TabsTrigger>
-              <TabsTrigger value="help" className="py-2 data-[state=active]:bg-primary/10">
+              <TabsTrigger value="help" className="uppercase tracking-wider text-xs font-medium rounded-none">
                 <MailQuestion className="h-4 w-4 mr-2" />
                 Help & FAQ
               </TabsTrigger>
             </TabsList>
 
             {/* My Requests Tab */}
-            <TabsContent value="my-requests" className="space-y-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                    <div>
-                      <CardTitle>My Maintenance Requests</CardTitle>
-                      <CardDescription>View and track your maintenance requests</CardDescription>
+            <TabsContent value="my-requests">
+              <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                  <div>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      MAINTENANCE REQUESTS
                     </div>
-                    <div className="flex gap-2">
-                      <Select value={filterStatus} onValueChange={setFilterStatus}>
-                        <SelectTrigger className="w-full sm:w-40">
-                          <SelectValue placeholder="Filter by status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Status</SelectItem>
-                          <SelectItem value="scheduled">Pending</SelectItem>
-                          <SelectItem value="in-progress">In Progress</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                      My Equipment Service Requests
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="relative mb-4">
-                    <Input
-                      placeholder="Search by name, serial number, or description"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  
+                  <div className="flex gap-2">
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger className="w-full sm:w-40 bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="scheduled">Pending</SelectItem>
+                        <SelectItem value="in-progress">In Progress</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  {/* Search & Filters section with 8VC styling */}
+                  <div className="mb-6">
+                    <div className="text-xs uppercase tracking-wider font-medium mb-4 text-muted-foreground">
+                      SEARCH & FILTERS
+                    </div>
+                    <div className="relative flex-1">
+                      <Input
+                        placeholder="Search by name, serial number, or description"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none"
+                      />
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    </div>
                   </div>
 
-                  <div className="rounded-md border">
-                    <div className="grid grid-cols-1 divide-y">
+                  <div className="divide-y divide-gray-100 dark:divide-white/5">
                       {filteredRequests.length === 0 ? (
                         <div className="py-8 text-center text-gray-500 dark:text-gray-400">
                           <div className="flex flex-col items-center justify-center gap-2">
@@ -472,7 +481,7 @@ const Maintenance: React.FC = () => {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="mt-2"
+                              className="mt-2 text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
                               onClick={handleNewRequestClick}
                             >
                               <Plus className="h-4 w-4 mr-2" />
@@ -482,7 +491,7 @@ const Maintenance: React.FC = () => {
                         </div>
                       ) : (
                         filteredRequests.map((item) => (
-                          <div key={item.id} className="p-4 hover:bg-muted/30 transition-colors">
+                          <div key={item.id} className="py-4 hover:bg-gray-50 dark:hover:bg-white/5">
                             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
@@ -521,9 +530,9 @@ const Maintenance: React.FC = () => {
                               <div className="flex items-center gap-2 sm:flex-col sm:items-end mt-2 sm:mt-0">
                                 <MaintenancePriorityBadge priority={item.priority} />
                                 <Button 
-                                  variant="outline" 
+                                  variant="ghost" 
                                   size="sm" 
-                                  className="mt-2"
+                                  className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
                                   onClick={() => handleViewDetails(item)}
                                 >
                                   View Details
@@ -535,44 +544,47 @@ const Maintenance: React.FC = () => {
                       )}
                     </div>
                   </div>
-                </CardContent>
+                
+                <div className="px-4 py-2 border-t border-gray-100 dark:border-white/5">
+                  <div className="text-xs tracking-wide text-muted-foreground">
+                    {filteredRequests.length} requests displayed • Last updated: Today, 08:30
+                  </div>
+                </div>
               </Card>
             </TabsContent>
 
             {/* Maintenance Bulletins Tab */}
-            <TabsContent value="bulletins" className="space-y-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                    <div>
-                      <CardTitle>Maintenance Bulletins</CardTitle>
-                      <CardDescription>Updates on parts, schedules, and other important information</CardDescription>
+            <TabsContent value="bulletins">
+              <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                  <div>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      NOTIFICATIONS
                     </div>
-                    {/* Only show for maintenance staff */}
-                    <Button 
-                      size="sm"
-                      variant="outline"
-                      className="flex items-center gap-1"
-                      onClick={handleAddBulletinClick}
-                    >
-                      <CirclePlus className="h-4 w-4" />
-                      Post Bulletin
-                    </Button>
+                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                      Maintenance Bulletins
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
+                  
+                  {/* Only show for maintenance staff */}
+                  <Button 
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1.5"
+                    onClick={handleAddBulletinClick}
+                  >
+                    <CirclePlus className="h-4 w-4" />
+                    POST BULLETIN
+                  </Button>
+                </div>
+                
+                <div className="p-6">
                   <div className="space-y-4">
                     {maintenanceBulletins.map(bulletin => (
-                      <Card key={bulletin.id} className={`border-l-4 ${
-                        bulletin.category === 'parts-shortage' ? 'border-l-amber-500' :
-                        bulletin.category === 'delay' ? 'border-l-red-500' :
-                        bulletin.category === 'update' ? 'border-l-green-500' :
-                        bulletin.category === 'facility' ? 'border-l-blue-500' :
-                        'border-l-gray-500'
-                      }`}>
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <h3 className="font-semibold text-lg flex items-center">
+                      <div key={bulletin.id} className="border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                        <div className="p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <h3 className="font-medium text-lg flex items-center">
                               {bulletin.category === 'parts-shortage' && <Package className="h-4 w-4 mr-2 text-amber-500" />}
                               {bulletin.category === 'delay' && <Clock className="h-4 w-4 mr-2 text-red-500" />}
                               {bulletin.category === 'update' && <Info className="h-4 w-4 mr-2 text-green-500" />}
@@ -581,98 +593,111 @@ const Maintenance: React.FC = () => {
                               {bulletin.title}
                             </h3>
                             {bulletin.resolved ? (
-                              <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/10 dark:text-green-400">
+                              <Badge variant="outline" className="rounded-none uppercase text-[10px] tracking-wider font-medium bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30">
                                 Resolved
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="bg-amber-50 text-amber-700 dark:bg-amber-900/10 dark:text-amber-400">
+                              <Badge variant="outline" className="rounded-none uppercase text-[10px] tracking-wider font-medium bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30">
                                 Active
                               </Badge>
                             )}
                           </div>
                           
-                          <p className="text-sm mb-3">{bulletin.message}</p>
+                          <p className="text-sm mb-4 text-gray-600 dark:text-gray-300">{bulletin.message}</p>
                           
-                          <div className="flex flex-wrap gap-2 mb-2">
+                          <div className="flex flex-wrap gap-2 mb-3">
                             {bulletin.affectedItems?.map(item => (
-                              <Badge key={item} variant="secondary" className="bg-muted/50">
+                              <Badge key={item} variant="outline" className="rounded-none text-[10px] uppercase tracking-wider font-medium bg-purple-50 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400 border-purple-200 dark:border-purple-900/30">
                                 {item}
                               </Badge>
                             ))}
                           </div>
                           
-                          <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                            <span>Posted by: {bulletin.postedBy}</span>
-                            <span>Date: {bulletin.postedDate}</span>
+                          <div className="flex justify-between border-t border-gray-100 dark:border-white/5 pt-3 text-xs text-muted-foreground mt-2">
+                            <span className="tracking-wide">Posted by: {bulletin.postedBy}</span>
+                            <span className="tracking-wide">Date: {bulletin.postedDate}</span>
                           </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
                     ))}
                   </div>
-                </CardContent>
+                </div>
+                
+                <div className="px-4 py-2 border-t border-gray-100 dark:border-white/5">
+                  <div className="text-xs tracking-wide text-muted-foreground">
+                    {maintenanceBulletins.length} bulletins displayed • Last updated: Today, 08:30
+                  </div>
+                </div>
               </Card>
             </TabsContent>
 
             {/* Help & FAQ Tab */}
-            <TabsContent value="help" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Maintenance Help & FAQ</CardTitle>
-                  <CardDescription>Common questions and guidance about the maintenance process</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-medium flex items-center text-lg mb-2">
+            <TabsContent value="help">
+              <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                  <div>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      SUPPORT
+                    </div>
+                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                      Maintenance Help & FAQ
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  <div className="space-y-6">
+                    <div className="border-b border-gray-100 dark:border-white/5 pb-5">
+                      <h3 className="font-medium flex items-center text-lg mb-3">
                         <MailQuestion className="h-5 w-5 mr-2 text-primary" />
                         How do I submit a maintenance request?
                       </h3>
-                      <p className="text-sm ml-7">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 ml-7">
                         Click the "New Request" button at the top of the page or use the quick action in the sidebar. 
                         Fill out the form with details about your equipment and the issue you're experiencing.
                       </p>
                     </div>
                     
-                    <div>
-                      <h3 className="font-medium flex items-center text-lg mb-2">
+                    <div className="border-b border-gray-100 dark:border-white/5 pb-5">
+                      <h3 className="font-medium flex items-center text-lg mb-3">
                         <Clock className="h-5 w-5 mr-2 text-primary" />
                         How long will my maintenance request take?
                       </h3>
-                      <p className="text-sm ml-7">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 ml-7">
                         Standard maintenance typically takes 3-5 business days depending on parts availability and current workload. 
                         Critical requests are prioritized based on operational needs. Check the "Maintenance Bulletins" tab for any 
                         announcements about delays or parts shortages.
                       </p>
                     </div>
                     
-                    <div>
-                      <h3 className="font-medium flex items-center text-lg mb-2">
+                    <div className="border-b border-gray-100 dark:border-white/5 pb-5">
+                      <h3 className="font-medium flex items-center text-lg mb-3">
                         <AlertTriangle className="h-5 w-5 mr-2 text-primary" />
                         How do I report an emergency maintenance issue?
                       </h3>
-                      <p className="text-sm ml-7">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 ml-7">
                         For emergency issues that affect mission readiness, submit a request with "Critical" priority. 
                         Additionally, contact the Maintenance Control Office directly at extension 5432.
                       </p>
                     </div>
                     
-                    <div>
-                      <h3 className="font-medium flex items-center text-lg mb-2">
+                    <div className="border-b border-gray-100 dark:border-white/5 pb-5">
+                      <h3 className="font-medium flex items-center text-lg mb-3">
                         <MessageSquare className="h-5 w-5 mr-2 text-primary" />
                         How can I check the status of my request?
                       </h3>
-                      <p className="text-sm ml-7">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 ml-7">
                         Your maintenance requests are displayed in the "My Requests" tab with their current status. 
                         Click "View Details" on any request to see the complete maintenance history and current progress.
                       </p>
                     </div>
                     
                     <div>
-                      <h3 className="font-medium flex items-center text-lg mb-2">
+                      <h3 className="font-medium flex items-center text-lg mb-3">
                         <Truck className="h-5 w-5 mr-2 text-primary" />
                         What if my equipment needs external repair?
                       </h3>
-                      <p className="text-sm ml-7">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 ml-7">
                         If your equipment requires repair at an external facility, the maintenance team will coordinate 
                         the process and keep you updated through the system. External repairs typically require additional 
                         processing time and appropriate approvals.
@@ -680,14 +705,24 @@ const Maintenance: React.FC = () => {
                     </div>
                   </div>
 
-                  <Alert className="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 mt-6">
-                    <Info className="h-4 w-4" />
-                    <AlertTitle>Need more help?</AlertTitle>
-                    <AlertDescription>
-                      Contact the Maintenance Control Office at extension 5432 or email maintenance@handreceipt.mil
-                    </AlertDescription>
-                  </Alert>
-                </CardContent>
+                  <div className="border border-gray-100 dark:border-white/5 rounded-none bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 p-4 mt-6">
+                    <div className="flex gap-3">
+                      <Info className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h3 className="font-medium text-lg mb-1">Need more help?</h3>
+                        <p className="text-sm">
+                          Contact the Maintenance Control Office at extension 5432 or email maintenance@handreceipt.mil
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="px-4 py-2 border-t border-gray-100 dark:border-white/5">
+                  <div className="text-xs tracking-wide text-muted-foreground">
+                    Last updated: March 05, 2025
+                  </div>
+                </div>
               </Card>
             </TabsContent>
           </Tabs>
