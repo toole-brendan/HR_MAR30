@@ -226,99 +226,120 @@ const Maintenance: React.FC = () => {
 
   return (
     <PageWrapper withPadding={true}>
-      <PageHeader
-        title="Maintenance"
-        description="Submit, track, and manage maintenance requests for your equipment"
-        actions={actions}
-        className="mb-4 sm:mb-5 md:mb-6"
-      />
+      {/* Header section with 8VC style formatting */}
+      <div className="pt-16 pb-10">
+        {/* Category label - Small all-caps category label */}
+        <div className="text-xs uppercase tracking-wider font-medium mb-1 text-muted-foreground">
+          MAINTENANCE
+        </div>
+        
+        {/* Main title - following 8VC typography */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
+          <div>
+            <h1 className="text-3xl font-light tracking-tight mb-1">Equipment Maintenance</h1>
+            <p className="text-sm text-muted-foreground">Submit, track, and manage maintenance requests for your equipment</p>
+          </div>
+          {actions}
+        </div>
+      </div>
 
       {/* Main layout with left sidebar and main content */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left sidebar for new request and tracking status */}
         <div className="lg:w-80 xl:w-96 space-y-6">
           {/* Create New Request Card */}
-          <Card className="border-l-4 border-l-blue-600">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center text-blue-700 dark:text-blue-400">
-                <CirclePlus className="h-5 w-5 mr-2" />
-                Create a Request
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm mb-4">Submit a new maintenance request for your equipment quickly.</p>
+          <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  NEW REQUEST
+                </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white flex items-center">
+                  <CirclePlus className="h-5 w-5 mr-2 text-primary" />
+                  Submit Request
+                </div>
+              </div>
+            </div>
+            <CardContent className="p-6">
+              <p className="text-sm mb-4 text-gray-500 dark:text-gray-400">Submit a new maintenance request for your equipment quickly.</p>
               <Button 
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs font-medium"
                 onClick={handleNewRequestClick}
               >
-                New Maintenance Request
+                NEW MAINTENANCE REQUEST
               </Button>
             </CardContent>
           </Card>
 
           {/* Maintenance Status Card */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Your Maintenance Status</CardTitle>
-              <CardDescription>Overview of your current requests</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
+          <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  CURRENT STATUS
+                </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  Maintenance Overview
+                </div>
+              </div>
+            </div>
+            <CardContent className="p-6 space-y-5">
+              <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/5 pb-3">
                 <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
+                  <div className="h-8 w-8 rounded-none bg-blue-50 dark:bg-blue-900/10 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
                     <Clock className="h-4 w-4" />
                   </div>
                   <div>
                     <p className="text-sm font-medium">Pending</p>
-                    <p className="text-xs text-muted-foreground">Awaiting service</p>
+                    <p className="text-xs tracking-wide text-muted-foreground">Awaiting service</p>
                   </div>
                 </div>
-                <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/10">
+                <Badge variant="outline" className="rounded-none uppercase text-[10px] tracking-wider font-medium bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-900/30">
                   {myMaintenanceRequests.filter(item => item.status === 'scheduled').length}
                 </Badge>
               </div>
 
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/5 pb-3">
                 <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mr-3">
+                  <div className="h-8 w-8 rounded-none bg-amber-50 dark:bg-amber-900/10 flex items-center justify-center text-amber-600 dark:text-amber-400 mr-3">
                     <Wrench className="h-4 w-4" />
                   </div>
                   <div>
                     <p className="text-sm font-medium">In Progress</p>
-                    <p className="text-xs text-muted-foreground">Currently being worked on</p>
+                    <p className="text-xs tracking-wide text-muted-foreground">Currently being worked on</p>
                   </div>
                 </div>
-                <Badge variant="outline" className="bg-amber-50 dark:bg-amber-900/10">
+                <Badge variant="outline" className="rounded-none uppercase text-[10px] tracking-wider font-medium bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30">
                   {myMaintenanceRequests.filter(item => item.status === 'in-progress').length}
                 </Badge>
               </div>
 
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/5 pb-3">
                 <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mr-3">
+                  <div className="h-8 w-8 rounded-none bg-green-50 dark:bg-green-900/10 flex items-center justify-center text-green-600 dark:text-green-400 mr-3">
                     <CheckCircle className="h-4 w-4" />
                   </div>
                   <div>
                     <p className="text-sm font-medium">Completed</p>
-                    <p className="text-xs text-muted-foreground">Ready for pickup</p>
+                    <p className="text-xs tracking-wide text-muted-foreground">Ready for pickup</p>
                   </div>
                 </div>
-                <Badge variant="outline" className="bg-green-50 dark:bg-green-900/10">
+                <Badge variant="outline" className="rounded-none uppercase text-[10px] tracking-wider font-medium bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30">
                   {myMaintenanceRequests.filter(item => item.status === 'completed').length}
                 </Badge>
               </div>
 
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mr-3">
+                  <div className="h-8 w-8 rounded-none bg-red-50 dark:bg-red-900/10 flex items-center justify-center text-red-600 dark:text-red-400 mr-3">
                     <AlertTriangle className="h-4 w-4" />
                   </div>
                   <div>
                     <p className="text-sm font-medium">Critical</p>
-                    <p className="text-xs text-muted-foreground">High priority items</p>
+                    <p className="text-xs tracking-wide text-muted-foreground">High priority items</p>
                   </div>
                 </div>
-                <Badge variant="outline" className="bg-red-50 dark:bg-red-900/10">
+                <Badge variant="outline" className="rounded-none uppercase text-[10px] tracking-wider font-medium bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-900/30">
                   {myMaintenanceRequests.filter(item => item.priority === 'critical').length}
                 </Badge>
               </div>
@@ -326,33 +347,36 @@ const Maintenance: React.FC = () => {
           </Card>
 
           {/* Maintenance Timeline Card */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                <CalendarClock className="h-5 w-5 mr-2" />
-                Maintenance Schedule
-              </CardTitle>
-              <CardDescription>Your upcoming appointments</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  UPCOMING
+                </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  Maintenance Schedule
+                </div>
+              </div>
+            </div>
+            <CardContent className="p-6">
               <div className="space-y-4">
                 {myMaintenanceRequests
                   .filter(item => item.scheduledDate)
                   .sort((a, b) => new Date(a.scheduledDate!).getTime() - new Date(b.scheduledDate!).getTime())
                   .slice(0, 3)
                   .map(item => (
-                    <div key={item.id} className="flex items-start">
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3 mt-0.5">
+                    <div key={item.id} className="flex items-start border-b border-gray-100 dark:border-white/5 pb-3 last:border-b-0 last:pb-0">
+                      <div className="h-8 w-8 rounded-none bg-primary/5 flex items-center justify-center text-primary mr-3 mt-0.5">
                         <Calendar className="h-4 w-4" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">{item.itemName}</p>
-                        <p className="text-xs text-muted-foreground">{item.scheduledDate}</p>
+                        <p className="text-xs tracking-wide text-muted-foreground">{item.scheduledDate}</p>
                         <div className="flex items-center mt-1">
-                          <Badge className={`px-1.5 py-0 text-xs ${
-                            item.priority === 'critical' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
-                            item.priority === 'high' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400' :
-                            'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+                          <Badge className={`rounded-none uppercase text-[10px] tracking-wider font-medium px-1.5 py-0 ${
+                            item.priority === 'critical' ? 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-900/30' :
+                            item.priority === 'high' ? 'bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30' :
+                            'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-900/30'
                           }`}>
                             {item.priority.charAt(0).toUpperCase() + item.priority.slice(1)}
                           </Badge>
@@ -361,7 +385,7 @@ const Maintenance: React.FC = () => {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="ml-auto" 
+                        className="ml-auto text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300" 
                         onClick={() => handleViewDetails(item)}
                       >
                         Details
