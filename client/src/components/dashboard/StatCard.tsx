@@ -21,11 +21,14 @@ export function StatCard({ title, value, icon, change, className }: StatCardProp
       "border border-gray-200 dark:border-white/10 bg-white dark:bg-black overflow-hidden",
       className
     )}>
-      <div className="p-6">
-        <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">{title}</div>
+      <div className="p-6 relative">
+        {/* 8VC Style Category Label */}
+        <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">{title}</div>
         
-        <div className="text-4xl font-light text-gray-900 dark:text-white mb-4">{value}</div>
+        {/* Main Value */}
+        <div className="text-3xl font-light text-gray-900 dark:text-white mb-3">{value}</div>
         
+        {/* Change indicator */}
         {change && (
           <div className="flex items-center text-xs">
             <div className={cn(
@@ -43,12 +46,13 @@ export function StatCard({ title, value, icon, change, className }: StatCardProp
               )}
               {change.value}%
             </div>
-            <div className="text-gray-500">{change.label}</div>
+            <div className="text-gray-500 dark:text-gray-400">{change.label}</div>
           </div>
         )}
         
+        {/* Icon in the right corner - 8VC style */}
         {icon && (
-          <div className="absolute top-6 right-6 flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-neutral-800/50 border border-gray-200 dark:border-white/10">
+          <div className="absolute top-6 right-6 text-gray-400 dark:text-gray-500">
             {icon}
           </div>
         )}
