@@ -19,34 +19,34 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item }) => {
   };
 
   return (
-    <div className="p-4 hover:bg-muted/10 flex items-center justify-between">
+    <div className="py-3 hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between">
       <div className="flex items-center">
-        <div className="h-9 w-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+        <div className="h-8 w-8 bg-purple-50 dark:bg-purple-500/10 rounded-full flex items-center justify-center text-purple-500">
           <Package className="h-4 w-4" />
         </div>
         <div className="ml-3">
           <div className="flex items-center gap-2">
-            <h4 className="font-medium text-sm">{item.name}</h4>
+            <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">{item.name}</h4>
             <Badge 
               variant="outline" 
-              className={`text-xs ${
+              className={`text-[10px] uppercase tracking-wider ${
                 item.status === "active" 
-                  ? "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400 border-green-200" 
+                  ? "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-500 border border-green-200 dark:border-green-700/50" 
                   : item.status === "pending" 
-                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-400 border-yellow-200"
-                  : "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400 border-blue-200"
+                  ? "bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500 border border-amber-200 dark:border-amber-700/50"
+                  : "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-500 border border-blue-200 dark:border-blue-700/50"
               }`}
             >
               {item.status}
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground font-mono">SN: {item.serialNumber}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">SN: {item.serialNumber}</p>
         </div>
       </div>
       <Button 
         size="icon"
         variant="ghost"
-        className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+        className="h-8 w-8 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:text-gray-500 dark:hover:text-purple-400"
         onClick={handleTransferRequest}
       >
         <ArrowRightLeft className="h-4 w-4" />

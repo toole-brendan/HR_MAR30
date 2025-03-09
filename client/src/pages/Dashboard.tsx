@@ -186,27 +186,27 @@ export default function Dashboard() {
           </div>
           
           {/* Stats Tabs */}
-          <Card className="mb-6 overflow-hidden border-gray-200 dark:border-white/10 dashboard-card">
-            <div className="p-6 pb-4">
-              {/* Category Label */}
-              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
-                EQUIPMENT STATUS
-              </div>
-              {/* Main Title */}
-              <div className="text-lg font-normal text-gray-900 dark:text-white">
-                Readiness and verification
+          <Card className="mb-6 overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  EQUIPMENT STATUS
+                </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  Readiness and verification
+                </div>
               </div>
             </div>
             
             <CardContent className="p-0">
               <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid grid-cols-3 w-full rounded-none bg-muted/30">
+                <TabsList className="grid grid-cols-3 w-full rounded-none bg-gray-50 dark:bg-white/5">
                   <TabsTrigger value="overview" className="uppercase tracking-wider text-xs font-medium">Overview</TabsTrigger>
                   <TabsTrigger value="readiness" className="uppercase tracking-wider text-xs font-medium">Readiness</TabsTrigger>
                   <TabsTrigger value="verification" className="uppercase tracking-wider text-xs font-medium">Verification</TabsTrigger>
                 </TabsList>
                 
-                <div className="p-6">
+                <div className="p-4">
                   <TabsContent value="overview" className="m-0">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="p-4 border border-gray-100 dark:border-white/5">
@@ -327,66 +327,73 @@ export default function Dashboard() {
           <RecentActivity />
           
           {/* QR Management Summary */}
-          <Card className="overflow-hidden border-gray-200 dark:border-white/10 dashboard-card">
-            <div className="p-6 pb-4">
-              {/* Category Label */}
-              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
-                QR TRACKING
+          <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  QR TRACKING
+                </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  Barcode status
+                </div>
               </div>
-              {/* Main Title */}
-              <div className="text-lg font-normal text-gray-900 dark:text-white">
-                Barcode status
-              </div>
+              
+              <Button 
+                variant="ghost" 
+                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+                onClick={() => navigate('/qr-management')}
+              >
+                MANAGE ALL
+              </Button>
             </div>
             
-            <CardContent className="px-6 pb-4">
-              <div className="space-y-4">
+            <CardContent className="px-4 pb-4">
+              <div className="space-y-3">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="tracking-wide">Total QR Codes</span>
-                  <span className="font-medium">{inventory.length}</span>
+                  <span className="tracking-wide text-gray-700 dark:text-gray-300">Total QR Codes</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{inventory.length}</span>
                 </div>
                 <Separator className="bg-gray-100 dark:bg-white/5" />
                 <div className="flex justify-between items-center text-sm">
-                  <span className="tracking-wide">Needs Reprinting</span>
-                  <Badge variant="outline" className="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 uppercase text-[10px] tracking-wider font-medium">2</Badge>
+                  <span className="tracking-wide text-gray-700 dark:text-gray-300">Needs Reprinting</span>
+                  <Badge variant="outline" className="bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500 border-amber-200 dark:border-amber-700/50 uppercase text-[10px] tracking-wider">2</Badge>
                 </div>
                 <Separator className="bg-gray-100 dark:bg-white/5" />
                 <div className="flex justify-between items-center text-sm">
-                  <span className="tracking-wide">Recently Generated</span>
-                  <Badge variant="outline" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30 uppercase text-[10px] tracking-wider font-medium">5</Badge>
+                  <span className="tracking-wide text-gray-700 dark:text-gray-300">Recently Generated</span>
+                  <Badge variant="outline" className="bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-500 border-green-200 dark:border-green-700/50 uppercase text-[10px] tracking-wider">5</Badge>
                 </div>
               </div>
             </CardContent>
-            <div className="px-6 py-4 border-t border-gray-100 dark:border-white/5 flex justify-end">
-              <Button 
-                variant="ghost" 
-                className="text-xs uppercase tracking-wider text-primary hover:bg-transparent hover:text-primary-600"
-                onClick={() => navigate('/qr-management')}
-              >
-                MANAGE QR CODES
-              </Button>
-            </div>
           </Card>
           
           {/* Notifications Preview */}
-          <Card className="overflow-hidden border-gray-200 dark:border-white/10 dashboard-card">
-            <div className="p-6 pb-4">
-              {/* Category Label */}
-              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
-                TEAM ACTIVITY
+          <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  TEAM ACTIVITY
+                </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  Recent notifications
+                </div>
               </div>
-              {/* Main Title */}
-              <div className="text-lg font-normal text-gray-900 dark:text-white">
-                Recent notifications
-              </div>
+              
+              <Button 
+                variant="ghost" 
+                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+                onClick={() => navigate('/audit-log')}
+              >
+                VIEW ALL
+              </Button>
             </div>
             
             <CardContent className="p-0">
               <div className="divide-y divide-gray-100 dark:divide-white/5">
                 {notifications.slice(0, 3).map(notification => (
-                  <div key={notification.id} className="p-6 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                  <div key={notification.id} className="p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                     <div className="flex items-start">
-                      <div className={`h-8 w-8 flex-shrink-0 rounded-full bg-primary/10 flex items-center justify-center mr-3 ${
+                      <div className={`h-8 w-8 flex-shrink-0 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center mr-3 ${
                         notification.type === 'transfer-request' ? 'text-amber-500' : 
                         notification.type === 'transfer-approved' ? 'text-green-500' : 
                         'text-blue-500'
@@ -396,24 +403,15 @@ export default function Dashboard() {
                          <AlertTriangle className="h-4 w-4" />}
                       </div>
                       <div>
-                        <h4 className="font-medium text-sm">{notification.title}</h4>
-                        <p className="text-xs text-muted-foreground mt-1">{notification.message}</p>
-                        <p className="text-xs text-muted-foreground/60 mt-1">{notification.timeAgo}</p>
+                        <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">{notification.title}</h4>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notification.message}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{notification.timeAgo}</p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             </CardContent>
-            <div className="px-6 py-4 border-t border-gray-100 dark:border-white/5 flex justify-end">
-              <Button 
-                variant="ghost" 
-                className="text-xs uppercase tracking-wider text-primary hover:bg-transparent hover:text-primary-600"
-                onClick={() => navigate('/audit-log')}
-              >
-                VIEW ALL ACTIVITY
-              </Button>
-            </div>
           </Card>
         </div>
       </div>
