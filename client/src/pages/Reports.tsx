@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { 
   Card, 
   CardContent, 
@@ -49,7 +50,8 @@ import {
   Layers, 
   Printer,
   Search,
-  AlertTriangle
+  AlertTriangle,
+  ArrowRight
 } from "lucide-react";
 import { inventory, transfers, activities, user } from "@/lib/mockData";
 import { sensitiveItems } from "@/lib/sensitiveItemsData";
@@ -133,6 +135,7 @@ const Reports = () => {
     status: "all"
   });
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const handleGenerateReport = (reportType: string) => {
     setSelectedReportType(reportType);
     toast({
@@ -316,18 +319,24 @@ const Reports = () => {
             </div>
 
             <div className="mb-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Report Generation</CardTitle>
-                  <CardDescription>Generate common reports with a single click</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                  <div>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      ONE-CLICK REPORTING
+                    </div>
+                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                      Quick Report Generation
+                    </div>
+                  </div>
+                </div>
+                <CardContent className="p-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {reportTypes.map((report) => (
                       <Button
                         key={report.id}
                         variant="outline"
-                        className="justify-start h-auto py-3"
+                        className="justify-start h-auto py-3 text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-primary dark:hover:text-primary-400"
                         onClick={() => handleGenerateReport(report.name)}
                       >
                         {report.icon}
@@ -340,65 +349,85 @@ const Reports = () => {
             </div>
 
             <div className="mb-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Property Book Summary</CardTitle>
-                  <CardDescription>Current property book status</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                  <div>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      PROPERTY BOOK
+                    </div>
+                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                      Current Status Summary
+                    </div>
+                  </div>
+                </div>
+                <CardContent className="p-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h4 className="text-sm font-semibold mb-4">Status Summary</h4>
-                      <div className="space-y-4">
+                      <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                        STATUS SUMMARY
+                      </div>
+                      <div className="space-y-4 border-l-4 border-primary/30 pl-4">
                         <div className="flex justify-between items-center">
-                          <span>Total Items</span>
-                          <span className="font-medium">{propertyBookSummary.totalItems}</span>
+                          <span className="text-sm">Total Items</span>
+                          <span className="font-medium text-lg">{propertyBookSummary.totalItems}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>Assigned Items</span>
-                          <span className="font-medium">{propertyBookSummary.assignedItems}</span>
+                          <span className="text-sm">Assigned Items</span>
+                          <span className="font-medium text-lg">{propertyBookSummary.assignedItems}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>Unassigned Items</span>
-                          <span className="font-medium">{propertyBookSummary.unassignedItems}</span>
+                          <span className="text-sm">Unassigned Items</span>
+                          <span className="font-medium text-lg">{propertyBookSummary.unassignedItems}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>Compliance Rate</span>
-                          <span className="font-medium text-green-500">{propertyBookSummary.complianceRate}</span>
+                          <span className="text-sm">Compliance Rate</span>
+                          <span className="font-medium text-lg text-green-500">{propertyBookSummary.complianceRate}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>Verification Rate</span>
-                          <span className="font-medium text-amber-500">{propertyBookSummary.verificationStatus}</span>
+                          <span className="text-sm">Verification Rate</span>
+                          <span className="font-medium text-lg text-amber-500">{propertyBookSummary.verificationStatus}</span>
                         </div>
                       </div>
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold mb-4">Items By Category</h4>
-                      <div className="space-y-4">
+                      <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                        ITEMS BY CATEGORY
+                      </div>
+                      <div className="space-y-4 border-l-4 border-primary/30 pl-4">
                         <div className="flex justify-between items-center">
-                          <span>Weapons</span>
-                          <span className="font-medium">{propertyBookSummary.itemsByCategory.weapons}</span>
+                          <span className="text-sm">Weapons</span>
+                          <span className="font-medium text-lg">{propertyBookSummary.itemsByCategory.weapons}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>Communications</span>
-                          <span className="font-medium">{propertyBookSummary.itemsByCategory.communications}</span>
+                          <span className="text-sm">Communications</span>
+                          <span className="font-medium text-lg">{propertyBookSummary.itemsByCategory.communications}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>Medical</span>
-                          <span className="font-medium">{propertyBookSummary.itemsByCategory.medical}</span>
+                          <span className="text-sm">Medical</span>
+                          <span className="font-medium text-lg">{propertyBookSummary.itemsByCategory.medical}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>Tactical</span>
-                          <span className="font-medium">{propertyBookSummary.itemsByCategory.tactical}</span>
+                          <span className="text-sm">Tactical</span>
+                          <span className="font-medium text-lg">{propertyBookSummary.itemsByCategory.tactical}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>Other</span>
-                          <span className="font-medium">{propertyBookSummary.itemsByCategory.other}</span>
+                          <span className="text-sm">Other</span>
+                          <span className="font-medium text-lg">{propertyBookSummary.itemsByCategory.other}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </CardContent>
+                <div className="px-4 py-2 border-t border-gray-100 dark:border-white/5 flex justify-end">
+                  <Button 
+                    variant="ghost" 
+                    className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+                    onClick={() => navigate("/property-book")}
+                  >
+                    VIEW FULL PROPERTY BOOK
+                    <ArrowRight className="h-3 w-3 ml-1" />
+                  </Button>
+                </div>
               </Card>
             </div>
           </TabsContent>
