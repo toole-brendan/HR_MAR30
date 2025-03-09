@@ -210,19 +210,8 @@ const Maintenance: React.FC = () => {
     });
   };
 
-  // Page actions
-  const actions = (
-    <div className="flex gap-2">
-      <Button 
-        size="sm" 
-        className="flex items-center gap-1 bg-blue-700 hover:bg-blue-800"
-        onClick={handleNewRequestClick}
-      >
-        <CirclePlus className="h-4 w-4" />
-        <span className={isMobile ? "" : "hidden sm:inline"}>New Request</span>
-      </Button>
-    </div>
-  );
+  // Page actions - empty now as redundant button removed
+  const actions = null;
 
   return (
     <PageWrapper withPadding={true}>
