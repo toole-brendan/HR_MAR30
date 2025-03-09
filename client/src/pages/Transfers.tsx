@@ -580,7 +580,7 @@ const Transfers: React.FC = () => {
   return (
     <PageWrapper withPadding={true}>
       {/* Header section matching Inventory Management styling */}
-      <div className="pt-4 pb-10">
+      <div className="pt-16 pb-10">
         {/* Category label - Small all-caps category label */}
         <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
           TRANSFERS

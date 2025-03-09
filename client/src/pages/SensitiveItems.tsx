@@ -48,6 +48,7 @@ import {
   Plus,
   FileText,
   CalendarClock,
+  ScanLine,
   Info,
   Sword,
 } from "lucide-react";
@@ -69,6 +70,8 @@ const SensitiveItems: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<SensitiveItem | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
+  const [showQRDialog, setShowQRDialog] = useState(false);
+  const [showVerifyDialog, setShowVerifyDialog] = useState(false);
   const [tabValue, setTabValue] = useState("inventory");
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -154,23 +157,55 @@ const SensitiveItems: React.FC = () => {
   return (
     <PageWrapper withPadding={true}>
       {/* Header section with 8VC style formatting */}
-      <div className="mb-6 sm:mb-7 md:mb-8">
+      <div className="pt-16 pb-10">
         {/* Category label - Small all-caps category label */}
-        <div className="text-category-tag mb-1 text-muted-foreground">
+        <div className="text-xs uppercase tracking-wider mb-1 text-muted-foreground">
           SECURITY
         </div>
         
         {/* Main title - following 8VC typography */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-light tracking-tight mb-1">Sensitive Items</h1>
-            <p className="text-subtitle text-muted-foreground">Track, verify, and manage sensitive military equipment</p>
+            <h1 className="text-2xl font-medium mb-1">Sensitive Items</h1>
+            <p className="text-sm text-muted-foreground">Track, verify, and manage sensitive military equipment</p>
           </div>
-          {actions}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => setShowQRDialog(true)}
+              className="h-9 px-3 flex items-center gap-1.5 bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-md"
+            >
+              <ScanLine className="h-4 w-4" />
+              <span className="text-xs">SCAN QR</span>
+            </Button>
+            
+            <Button 
+              size="sm" 
+              variant="default" 
+              onClick={() => setShowVerifyDialog(true)}
+              className="h-9 px-3 flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 rounded-md"
+            >
+              <ClipboardCheck className="h-4 w-4" />
+              <span className="text-xs">VERIFY ITEMS</span>
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="h-9 px-3 text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1.5"
+              onClick={() => {
+                toast({
+                  title: "Report Generated",
+                  description: "Sensitive items report has been exported"
+                });
+              }}
+            >
+              <FileText className="h-4 w-4" />
+              <span className="text-xs">EXPORT REPORT</span>
+            </Button>
+          </div>
         </div>
-        
-        {/* Subtle horizontal divider */}
-        <Separator className="mt-6" />
       </div>
 
       {/* Status Summary Cards - in 8VC style */}
