@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageWrapper } from "@/components/ui/page-wrapper";
 import { PageHeader } from "@/components/ui/page-header";
-import { Printer, QrCode, RefreshCw, AlertTriangle, Plus, Tag, ArrowUpDown, Filter, Search, X } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Printer, QrCode, RefreshCw, AlertTriangle, Plus, Tag, ArrowUpDown, Filter, Search, X, Calendar, Clock } from "lucide-react";
 import QRCodeGenerator from "@/components/common/QRCodeGenerator";
 import { inventory } from "@/lib/mockData";
 import { InventoryItem } from "@/types";
@@ -208,78 +209,101 @@ const QRManagement = () => {
 
   return (
     <PageWrapper withPadding={true}>
-      <PageHeader
-        title="QR Code Management"
-        description="Generate, print, and manage QR codes for equipment tracking"
-        actions={
-          <Button onClick={handleOpenGenerateDialog} className="bg-[#4B5320] hover:bg-[#3a4019]">
-            <Plus className="mr-2 h-4 w-4" /> Generate New QR Code
+      {/* 8VC Style Header */}
+      <div className="pt-16 pb-10">
+        {/* Category label - Small all-caps category label */}
+        <div className="text-xs uppercase tracking-wider font-medium mb-1 text-muted-foreground">
+          QR MANAGEMENT
+        </div>
+        
+        {/* Main title - following 8VC typography */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
+          <div>
+            <h1 className="text-3xl font-light tracking-tight mb-1">QR Code Management</h1>
+            <p className="text-sm text-muted-foreground">Generate, print, and manage QR codes for equipment tracking</p>
+          </div>
+          <Button 
+            onClick={handleOpenGenerateDialog} 
+            className="bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs flex items-center gap-1"
+          >
+            <Plus className="h-4 w-4" />
+            Generate New QR Code
           </Button>
-        }
-        className="mb-4 sm:mb-5 md:mb-6"
-      />
+        </div>
+      </div>
+      
       <Tabs defaultValue="all">
-          <div className="flex items-center justify-between mb-4">
-            <TabsList>
-              <TabsTrigger value="all">All QR Codes</TabsTrigger>
-              <TabsTrigger value="damaged">Damaged</TabsTrigger>
-              <TabsTrigger value="reports">Reports</TabsTrigger>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <TabsList className="h-8 rounded-none bg-gray-50 dark:bg-white/5">
+              <TabsTrigger value="all" className="uppercase tracking-wider text-[10px] font-medium">ALL QR CODES</TabsTrigger>
+              <TabsTrigger value="damaged" className="uppercase tracking-wider text-[10px] font-medium">DAMAGED</TabsTrigger>
+              <TabsTrigger value="reports" className="uppercase tracking-wider text-[10px] font-medium">REPORTS</TabsTrigger>
             </TabsList>
             
-            <div className="flex items-center space-x-2">
-              <Button 
-                variant="outline" 
-                onClick={handleBatchReplaceDamaged}
-                className="flex items-center"
-              >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Replace Damaged
-              </Button>
-            </div>
+            <Button 
+              variant="outline" 
+              onClick={handleBatchReplaceDamaged}
+              className="flex items-center uppercase tracking-wider text-xs h-8"
+              size="sm"
+            >
+              <RefreshCw className="mr-2 h-3.5 w-3.5" />
+              Replace Damaged
+            </Button>
           </div>
           
-          <div className="mb-6 flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or serial number"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 bg-white dark:bg-white/10"
-              />
-              {searchTerm && (
-                <Button 
-                  variant="ghost" 
-                  className="absolute right-0 top-0 h-full px-3" 
-                  onClick={() => setSearchTerm("")}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
+          <div className="border border-gray-200 dark:border-white/10 bg-white dark:bg-black p-4 mb-6">
+            <div className="uppercase text-xs tracking-wider font-medium mb-3 text-gray-500 dark:text-gray-400">
+              FILTER OPTIONS
             </div>
             
-            <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <div className="flex items-center">
-                    <Filter className="mr-2 h-4 w-4" />
-                    <span>Status: {statusFilter === "all" ? "All" : statusFilter}</span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="damaged">Damaged</SelectItem>
-                  <SelectItem value="missing">Missing</SelectItem>
-                  <SelectItem value="replaced">Replaced</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name or serial number"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 bg-white dark:bg-black border-gray-200 dark:border-white/10"
+                />
+                {searchTerm && (
+                  <Button 
+                    variant="ghost" 
+                    className="absolute right-0 top-0 h-full px-3" 
+                    onClick={() => setSearchTerm("")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
               
-              {(searchTerm || statusFilter !== "all") && (
-                <Button variant="outline" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
-              )}
+              <div className="flex gap-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[180px] bg-white dark:bg-black border-gray-200 dark:border-white/10">
+                    <div className="flex items-center">
+                      <Filter className="mr-2 h-4 w-4" />
+                      <span>Status: {statusFilter === "all" ? "All" : statusFilter}</span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="damaged">Damaged</SelectItem>
+                    <SelectItem value="missing">Missing</SelectItem>
+                    <SelectItem value="replaced">Replaced</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {(searchTerm || statusFilter !== "all") && (
+                  <Button 
+                    variant="outline" 
+                    onClick={clearFilters}
+                    className="uppercase tracking-wider text-xs"
+                    size="sm"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -287,92 +311,134 @@ const QRManagement = () => {
             {filteredItems.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredItems.map((item) => (
-                  <Card key={item.id} className="overflow-hidden">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-lg">{item.name}</CardTitle>
-                          <CardDescription>SN: {item.serialNumber}</CardDescription>
-                        </div>
-                        {renderStatusBadge(item.qrCodeStatus)}
+                  <Card key={item.id} className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black rounded-none">
+                    <div className="p-4">
+                      <div className="uppercase text-xs tracking-wider font-medium mb-1 text-gray-500 dark:text-gray-400">
+                        QR CODE #{item.id.substring(0, 8)}
                       </div>
-                    </CardHeader>
-                    <CardContent className="pb-2">
-                      <div className="flex justify-center py-3">
-                        <QRCodeGenerator 
-                          itemName={item.name} 
-                          serialNumber={item.serialNumber} 
-                        />
-                      </div>
-                      <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                      <div className="flex justify-between items-start mb-3">
                         <div>
-                          <span className="text-muted-foreground">Status:</span>
-                          <span className="ml-1 font-medium">{item.status}</span>
+                          <h3 className="text-lg font-normal">{item.name}</h3>
+                          <div className="text-sm font-mono text-muted-foreground">SN: {item.serialNumber}</div>
                         </div>
-                        <div>
-                          <span className="text-muted-foreground">Assigned:</span>
-                          <span className="ml-1 font-medium">{item.assignedDate}</span>
+                        <Badge className="uppercase text-[10px] tracking-wider font-medium rounded-none py-0.5 px-2.5"
+                          variant="outline"
+                          {...(() => {
+                            switch (item.qrCodeStatus) {
+                              case "active":
+                                return {
+                                  className: "bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30"
+                                };
+                              case "damaged":
+                                return {
+                                  className: "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-900/30"
+                                };
+                              case "missing":
+                                return {
+                                  className: "bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30"
+                                };
+                              case "replaced":
+                                return {
+                                  className: "bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-900/30"
+                                };
+                              default:
+                                return {};
+                            }
+                          })()}
+                        >
+                          {item.qrCodeStatus.toUpperCase()}
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-center py-4 px-4 bg-gray-50 dark:bg-white/5">
+                      <QRCodeGenerator 
+                        itemName={item.name} 
+                        serialNumber={item.serialNumber} 
+                      />
+                    </div>
+                    
+                    <div className="px-4 py-3 border-t border-gray-100 dark:border-white/5">
+                      <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
+                        <div className="flex items-center">
+                          <Calendar className="h-3.5 w-3.5 text-muted-foreground mr-1.5" />
+                          <span className="text-xs text-muted-foreground">Assigned:</span>
+                          <span className="ml-1 text-xs font-medium">{item.assignedDate}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground mr-1.5" />
+                          <span className="text-xs text-muted-foreground">Status:</span>
+                          <span className="ml-1 text-xs font-medium">{item.status}</span>
                         </div>
                         {item.lastPrinted && (
-                          <div>
-                            <span className="text-muted-foreground">Last Printed:</span>
-                            <span className="ml-1 font-medium">{item.lastPrinted}</span>
+                          <div className="flex items-center">
+                            <Printer className="h-3.5 w-3.5 text-muted-foreground mr-1.5" />
+                            <span className="text-xs text-muted-foreground">Printed:</span>
+                            <span className="ml-1 text-xs font-medium">{item.lastPrinted}</span>
                           </div>
                         )}
                         {item.lastUpdated && (
-                          <div>
-                            <span className="text-muted-foreground">Last Updated:</span>
-                            <span className="ml-1 font-medium">{item.lastUpdated}</span>
+                          <div className="flex items-center">
+                            <RefreshCw className="h-3.5 w-3.5 text-muted-foreground mr-1.5" />
+                            <span className="text-xs text-muted-foreground">Updated:</span>
+                            <span className="ml-1 text-xs font-medium">{item.lastUpdated}</span>
                           </div>
                         )}
                       </div>
-                    </CardContent>
-                    <CardFooter className="pt-2 flex justify-between">
+                    </div>
+                    
+                    <div className="px-4 py-3 border-t border-gray-100 dark:border-white/5 flex justify-between">
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => handleOpenPrintDialog(item)}
+                        className="uppercase tracking-wider text-xs border-gray-200 dark:border-white/10"
                       >
-                        <Printer className="mr-2 h-4 w-4" />
+                        <Printer className="mr-2 h-3.5 w-3.5" />
                         Print
                       </Button>
                       {item.qrCodeStatus !== "damaged" ? (
                         <Button 
                           variant="outline" 
                           size="sm"
-                          className="text-red-500 border-red-200 hover:bg-red-50"
+                          className="uppercase tracking-wider text-xs text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-900/30 dark:hover:bg-red-900/20"
                           onClick={() => handleOpenReportDialog(item)}
                         >
-                          <AlertTriangle className="mr-2 h-4 w-4" />
+                          <AlertTriangle className="mr-2 h-3.5 w-3.5" />
                           Report Issue
                         </Button>
                       ) : (
                         <Button 
                           variant="outline" 
                           size="sm"
-                          className="text-blue-500 border-blue-200 hover:bg-blue-50"
+                          className="uppercase tracking-wider text-xs text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-900/30 dark:hover:bg-blue-900/20"
                           onClick={() => handleOpenPrintDialog(item)}
                         >
-                          <RefreshCw className="mr-2 h-4 w-4" />
+                          <RefreshCw className="mr-2 h-3.5 w-3.5" />
                           Replace
                         </Button>
                       )}
-                    </CardFooter>
+                    </div>
                   </Card>
                 ))}
               </div>
             ) : (
-              <Card className="p-8 flex flex-col items-center justify-center text-center">
-                <QrCode className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No QR Codes Found</h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchTerm || statusFilter !== "all" 
-                    ? "No QR codes match your search criteria. Try adjusting your filters."
-                    : "There are no QR codes in the system yet. Generate a new QR code to get started."}
-                </p>
-                <Button onClick={handleOpenGenerateDialog} className="bg-[#4B5320] hover:bg-[#3a4019]">
-                  <Plus className="mr-2 h-4 w-4" /> Generate QR Code
-                </Button>
+              <Card className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black rounded-none">
+                <div className="p-8 flex flex-col items-center justify-center text-center">
+                  <QrCode className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-normal mb-2">No QR Codes Found</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {searchTerm || statusFilter !== "all" 
+                      ? "No QR codes match your search criteria. Try adjusting your filters."
+                      : "There are no QR codes in the system yet. Generate a new QR code to get started."}
+                  </p>
+                  <Button 
+                    onClick={handleOpenGenerateDialog} 
+                    className="bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs"
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Generate QR Code
+                  </Button>
+                </div>
               </Card>
             )}
           </TabsContent>
@@ -383,146 +449,167 @@ const QRManagement = () => {
                 {qrItems
                   .filter(item => item.qrCodeStatus === "damaged")
                   .map((item) => (
-                    <Card key={item.id} className="overflow-hidden">
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="text-lg">{item.name}</CardTitle>
-                            <CardDescription>SN: {item.serialNumber}</CardDescription>
-                          </div>
-                          {renderStatusBadge(item.qrCodeStatus)}
+                    <Card key={item.id} className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black rounded-none">
+                      <div className="p-4">
+                        <div className="uppercase text-xs tracking-wider font-medium mb-1 text-red-600 dark:text-red-400">
+                          DAMAGED QR CODE
                         </div>
-                      </CardHeader>
-                      <CardContent className="pb-2">
-                        <div className="flex justify-center py-3">
-                          <div className="relative">
-                            <QRCodeGenerator 
-                              itemName={item.name} 
-                              serialNumber={item.serialNumber} 
-                            />
-                            <div className="absolute inset-0 bg-red-500/10 flex items-center justify-center">
-                              <AlertTriangle className="h-12 w-12 text-red-500" />
-                            </div>
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="text-lg font-normal">{item.name}</h3>
+                            <div className="text-sm font-mono text-muted-foreground">SN: {item.serialNumber}</div>
+                          </div>
+                          <Badge className="uppercase text-[10px] tracking-wider font-medium rounded-none py-0.5 px-2.5"
+                            variant="outline"
+                            className="bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-900/30"
+                          >
+                            DAMAGED
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-center py-4 px-4 bg-gray-50 dark:bg-white/5">
+                        <div className="relative">
+                          <QRCodeGenerator 
+                            itemName={item.name} 
+                            serialNumber={item.serialNumber} 
+                          />
+                          <div className="absolute inset-0 bg-red-500/10 flex items-center justify-center">
+                            <AlertTriangle className="h-12 w-12 text-red-500" />
                           </div>
                         </div>
-                        <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Status:</span>
-                            <span className="ml-1 font-medium">{item.status}</span>
+                      </div>
+                      
+                      <div className="px-4 py-3 border-t border-gray-100 dark:border-white/5">
+                        <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
+                          <div className="flex items-center">
+                            <Calendar className="h-3.5 w-3.5 text-muted-foreground mr-1.5" />
+                            <span className="text-xs text-muted-foreground">Assigned:</span>
+                            <span className="ml-1 text-xs font-medium">{item.assignedDate}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Assigned:</span>
-                            <span className="ml-1 font-medium">{item.assignedDate}</span>
+                          <div className="flex items-center">
+                            <Clock className="h-3.5 w-3.5 text-muted-foreground mr-1.5" />
+                            <span className="text-xs text-muted-foreground">Status:</span>
+                            <span className="ml-1 text-xs font-medium">{item.status}</span>
                           </div>
                           {item.lastUpdated && (
-                            <div>
-                              <span className="text-muted-foreground">Reported:</span>
-                              <span className="ml-1 font-medium">{item.lastUpdated}</span>
+                            <div className="flex items-center">
+                              <AlertTriangle className="h-3.5 w-3.5 text-red-500 mr-1.5" />
+                              <span className="text-xs text-muted-foreground">Reported:</span>
+                              <span className="ml-1 text-xs font-medium">{item.lastUpdated}</span>
                             </div>
                           )}
                         </div>
-                      </CardContent>
-                      <CardFooter className="pt-2 flex justify-center">
+                      </div>
+                      
+                      <div className="px-4 py-3 border-t border-gray-100 dark:border-white/5 flex justify-center">
                         <Button 
                           variant="default" 
                           size="sm"
-                          className="bg-[#4B5320] hover:bg-[#3a4019]"
+                          className="bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs"
                           onClick={() => handleOpenPrintDialog(item)}
                         >
-                          <RefreshCw className="mr-2 h-4 w-4" />
+                          <RefreshCw className="mr-2 h-3.5 w-3.5" />
                           Replace QR Code
                         </Button>
-                      </CardFooter>
+                      </div>
                     </Card>
                   ))}
               </div>
             ) : (
-              <Card className="p-8 flex flex-col items-center justify-center text-center">
-                <QrCode className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Damaged QR Codes</h3>
-                <p className="text-muted-foreground">
-                  There are currently no reported damaged QR codes in the system.
-                </p>
+              <Card className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black rounded-none">
+                <div className="p-8 flex flex-col items-center justify-center text-center">
+                  <QrCode className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-normal mb-2">No Damaged QR Codes</h3>
+                  <p className="text-sm text-muted-foreground">
+                    There are currently no reported damaged QR codes in the system.
+                  </p>
+                </div>
               </Card>
             )}
           </TabsContent>
           
           <TabsContent value="reports">
-            <Card>
-              <CardHeader>
-                <CardTitle>QR Code Activity Report</CardTitle>
-                <CardDescription>
-                  Overview of QR code management activities and statistics
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold">{qrItems.length}</div>
-                        <div className="text-sm text-muted-foreground">Total QR Codes</div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold">
-                          {qrItems.filter(item => item.qrCodeStatus === "damaged").length}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Damaged QR Codes</div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold">
-                          {qrItems.filter(item => item.qrCodeStatus === "replaced").length}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Replaced QR Codes</div>
-                      </div>
-                    </CardContent>
-                  </Card>
+            <Card className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black rounded-none">
+              <div className="p-4">
+                <div className="uppercase text-xs tracking-wider font-medium mb-1 text-gray-500 dark:text-gray-400">
+                  QR CODE REPORTS
                 </div>
-                
-                <h3 className="text-lg font-medium mb-3">Recent Activity</h3>
-                <div className="rounded-md border">
-                  <div className="relative w-full overflow-auto">
-                    <table className="w-full caption-bottom text-sm">
-                      <thead className="[&_tr]:border-b">
-                        <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                          <th className="h-12 px-4 text-left align-middle font-medium">Date</th>
-                          <th className="h-12 px-4 text-left align-middle font-medium">Item</th>
-                          <th className="h-12 px-4 text-left align-middle font-medium">Serial Number</th>
-                          <th className="h-12 px-4 text-left align-middle font-medium">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="[&_tr:last-child]:border-0">
-                        <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                          <td className="p-4 align-middle">{new Date().toLocaleDateString()}</td>
-                          <td className="p-4 align-middle">M4 Carbine</td>
-                          <td className="p-4 align-middle">SN12345678</td>
-                          <td className="p-4 align-middle">QR Code Replaced</td>
-                        </tr>
-                        <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                          <td className="p-4 align-middle">{new Date(Date.now() - 86400000).toLocaleDateString()}</td>
-                          <td className="p-4 align-middle">Night Vision Goggles</td>
-                          <td className="p-4 align-middle">NVG87654321</td>
-                          <td className="p-4 align-middle">QR Code Generated</td>
-                        </tr>
-                        <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                          <td className="p-4 align-middle">{new Date(Date.now() - 172800000).toLocaleDateString()}</td>
-                          <td className="p-4 align-middle">Radio Set</td>
-                          <td className="p-4 align-middle">RS98765432</td>
-                          <td className="p-4 align-middle">Damaged QR Code Reported</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                <h3 className="text-lg font-normal mb-3">Activity Summary</h3>
+              </div>
+              
+              <div className="px-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="p-4 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                    <h4 className="text-[10px] uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">TOTAL QR CODES</h4>
+                    <div className="text-2xl font-light tracking-tight">{qrItems.length}</div>
+                    <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Active inventory items</p>
+                  </div>
+                  <div className="p-4 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                    <h4 className="text-[10px] uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">DAMAGED CODES</h4>
+                    <div className="text-2xl font-light tracking-tight">{qrItems.filter(item => item.qrCodeStatus === "damaged").length}</div>
+                    <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Pending replacement</p>
+                  </div>
+                  <div className="p-4 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                    <h4 className="text-[10px] uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">REPLACED CODES</h4>
+                    <div className="text-2xl font-light tracking-tight">{qrItems.filter(item => item.qrCodeStatus === "replaced").length}</div>
+                    <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Last 30 days</p>
                   </div>
                 </div>
-              </CardContent>
+              </div>
+              
+              <div className="p-4 border-t border-gray-100 dark:border-white/5">
+                <div className="uppercase text-xs tracking-wider font-medium mb-4 text-gray-500 dark:text-gray-400">
+                  RECENT ACTIVITY LOG
+                </div>
+                <div className="overflow-hidden border border-gray-100 dark:border-white/5">
+                  <table className="w-full caption-bottom text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5">
+                        <th className="h-9 px-4 text-left align-middle text-[10px] uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400">Date</th>
+                        <th className="h-9 px-4 text-left align-middle text-[10px] uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400">Item</th>
+                        <th className="h-9 px-4 text-left align-middle text-[10px] uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400">Serial Number</th>
+                        <th className="h-9 px-4 text-left align-middle text-[10px] uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-gray-100 dark:border-white/5">
+                        <td className="p-4 align-middle">{new Date().toLocaleDateString()}</td>
+                        <td className="p-4 align-middle">M4 Carbine</td>
+                        <td className="p-4 align-middle font-mono text-xs">SN12345678</td>
+                        <td className="p-4 align-middle">
+                          <div className="flex items-center">
+                            <RefreshCw className="h-3.5 w-3.5 text-blue-500 mr-2" />
+                            <span>QR Code Replaced</span>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr className="border-b border-gray-100 dark:border-white/5">
+                        <td className="p-4 align-middle">{new Date(Date.now() - 86400000).toLocaleDateString()}</td>
+                        <td className="p-4 align-middle">Night Vision Goggles</td>
+                        <td className="p-4 align-middle font-mono text-xs">NVG87654321</td>
+                        <td className="p-4 align-middle">
+                          <div className="flex items-center">
+                            <Plus className="h-3.5 w-3.5 text-green-500 mr-2" />
+                            <span>QR Code Generated</span>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr className="border-b border-gray-100 dark:border-white/5">
+                        <td className="p-4 align-middle">{new Date(Date.now() - 172800000).toLocaleDateString()}</td>
+                        <td className="p-4 align-middle">Radio Set</td>
+                        <td className="p-4 align-middle font-mono text-xs">RS98765432</td>
+                        <td className="p-4 align-middle">
+                          <div className="flex items-center">
+                            <AlertTriangle className="h-3.5 w-3.5 text-red-500 mr-2" />
+                            <span>Damaged QR Code Reported</span>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </Card>
           </TabsContent>
         </Tabs>
