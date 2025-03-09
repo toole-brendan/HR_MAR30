@@ -157,73 +157,109 @@ const Reports = () => {
 
   return (
     <PageWrapper withPadding={true}>
-      <PageHeader
-        title="Reports & Analytics"
-        description="Generate customized reports and view analytics for inventory, transfers, and equipment status"
-        actions={
+      {/* Header section with 8VC style formatting */}
+      <div className="pt-16 pb-10">
+        {/* Category label - Small all-caps category label */}
+        <div className="text-xs uppercase tracking-wider font-medium mb-1 text-muted-foreground">
+          ANALYTICS
+        </div>
+        
+        {/* Main title - following 8VC typography */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
+          <div>
+            <h1 className="text-3xl font-light tracking-tight mb-1">Reports & Analytics</h1>
+            <p className="text-sm text-muted-foreground">Generate customized reports and view analytics for inventory, transfers, and equipment status</p>
+          </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => handlePrintReport()}>
-              <Printer className="h-4 w-4 mr-2" />
-              Print
+            <Button 
+              variant="ghost" 
+              className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1.5"
+              onClick={() => handlePrintReport()}
+            >
+              <Printer className="h-4 w-4" />
+              PRINT
             </Button>
             <Button 
-              className="bg-[#4B5320] hover:bg-[#3a4019]"
+              className="text-xs uppercase tracking-wider bg-primary hover:bg-primary-600 flex items-center gap-1.5"
               onClick={() => handleGenerateReport("Custom")}
             >
-              <FileText className="h-4 w-4 mr-2" />
-              Generate Report
+              <FileText className="h-4 w-4" />
+              GENERATE REPORT
             </Button>
           </div>
-        }
-        className="mb-4 sm:mb-5 md:mb-6"
-      />
+        </div>
+      </div>
       <Tabs defaultValue="dashboard" onValueChange={setActiveTab}>
-          <div className="flex items-center justify-between mb-4">
-            <TabsList>
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="inventory">Inventory</TabsTrigger>
-              <TabsTrigger value="transfers">Transfers</TabsTrigger>
-              <TabsTrigger value="sensitive">Sensitive Items</TabsTrigger>
-              <TabsTrigger value="custom">Custom Reports</TabsTrigger>
+          <div className="mb-6">
+            <div className="text-xs uppercase tracking-wider font-medium mb-4 text-muted-foreground">
+              REPORT CATEGORIES
+            </div>
+            <TabsList className="grid grid-cols-5 w-full rounded-none bg-gray-50 dark:bg-white/5 h-10">
+              <TabsTrigger value="dashboard" className="uppercase tracking-wider text-xs font-medium rounded-none">DASHBOARD</TabsTrigger>
+              <TabsTrigger value="inventory" className="uppercase tracking-wider text-xs font-medium rounded-none">INVENTORY</TabsTrigger>
+              <TabsTrigger value="transfers" className="uppercase tracking-wider text-xs font-medium rounded-none">TRANSFERS</TabsTrigger>
+              <TabsTrigger value="sensitive" className="uppercase tracking-wider text-xs font-medium rounded-none">SENSITIVE</TabsTrigger>
+              <TabsTrigger value="custom" className="uppercase tracking-wider text-xs font-medium rounded-none">CUSTOM</TabsTrigger>
             </TabsList>
           </div>
 
           {/* Report Dashboard */}
           <TabsContent value="dashboard">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">{inventory.length}</div>
-                    <div className="text-sm text-muted-foreground">Total Inventory Items</div>
+              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-3 border-b border-gray-100 dark:border-white/5">
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    INVENTORY
+                  </div>
+                </div>
+                <CardContent className="p-4">
+                  <div className="flex flex-col">
+                    <div className="text-3xl font-light tracking-tight text-gray-900 dark:text-white">{inventory.length}</div>
+                    <div className="text-xs tracking-wide text-muted-foreground mt-1">Total inventory items</div>
                   </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">{transfers.filter(t => t.status === "pending").length}</div>
-                    <div className="text-sm text-muted-foreground">Pending Transfers</div>
+              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-3 border-b border-gray-100 dark:border-white/5">
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    TRANSFERS
+                  </div>
+                </div>
+                <CardContent className="p-4">
+                  <div className="flex flex-col">
+                    <div className="text-3xl font-light tracking-tight text-gray-900 dark:text-white">{transfers.filter(t => t.status === "pending").length}</div>
+                    <div className="text-xs tracking-wide text-muted-foreground mt-1">Pending transfers</div>
                   </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">{sensitiveItems.length}</div>
-                    <div className="text-sm text-muted-foreground">Sensitive Items</div>
+              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-3 border-b border-gray-100 dark:border-white/5">
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    SENSITIVE ITEMS
+                  </div>
+                </div>
+                <CardContent className="p-4">
+                  <div className="flex flex-col">
+                    <div className="text-3xl font-light tracking-tight text-gray-900 dark:text-white">{sensitiveItems.length}</div>
+                    <div className="text-xs tracking-wide text-muted-foreground mt-1">Tracked sensitive items</div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Inventory by Category</CardTitle>
-                  <CardDescription>Distribution of equipment across categories</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                  <div>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      EQUIPMENT DISTRIBUTION
+                    </div>
+                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                      Inventory by Category
+                    </div>
+                  </div>
+                </div>
+                <CardContent className="p-4">
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -249,12 +285,18 @@ const Reports = () => {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Transfer Trends</CardTitle>
-                  <CardDescription>Monthly transfer activity summary</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                  <div>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      ACTIVITY METRICS
+                    </div>
+                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                      Transfer Trends
+                    </div>
+                  </div>
+                </div>
+                <CardContent className="p-4">
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={transfersData}>
