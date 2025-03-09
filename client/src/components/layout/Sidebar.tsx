@@ -103,8 +103,7 @@ const Sidebar = ({
     { 
       path: "/transfers", 
       icon: <Send className="sidebar-item-icon" />, 
-      label: "Transfers",
-      notificationCount: 3
+      label: "Transfers"
     },
     { path: "/maintenance", icon: <Wrench className="sidebar-item-icon" />, label: "Maintenance" },
     { path: "/qr-management", icon: <QrCode className="sidebar-item-icon" />, label: "QR Management" },
@@ -383,7 +382,7 @@ const Sidebar = ({
                 title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               >
                 {theme === 'light' ? 
-                  <Moon className="h-5 w-5 text-venture-purple dark:text-gray-200" /> : 
+                  <Moon className="h-5 w-5 text-gray-900 dark:text-gray-200" /> : 
                   <Sun className="h-5 w-5 text-gray-200 dark:text-gray-200" />
                 }
               </button>
@@ -393,7 +392,7 @@ const Sidebar = ({
                 className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-venture-purple/20 transition-colors"
                 title="Collapse sidebar"
               >
-                <ChevronLeft className="h-5 w-5 text-venture-purple dark:text-white" />
+                <ChevronLeft className="h-5 w-5 text-gray-900 dark:text-white" />
               </button>
             </div>
           ) : (
@@ -404,7 +403,7 @@ const Sidebar = ({
                 title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               >
                 {theme === 'light' ? 
-                  <Moon className="h-5 w-5 text-venture-purple dark:text-gray-200" /> : 
+                  <Moon className="h-5 w-5 text-gray-900 dark:text-gray-200" /> : 
                   <Sun className="h-5 w-5 text-gray-200 dark:text-gray-200" />
                 }
               </button>
@@ -415,7 +414,7 @@ const Sidebar = ({
                 className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-venture-purple/20 transition-colors mx-auto block"
                 title="Expand sidebar"
               >
-                <ChevronRight className="h-5 w-5 text-venture-purple dark:text-white" />
+                <ChevronRight className="h-5 w-5 text-gray-900 dark:text-white" />
               </button>
             </>
           )}
