@@ -243,44 +243,61 @@ const Settings: React.FC = () => {
 
   return (
     <PageWrapper withPadding={true}>
-      <PageHeader
-        title="Settings" 
-        description="Manage your account settings and preferences"
-        className="mb-4 sm:mb-5 md:mb-6"
-      />
+      {/* Header section with 8VC style formatting */}
+      <div className="pt-16 pb-10">
+        {/* Category label - Small all-caps category label */}
+        <div className="text-xs uppercase tracking-wider font-medium mb-1 text-muted-foreground">
+          CONFIGURATION
+        </div>
+        
+        {/* Main title - following 8VC typography */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
+          <div>
+            <h1 className="text-3xl font-light tracking-tight mb-1">Settings</h1>
+            <p className="text-sm text-muted-foreground">Manage your account settings and preferences</p>
+          </div>
+        </div>
+      </div>
+      
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid grid-cols-5 mb-6">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
+        <TabsList className="grid grid-cols-5 mb-6 rounded-none bg-gray-50 dark:bg-white/5 h-10">
+          <TabsTrigger value="profile" className="uppercase tracking-wider text-xs font-medium rounded-none flex items-center gap-2">
             <UserCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">Profile</span>
+            <span className="hidden sm:inline">PROFILE</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
+          <TabsTrigger value="security" className="uppercase tracking-wider text-xs font-medium rounded-none flex items-center gap-2">
             <Shield className="h-4 w-4" />
-            <span className="hidden sm:inline">Security</span>
+            <span className="hidden sm:inline">SECURITY</span>
           </TabsTrigger>
-          <TabsTrigger value="qr-codes" className="flex items-center gap-2">
+          <TabsTrigger value="qr-codes" className="uppercase tracking-wider text-xs font-medium rounded-none flex items-center gap-2">
             <QrCode className="h-4 w-4" />
-            <span className="hidden sm:inline">QR Codes</span>
+            <span className="hidden sm:inline">QR CODES</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
+          <TabsTrigger value="notifications" className="uppercase tracking-wider text-xs font-medium rounded-none flex items-center gap-2">
             <Bell className="h-4 w-4" />
-            <span className="hidden sm:inline">Notifications</span>
+            <span className="hidden sm:inline">ALERTS</span>
           </TabsTrigger>
-          <TabsTrigger value="sync" className="flex items-center gap-2">
+          <TabsTrigger value="sync" className="uppercase tracking-wider text-xs font-medium rounded-none flex items-center gap-2">
             <Cloud className="h-4 w-4" />
-            <span className="hidden sm:inline">Sync</span>
+            <span className="hidden sm:inline">SYNC</span>
           </TabsTrigger>
         </TabsList>
         
         {/* Profile Settings */}
         <TabsContent value="profile">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>Update your account details and contact information</CardDescription>
-              </CardHeader>
-              <CardContent>
+            <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+              <div className="p-4 flex justify-between items-baseline">
+                <div>
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    PERSONAL INFORMATION
+                  </div>
+                  <div className="text-lg font-normal text-gray-900 dark:text-white">
+                    User Details
+                  </div>
+                </div>
+              </div>
+              <CardContent className="p-4">
                 <Form {...profileForm}>
                   <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
                     <FormField
@@ -288,11 +305,11 @@ const Settings: React.FC = () => {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name</FormLabel>
+                          <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</FormLabel>
                           <FormControl>
-                            <Input {...field} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                            <Input {...field} readOnly className="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-white/10 rounded-none" />
                           </FormControl>
-                          <FormDescription>
+                          <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
                             Contact admin to update name
                           </FormDescription>
                         </FormItem>
@@ -304,9 +321,9 @@ const Settings: React.FC = () => {
                       name="rank"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Rank</FormLabel>
+                          <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Rank</FormLabel>
                           <FormControl>
-                            <Input {...field} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                            <Input {...field} readOnly className="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-white/10 rounded-none" />
                           </FormControl>
                         </FormItem>
                       )}
@@ -317,9 +334,9 @@ const Settings: React.FC = () => {
                       name="unit"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Unit</FormLabel>
+                          <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Unit</FormLabel>
                           <FormControl>
-                            <Input {...field} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                            <Input {...field} readOnly className="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-white/10 rounded-none" />
                           </FormControl>
                         </FormItem>
                       )}
@@ -330,9 +347,9 @@ const Settings: React.FC = () => {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} className="border-gray-200 dark:border-white/10 rounded-none" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -344,18 +361,21 @@ const Settings: React.FC = () => {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone</FormLabel>
+                          <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Phone</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} className="border-gray-200 dark:border-white/10 rounded-none" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     
-                    <Button type="submit" className="flex items-center gap-1">
+                    <Button 
+                      type="submit" 
+                      className="rounded-none uppercase tracking-wider text-xs font-medium bg-primary hover:bg-primary-600 flex items-center gap-1"
+                    >
                       <Save className="h-4 w-4" />
-                      <span>Save Changes</span>
+                      <span>SAVE CHANGES</span>
                     </Button>
                   </form>
                 </Form>
@@ -363,35 +383,42 @@ const Settings: React.FC = () => {
             </Card>
 
             <div className="flex flex-col gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Display Settings</CardTitle>
-                  <CardDescription>Configure appearance preferences</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
+              <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-4 flex justify-between items-baseline">
+                  <div>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      DISPLAY
+                    </div>
+                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                      Appearance Settings
+                    </div>
+                  </div>
+                </div>
+                <CardContent className="p-4 space-y-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">Theme</h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Toggle between light and dark mode</p>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Theme</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Toggle between light and dark mode</p>
                     </div>
                     <Button 
                       variant="outline" 
                       size="icon" 
                       onClick={toggleTheme}
                       aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+                      className="rounded-none border-gray-200 dark:border-white/10 h-8 w-8"
                     >
                       {theme === 'light' ? (
-                        <Moon className="h-5 w-5" />
+                        <Moon className="h-4 w-4" />
                       ) : (
-                        <Sun className="h-5 w-5" />
+                        <Sun className="h-4 w-4" />
                       )}
                     </Button>
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">Device ID</h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">DVC-{user?.id || "000000"}</p>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Device ID</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">DVC-{user?.id || "000000"}</p>
                     </div>
                     <Button 
                       variant="outline" 
@@ -402,24 +429,30 @@ const Settings: React.FC = () => {
                           description: "Device ID has been regenerated",
                         });
                       }}
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 rounded-none border-gray-200 dark:border-white/10 uppercase tracking-wider text-xs"
                     >
                       <RefreshCw className="h-3 w-3" />
-                      <span>Reset</span>
+                      <span>RESET</span>
                     </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Account Actions</CardTitle>
-                  <CardDescription>Manage your account settings</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+                <div className="p-4 flex justify-between items-baseline">
+                  <div>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      ACCOUNT
+                    </div>
+                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                      System Actions
+                    </div>
+                  </div>
+                </div>
+                <CardContent className="p-4 space-y-4">
                   <Button 
                     variant="outline" 
-                    className="w-full flex items-center justify-center gap-1"
+                    className="w-full flex items-center justify-center gap-1 rounded-none border-gray-200 dark:border-white/10 uppercase tracking-wider text-xs"
                     onClick={() => {
                       toast({
                         title: "Account Preferences Reset",
@@ -428,19 +461,19 @@ const Settings: React.FC = () => {
                     }}
                   >
                     <SettingsIcon className="h-4 w-4" />
-                    <span>Reset Preferences</span>
+                    <span>RESET PREFERENCES</span>
                   </Button>
                 </CardContent>
-                <CardFooter>
+                <div className="p-4 border-t border-gray-200 dark:border-white/10">
                   <Button 
                     variant="destructive" 
-                    className="w-full flex items-center justify-center gap-1"
+                    className="w-full flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 rounded-none uppercase tracking-wider text-xs"
                     onClick={logout}
                   >
                     <LogOut className="h-4 w-4" />
-                    <span>Sign Out</span>
+                    <span>SIGN OUT</span>
                   </Button>
-                </CardFooter>
+                </div>
               </Card>
             </div>
           </div>
