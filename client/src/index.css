@@ -479,23 +479,44 @@
   
   /* 8VC Dashboard Cards */
   .dashboard-card {
-    @apply bg-black border border-white/10 rounded-none overflow-hidden;
+    @apply bg-white border border-gray-200 rounded-none overflow-hidden;
   }
   
   .dashboard-card .card-header {
-    @apply border-b border-white/10 pb-3;
+    @apply border-b border-gray-200 pb-3;
   }
   
   .dashboard-card .card-title {
-    @apply uppercase text-xs tracking-wider font-medium text-gray-400;
+    @apply uppercase text-xs tracking-wider font-medium text-gray-500;
   }
   
   .dashboard-card .card-value {
-    @apply text-4xl font-light tracking-tight text-white;
+    @apply text-4xl font-light tracking-tight text-gray-900;
   }
   
   .dashboard-card .card-metric {
-    @apply text-xs tracking-wide uppercase text-gray-400;
+    @apply text-xs tracking-wide uppercase text-gray-500;
+  }
+  
+  /* Dark mode dashboard cards */
+  .dark .dashboard-card {
+    @apply bg-black border border-white/10;
+  }
+  
+  .dark .dashboard-card .card-header {
+    @apply border-b border-white/10;
+  }
+  
+  .dark .dashboard-card .card-title {
+    @apply text-gray-400;
+  }
+  
+  .dark .dashboard-card .card-value {
+    @apply text-white;
+  }
+  
+  .dark .dashboard-card .card-metric {
+    @apply text-gray-400;
   }
   
   /* 8VC Style Typography */
@@ -785,10 +806,10 @@
   
   /* Override specific rounded elements on the dashboard */
   .dashboard-card {
-    @apply rounded-none border-white/10 overflow-hidden bg-black;
+    @apply rounded-none border-gray-200 overflow-hidden bg-white;
   }
   
-  /* Dark mode dashboard card - redundant now since we're using black background by default */
+  /* Dark mode dashboard card */
   .dark .dashboard-card {
     @apply bg-black border-white/10;
   }

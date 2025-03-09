@@ -18,13 +18,13 @@ interface StatCardProps {
 export function StatCard({ title, value, icon, change, className }: StatCardProps) {
   return (
     <div className={cn(
-      "border border-white/10 bg-black overflow-hidden",
+      "border border-gray-200 dark:border-white/10 bg-white dark:bg-black overflow-hidden",
       className
     )}>
       <div className="p-6">
-        <div className="uppercase text-xs tracking-wider font-medium text-gray-400 mb-2">{title}</div>
+        <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">{title}</div>
         
-        <div className="text-4xl font-light text-white mb-4">{value}</div>
+        <div className="text-4xl font-light text-gray-900 dark:text-white mb-4">{value}</div>
         
         {change && (
           <div className="flex items-center text-xs">
@@ -48,7 +48,7 @@ export function StatCard({ title, value, icon, change, className }: StatCardProp
         )}
         
         {icon && (
-          <div className="absolute top-6 right-6 flex items-center justify-center w-10 h-10 bg-neutral-800/50 border border-white/10">
+          <div className="absolute top-6 right-6 flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-neutral-800/50 border border-gray-200 dark:border-white/10">
             {icon}
           </div>
         )}
