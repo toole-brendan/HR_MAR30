@@ -132,9 +132,9 @@ Dashboard elements maintain visual consistency across light and dark modes:
   * Dark mode: True black background with subtle borders
   * Light mode: White background with very light gray borders
 
-* **Payment Option Cards**:
+* **Other Cards**:
   * Icon + label combinations with clear visual hierarchy
-  * Feature tags ("RECOMMENDED", "PLATFORM TOKEN", "LEGACY OPTION")
+  * Feature tags 
   * Consistent text alignment and spacing
   * Equal height/width to maintain grid alignment
   * Descriptive text limited to 2-3 lines for consistent appearance
