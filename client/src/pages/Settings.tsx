@@ -873,14 +873,18 @@ const Settings: React.FC = () => {
             <CardContent className="p-4">
               <Form {...notificationForm}>
                 <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-6">
+                  <div className="uppercase text-xs tracking-wider font-medium mb-4 text-gray-500 dark:text-gray-400">
+                    NOTIFICATION CONTROLS
+                  </div>
+                
                   <FormField
                     control={notificationForm.control}
                     name="enableNotifications"
                     render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                      <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                         <div className="space-y-0.5">
-                          <FormLabel className="text-base">Enable Notifications</FormLabel>
-                          <FormDescription>
+                          <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Notifications</FormLabel>
+                          <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
                             Master toggle for all notification types
                           </FormDescription>
                         </div>
@@ -888,26 +892,29 @@ const Settings: React.FC = () => {
                           <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
+                            className="data-[state=checked]:bg-primary"
                           />
                         </FormControl>
                       </FormItem>
                     )}
                   />
                   
-                  <Separator />
+                  <div className="horizontal-divider"></div>
                   
                   <div className={notificationForm.watch("enableNotifications") ? "" : "opacity-50 pointer-events-none"}>
-                    <h3 className="text-base font-medium mb-4">Notification Types</h3>
+                    <div className="uppercase text-xs tracking-wider font-medium mb-4 text-gray-500 dark:text-gray-400">
+                      NOTIFICATION TYPES
+                    </div>
                     
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={notificationForm.control}
                         name="transferRequests"
                         render={({ field }) => (
-                          <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                          <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                             <div className="space-y-0.5">
-                              <FormLabel className="text-base">Transfer Requests</FormLabel>
-                              <FormDescription>
+                              <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Transfer Requests</FormLabel>
+                              <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
                                 Notifications for incoming and outgoing transfers
                               </FormDescription>
                             </div>
@@ -916,6 +923,7 @@ const Settings: React.FC = () => {
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
                                 disabled={!notificationForm.watch("enableNotifications")}
+                                className="data-[state=checked]:bg-primary"
                               />
                             </FormControl>
                           </FormItem>
@@ -926,10 +934,10 @@ const Settings: React.FC = () => {
                         control={notificationForm.control}
                         name="statusUpdates"
                         render={({ field }) => (
-                          <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                          <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                             <div className="space-y-0.5">
-                              <FormLabel className="text-base">Status Updates</FormLabel>
-                              <FormDescription>
+                              <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Status Updates</FormLabel>
+                              <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
                                 Notifications for inventory status changes
                               </FormDescription>
                             </div>
@@ -938,6 +946,7 @@ const Settings: React.FC = () => {
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
                                 disabled={!notificationForm.watch("enableNotifications")}
+                                className="data-[state=checked]:bg-primary"
                               />
                             </FormControl>
                           </FormItem>
@@ -948,11 +957,11 @@ const Settings: React.FC = () => {
                         control={notificationForm.control}
                         name="systemAlerts"
                         render={({ field }) => (
-                          <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                          <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                             <div className="space-y-0.5">
-                              <FormLabel className="text-base">System Alerts</FormLabel>
-                              <FormDescription>
-                                Notifications for sensitive item verifications and system events
+                              <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">System Alerts</FormLabel>
+                              <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
+                                Notifications for sensitive item verifications
                               </FormDescription>
                             </div>
                             <FormControl>
@@ -960,6 +969,7 @@ const Settings: React.FC = () => {
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
                                 disabled={!notificationForm.watch("enableNotifications")}
+                                className="data-[state=checked]:bg-primary"
                               />
                             </FormControl>
                           </FormItem>
@@ -970,10 +980,10 @@ const Settings: React.FC = () => {
                         control={notificationForm.control}
                         name="dailyDigest"
                         render={({ field }) => (
-                          <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                          <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                             <div className="space-y-0.5">
-                              <FormLabel className="text-base">Daily Digest</FormLabel>
-                              <FormDescription>
+                              <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Daily Digest</FormLabel>
+                              <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
                                 Daily summary of all activity and pending actions
                               </FormDescription>
                             </div>
@@ -982,6 +992,7 @@ const Settings: React.FC = () => {
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
                                 disabled={!notificationForm.watch("enableNotifications")}
+                                className="data-[state=checked]:bg-primary"
                               />
                             </FormControl>
                           </FormItem>
@@ -990,14 +1001,16 @@ const Settings: React.FC = () => {
                     </div>
                   </div>
                   
-                  <Button 
-                    type="submit" 
-                    className="flex items-center gap-1"
-                    disabled={!notificationForm.watch("enableNotifications")}
-                  >
-                    <Bell className="h-4 w-4" />
-                    <span>Save Notification Settings</span>
-                  </Button>
+                  <div className="pt-4 flex justify-end">
+                    <Button 
+                      type="submit" 
+                      className="rounded-none uppercase tracking-wider text-xs font-medium bg-primary hover:bg-primary-600 flex items-center gap-1"
+                      disabled={!notificationForm.watch("enableNotifications")}
+                    >
+                      <Bell className="h-4 w-4" />
+                      <span>SAVE NOTIFICATION SETTINGS</span>
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </CardContent>
@@ -1006,50 +1019,66 @@ const Settings: React.FC = () => {
         
         {/* Sync Settings */}
         <TabsContent value="sync">
-          <Card>
-            <CardHeader>
-              <CardTitle>Data Synchronization</CardTitle>
-              <CardDescription>Configure blockchain synchronization settings</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  BLOCKCHAIN
+                </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  Data Synchronization
+                </div>
+              </div>
+            </div>
+            <CardContent className="p-4">
               <Form {...syncForm}>
                 <form onSubmit={syncForm.handleSubmit(onSyncSubmit)} className="space-y-6">
-                  <div className="flex items-center justify-between rounded-lg border p-4 bg-muted/20">
+                  <div className="uppercase text-xs tracking-wider font-medium mb-4 text-gray-500 dark:text-gray-400">
+                    SYNC STATUS
+                  </div>
+                
+                  <div className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none bg-muted/5">
                     <div className="space-y-0.5">
-                      <h3 className="text-base font-medium">Blockchain Status</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Blockchain Status</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         Last synchronized: {formatLastSynced(syncForm.watch("lastSynced"))}
                       </p>
                     </div>
                     <Button 
-                      variant="secondary" 
+                      variant="outline" 
                       size="sm" 
-                      className="flex items-center gap-1"
+                      className="rounded-none border-gray-200 dark:border-white/10 text-xs uppercase tracking-wider flex items-center gap-1"
                       onClick={handleManualSync}
                       disabled={isSyncing}
                     >
                       {isSyncing ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Syncing...</span>
+                          <span>SYNCING...</span>
                         </>
                       ) : (
                         <>
                           <Cloud className="h-4 w-4" />
-                          <span>Sync Now</span>
+                          <span>SYNC NOW</span>
                         </>
                       )}
                     </Button>
+                  </div>
+                  
+                  <div className="horizontal-divider"></div>
+                  
+                  <div className="uppercase text-xs tracking-wider font-medium mb-4 text-gray-500 dark:text-gray-400">
+                    SYNC SETTINGS
                   </div>
                   
                   <FormField
                     control={syncForm.control}
                     name="autoSync"
                     render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                      <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                         <div className="space-y-0.5">
-                          <FormLabel className="text-base">Auto-Synchronization</FormLabel>
-                          <FormDescription>
+                          <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Auto-Synchronization</FormLabel>
+                          <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
                             Automatically sync data with blockchain ledger
                           </FormDescription>
                         </div>
@@ -1057,91 +1086,104 @@ const Settings: React.FC = () => {
                           <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
+                            className="data-[state=checked]:bg-primary"
                           />
                         </FormControl>
                       </FormItem>
                     )}
                   />
                   
-                  <FormField
-                    control={syncForm.control}
-                    name="syncInterval"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sync Interval (minutes)</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          disabled={!syncForm.watch("autoSync")}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select interval" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="5">5 minutes</SelectItem>
-                            <SelectItem value="15">15 minutes</SelectItem>
-                            <SelectItem value="30">30 minutes</SelectItem>
-                            <SelectItem value="60">1 hour</SelectItem>
-                            <SelectItem value="360">6 hours</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          How often to synchronize with the blockchain
-                        </FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={syncForm.control}
-                    name="syncOnWifiOnly"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Sync on Wi-Fi Only</FormLabel>
-                          <FormDescription>
-                            Only perform automatic sync when connected to Wi-Fi
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <FormField
+                      control={syncForm.control}
+                      name="syncInterval"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Sync Interval (minutes)</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
                             disabled={!syncForm.watch("autoSync")}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                          >
+                            <FormControl>
+                              <SelectTrigger className="rounded-none border-gray-200 dark:border-white/10">
+                                <SelectValue placeholder="Select interval" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="5">5 minutes</SelectItem>
+                              <SelectItem value="15">15 minutes</SelectItem>
+                              <SelectItem value="30">30 minutes</SelectItem>
+                              <SelectItem value="60">1 hour</SelectItem>
+                              <SelectItem value="360">6 hours</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
+                            How often to synchronize with the blockchain
+                          </FormDescription>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={syncForm.control}
+                      name="syncOnWifiOnly"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none h-full">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Sync on Wi-Fi Only</FormLabel>
+                            <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
+                              Only perform automatic sync when connected to Wi-Fi
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              disabled={!syncForm.watch("autoSync")}
+                              className="data-[state=checked]:bg-primary"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   
-                  <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="advanced">
-                      <AccordionTrigger className="text-sm font-medium">
+                  <div className="horizontal-divider"></div>
+                  
+                  <div className="uppercase text-xs tracking-wider font-medium mb-4 text-gray-500 dark:text-gray-400">
+                    ADVANCED OPTIONS
+                  </div>
+                
+                  <Accordion type="single" collapsible className="w-full border-none">
+                    <AccordionItem value="advanced" className="border-none">
+                      <AccordionTrigger className="text-sm font-medium text-gray-700 dark:text-gray-300 py-2 hover:no-underline">
                         Advanced Sync Options
                       </AccordionTrigger>
                       <AccordionContent>
-                        <div className="space-y-4 pt-2">
-                          <div className="flex items-center justify-between">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                          <div className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                             <div>
-                              <h4 className="font-medium">Offline Mode</h4>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">Allow operation without blockchain connectivity</p>
+                              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Offline Mode</h4>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Allow operation without blockchain connectivity</p>
                             </div>
-                            <Switch defaultChecked={true} />
+                            <Switch defaultChecked={true} className="data-[state=checked]:bg-primary" />
                           </div>
                           
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                             <div>
-                              <h4 className="font-medium">Background Sync</h4>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">Sync when app is not in use</p>
+                              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Background Sync</h4>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Sync when app is not in use</p>
                             </div>
-                            <Switch defaultChecked={false} />
+                            <Switch defaultChecked={false} className="data-[state=checked]:bg-primary" />
                           </div>
-                          
+                        </div>
+                        
+                        <div className="pt-4">
                           <Button
                             variant="outline"
                             size="sm"
+                            className="rounded-none border-gray-200 dark:border-white/10 text-xs uppercase tracking-wider"
                             onClick={() => {
                               toast({
                                 title: "Sync Cache Cleared",
@@ -1156,47 +1198,58 @@ const Settings: React.FC = () => {
                     </AccordionItem>
                   </Accordion>
                   
-                  <Button type="submit" className="flex items-center gap-1">
-                    <Database className="h-4 w-4" />
-                    <span>Save Sync Settings</span>
-                  </Button>
+                  <div className="pt-4 flex justify-end">
+                    <Button 
+                      type="submit" 
+                      className="rounded-none uppercase tracking-wider text-xs font-medium bg-primary hover:bg-primary-600 flex items-center gap-1"
+                    >
+                      <Database className="h-4 w-4" />
+                      <span>SAVE SYNC SETTINGS</span>
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </CardContent>
           </Card>
           
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Performance Metrics</CardTitle>
-              <CardDescription>System performance and synchronization statistics</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Card className="mt-6 overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  ANALYTICS
+                </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  Performance Metrics
+                </div>
+              </div>
+            </div>
+            <CardContent className="p-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 rounded-lg border">
+                <div className="p-4 border border-gray-200 dark:border-white/10 rounded-none">
                   <div className="flex items-center gap-2 mb-2">
-                    <Activity className="h-5 w-5 text-primary" />
-                    <h3 className="font-medium">System Performance</h3>
+                    <Activity className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">System Performance</h3>
                   </div>
-                  <p className="text-2xl font-semibold">98.7%</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Uptime last 30 days</p>
+                  <p className="text-2xl font-light text-gray-900 dark:text-white">98.7%</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Uptime last 30 days</p>
                 </div>
                 
-                <div className="p-4 rounded-lg border">
+                <div className="p-4 border border-gray-200 dark:border-white/10 rounded-none">
                   <div className="flex items-center gap-2 mb-2">
-                    <Zap className="h-5 w-5 text-primary" />
-                    <h3 className="font-medium">Sync Speed</h3>
+                    <Zap className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Sync Speed</h3>
                   </div>
-                  <p className="text-2xl font-semibold">1.2s</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Average sync time</p>
+                  <p className="text-2xl font-light text-gray-900 dark:text-white">1.2s</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Average sync time</p>
                 </div>
                 
-                <div className="p-4 rounded-lg border">
+                <div className="p-4 border border-gray-200 dark:border-white/10 rounded-none">
                   <div className="flex items-center gap-2 mb-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    <h3 className="font-medium">Last Full Sync</h3>
+                    <Clock className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Last Full Sync</h3>
                   </div>
-                  <p className="text-2xl font-semibold">36m</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">36 minutes ago</p>
+                  <p className="text-2xl font-light text-gray-900 dark:text-white">36m</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">36 minutes ago</p>
                 </div>
               </div>
             </CardContent>
