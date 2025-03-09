@@ -17,35 +17,42 @@ const MyInventory: React.FC = () => {
   ).slice(0, 3); // Only show 3 items on dashboard
   
   return (
-    <Card className="overflow-hidden border border-border mb-6 dashboard-card">
-      {/* 8VC Style Header */}
-      <div className="p-6 pb-4">
-        {/* Category Label */}
-        <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
-          INVENTORY ALERT
+    <Card className="overflow-hidden border border-gray-200 dark:border-white/10 mb-6 shadow-none bg-white dark:bg-black">
+      <div className="p-4 flex justify-between items-baseline">
+        <div>
+          <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+            INVENTORY ALERT
+          </div>
+          <div className="text-lg font-normal text-gray-900 dark:text-white">
+            Low stock items
+          </div>
         </div>
-        {/* Main Title */}
-        <div className="text-lg font-normal text-gray-900 dark:text-white">
-          Low stock items
-        </div>
+        
+        <Button 
+          variant="ghost" 
+          className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+          onClick={() => navigate("/property-book")}
+        >
+          VIEW ALL
+        </Button>
       </div>
       
       <CardContent className="p-0">
-        <div className="px-6 pb-4">
+        <div className="px-4 pb-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="Search inventory" 
-              className="w-full pl-9 bg-white dark:bg-white/10 rounded-none border-gray-200 dark:border-white/10"
+              className="w-full pl-8 bg-white dark:bg-white/5 rounded-sm border-gray-200 dark:border-white/10 h-9"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
         
-        <div className="divide-y divide-border px-6">
+        <div className="divide-y divide-gray-100 dark:divide-white/5 px-4 pb-2">
           {filteredInventory.length === 0 ? (
-            <div className="p-4 text-center text-muted-foreground">
+            <div className="p-2 text-center text-muted-foreground">
               No items found
             </div>
           ) : (
@@ -55,17 +62,6 @@ const MyInventory: React.FC = () => {
           )}
         </div>
       </CardContent>
-      
-      {/* 8VC Style Footer with right-aligned View All link */}
-      <div className="px-6 py-4 flex justify-end">
-        <Button 
-          variant="ghost" 
-          className="text-xs uppercase tracking-wider text-primary hover:bg-transparent hover:text-primary-600"
-          onClick={() => navigate("/property-book")}
-        >
-          VIEW ALL
-        </Button>
-      </div>
     </Card>
   );
 };

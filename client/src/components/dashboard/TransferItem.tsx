@@ -25,7 +25,7 @@ export function TransferItem({
   onDecline
 }: TransferItemProps) {
   return (
-    <div className="py-4 flex items-start">
+    <div className="py-3 flex items-start">
       <div className="flex-1">
         <div className="flex items-center mb-1">
           {direction === 'inbound' ? (
@@ -33,7 +33,7 @@ export function TransferItem({
           ) : (
             <ArrowLeft className="h-4 w-4 text-purple-500 mr-2" />
           )}
-          <div className="font-medium text-sm">{name}</div>
+          <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{name}</div>
         </div>
         <div className="text-xs text-gray-500 dark:text-gray-400 ml-6">
           {direction === 'inbound' 

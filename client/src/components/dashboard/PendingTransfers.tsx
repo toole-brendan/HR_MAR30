@@ -47,26 +47,33 @@ const PendingTransfers: React.FC = () => {
     .slice(0, 2); // Only show 2 items on dashboard
 
   return (
-    <Card className="overflow-hidden border border-border mb-6 dashboard-card">
-      {/* 8VC Style Header */}
-      <div className="p-6 pb-4">
-        {/* Category Label */}
-        <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
-          ACTIVE TRANSFERS
+    <Card className="overflow-hidden border border-gray-200 dark:border-white/10 mb-6 shadow-none bg-white dark:bg-black">
+      <div className="p-4 flex justify-between items-baseline">
+        <div>
+          <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+            ACTIVE TRANSFERS
+          </div>
+          <div className="text-lg font-normal text-gray-900 dark:text-white">
+            Recent transfer requests
+          </div>
         </div>
-        {/* Main Title */}
-        <div className="text-lg font-normal text-gray-900 dark:text-white">
-          Recent transfer requests
-        </div>
+        
+        <Button 
+          variant="ghost" 
+          className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+          onClick={() => navigate("/transfers")}
+        >
+          VIEW ALL
+        </Button>
       </div>
       
       <CardContent className="p-0">
         {pendingTransfers.length === 0 ? (
-          <div className="p-6 text-center text-muted-foreground">
+          <div className="px-4 pb-4 text-center text-muted-foreground">
             No pending transfer requests
           </div>
         ) : (
-          <div className="divide-y divide-border px-6">
+          <div className="divide-y divide-gray-100 dark:divide-white/5 px-4 pb-2">
             {pendingTransfers.map((transfer) => (
               <TransferItem 
                 key={transfer.id}
@@ -83,17 +90,6 @@ const PendingTransfers: React.FC = () => {
           </div>
         )}
       </CardContent>
-      
-      {/* 8VC Style Footer with right-aligned View All link */}
-      <div className="px-6 py-4 flex justify-end">
-        <Button 
-          variant="ghost" 
-          className="text-xs uppercase tracking-wider text-primary hover:bg-transparent hover:text-primary-600"
-          onClick={() => navigate("/transfers")}
-        >
-          VIEW ALL
-        </Button>
-      </div>
     </Card>
   );
 };

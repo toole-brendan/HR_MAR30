@@ -21,21 +21,21 @@ export function StatCard({ title, value, icon, change, className }: StatCardProp
       "border border-gray-200 dark:border-white/10 bg-white dark:bg-black overflow-hidden",
       className
     )}>
-      <div className="p-6 relative">
-        {/* 8VC Style Category Label */}
+      <div className="p-4 relative">
+        {/* Category Label */}
         <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">{title}</div>
         
         {/* Main Value */}
-        <div className="text-3xl font-light text-gray-900 dark:text-white mb-3">{value}</div>
+        <div className="text-3xl font-light text-gray-900 dark:text-white mb-2">{value}</div>
         
         {/* Change indicator */}
         {change && (
           <div className="flex items-center text-xs">
             <div className={cn(
               "flex items-center mr-2",
-              change.direction === 'up' ? 'text-green-500' : 
-              change.direction === 'down' ? 'text-red-500' : 
-              'text-gray-500'
+              change.direction === 'up' ? 'text-green-600 dark:text-green-500' : 
+              change.direction === 'down' ? 'text-red-600 dark:text-red-500' : 
+              'text-gray-600 dark:text-gray-400'
             )}>
               {change.direction === 'up' ? (
                 <ArrowUp className="h-3 w-3 mr-1" />
@@ -46,13 +46,15 @@ export function StatCard({ title, value, icon, change, className }: StatCardProp
               )}
               {change.value}%
             </div>
-            <div className="text-gray-500 dark:text-gray-400">{change.label}</div>
+            <div className="text-gray-500 dark:text-gray-400">
+              {change.label}
+            </div>
           </div>
         )}
         
-        {/* Icon in the right corner - 8VC style */}
+        {/* Icon in the right corner */}
         {icon && (
-          <div className="absolute top-6 right-6 text-gray-400 dark:text-gray-500">
+          <div className="absolute top-4 right-4 text-gray-400 dark:text-gray-500">
             {icon}
           </div>
         )}
