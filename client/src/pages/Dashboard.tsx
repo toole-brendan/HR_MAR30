@@ -200,35 +200,35 @@ export default function Dashboard() {
             
             <CardContent className="p-0">
               <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid grid-cols-3 w-full rounded-none bg-gray-50 dark:bg-white/5">
-                  <TabsTrigger value="overview" className="uppercase tracking-wider text-xs font-medium">Overview</TabsTrigger>
-                  <TabsTrigger value="readiness" className="uppercase tracking-wider text-xs font-medium">Readiness</TabsTrigger>
-                  <TabsTrigger value="verification" className="uppercase tracking-wider text-xs font-medium">Verification</TabsTrigger>
+                <TabsList className="grid grid-cols-3 w-full rounded-none bg-gray-50 dark:bg-white/5 h-8">
+                  <TabsTrigger value="overview" className="uppercase tracking-wider text-[10px] font-medium">OVERVIEW</TabsTrigger>
+                  <TabsTrigger value="readiness" className="uppercase tracking-wider text-[10px] font-medium">READINESS</TabsTrigger>
+                  <TabsTrigger value="verification" className="uppercase tracking-wider text-[10px] font-medium">VERIFICATION</TabsTrigger>
                 </TabsList>
                 
-                <div className="p-4">
+                <div className="p-3">
                   <TabsContent value="overview" className="m-0">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="p-4 border border-gray-100 dark:border-white/5">
-                        <h4 className="text-sm uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">Pending Actions</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                        <h4 className="text-[10px] uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">PENDING ACTIONS</h4>
                         <div className="text-2xl font-light tracking-tight">{pendingTransfersCount + pendingMaintenanceCount + sensitiveItemVerifications}</div>
-                        <p className="text-xs tracking-wide text-muted-foreground mt-1">Across all categories</p>
+                        <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Across all categories</p>
                       </div>
-                      <div className="p-4 border border-gray-100 dark:border-white/5">
-                        <h4 className="text-sm uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">Transfer Rate</h4>
+                      <div className="p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                        <h4 className="text-[10px] uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">TRANSFER RATE</h4>
                         <div className="text-2xl font-light tracking-tight">8.5/day</div>
-                        <p className="text-xs tracking-wide text-muted-foreground mt-1">Last 7 days average</p>
+                        <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Last 7 days average</p>
                       </div>
-                      <div className="p-4 border border-gray-100 dark:border-white/5">
-                        <h4 className="text-sm uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">QR Scans</h4>
+                      <div className="p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                        <h4 className="text-[10px] uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">QR SCANS</h4>
                         <div className="text-2xl font-light tracking-tight">32</div>
-                        <p className="text-xs tracking-wide text-muted-foreground mt-1">Last 24 hours</p>
+                        <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Last 24 hours</p>
                       </div>
                     </div>
                   </TabsContent>
                   
                   <TabsContent value="readiness" className="m-0">
-                    <div className="space-y-5">
+                    <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
@@ -308,13 +308,13 @@ export default function Dashboard() {
                 </div>
               </Tabs>
             </CardContent>
-            <div className="px-6 py-4 border-t border-gray-100 dark:border-white/5 flex justify-end">
+            <div className="px-4 py-2 border-t border-gray-100 dark:border-white/5 flex justify-end">
               <Button 
                 variant="ghost" 
-                className="text-xs uppercase tracking-wider text-primary hover:bg-transparent hover:text-primary-600"
+                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
                 onClick={() => navigate("/reports")}
               >
-                View All Reports
+                VIEW ALL REPORTS
                 <ArrowRight className="h-3 w-3 ml-1" />
               </Button>
             </div>
