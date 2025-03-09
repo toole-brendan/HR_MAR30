@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { inventory } from "@/lib/mockData";
 import InventoryItem from "../common/InventoryItem";
-import { Search, Package, ArrowRight } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Search } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
@@ -18,28 +18,32 @@ const MyInventory: React.FC = () => {
   
   return (
     <Card className="overflow-hidden border border-border mb-6 dashboard-card">
-      <CardHeader className="bg-muted/40 pb-2">
-        <div className="flex items-center gap-2">
-          <Package className="h-5 w-5 text-primary" />
-          <CardTitle className="text-xl">My Inventory</CardTitle>
+      {/* 8VC Style Header */}
+      <div className="p-6 pb-4">
+        {/* Category Label */}
+        <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+          INVENTORY ALERT
         </div>
-        <CardDescription>Recently assigned equipment</CardDescription>
-      </CardHeader>
+        {/* Main Title */}
+        <div className="text-lg font-normal text-gray-900 dark:text-white">
+          Low stock items
+        </div>
+      </div>
       
       <CardContent className="p-0">
-        <div className="p-4 bg-muted/10">
+        <div className="px-6 pb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Search my inventory" 
-              className="w-full pl-9 bg-white dark:bg-white/10"
+              placeholder="Search inventory" 
+              className="w-full pl-9 bg-white dark:bg-white/10 rounded-none border-gray-200 dark:border-white/10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
         
-        <div className="divide-y divide-border">
+        <div className="divide-y divide-border px-6">
           {filteredInventory.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground">
               No items found
@@ -52,16 +56,16 @@ const MyInventory: React.FC = () => {
         </div>
       </CardContent>
       
-      <CardFooter className="bg-muted/10 py-3">
+      {/* 8VC Style Footer with right-aligned View All link */}
+      <div className="px-6 py-4 flex justify-end">
         <Button 
           variant="ghost" 
-          className="w-full text-xs flex items-center justify-center" 
+          className="text-xs uppercase tracking-wider text-primary hover:bg-transparent hover:text-primary-600"
           onClick={() => navigate("/property-book")}
         >
-          View All Inventory
-          <ArrowRight className="h-3 w-3 ml-1" />
+          VIEW ALL
         </Button>
-      </CardFooter>
+      </div>
     </Card>
   );
 };

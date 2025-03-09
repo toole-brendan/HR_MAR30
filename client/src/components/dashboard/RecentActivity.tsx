@@ -1,7 +1,7 @@
 import { activities } from "@/lib/mockData";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Activity, ListChecks, ArrowRight } from "lucide-react";
+import { ListChecks } from "lucide-react";
 import { useLocation } from "wouter";
 import { ActivityLogItem } from "@/components/dashboard/ActivityLogItem";
 
@@ -11,13 +11,17 @@ const RecentActivity: React.FC = () => {
 
   return (
     <Card className="overflow-hidden border border-border dashboard-card">
-      <CardHeader className="bg-muted/40 pb-2">
-        <div className="flex items-center gap-2">
-          <Activity className="h-5 w-5 text-primary" />
-          <CardTitle className="text-xl">Recent Activity</CardTitle>
+      {/* 8VC Style Header */}
+      <div className="p-6 pb-4">
+        {/* Category Label */}
+        <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+          ACTIVITY LOG
         </div>
-        <CardDescription>System activity and notifications</CardDescription>
-      </CardHeader>
+        {/* Main Title */}
+        <div className="text-lg font-normal text-gray-900 dark:text-white">
+          Recent blockchain activity
+        </div>
+      </div>
       
       <CardContent className="p-0">
         {recentActivities.length === 0 ? (
@@ -26,7 +30,7 @@ const RecentActivity: React.FC = () => {
             <p>No activity recorded yet</p>
           </div>
         ) : (
-          <div className="divide-y divide-border p-4">
+          <div className="divide-y divide-border px-6">
             {recentActivities.map((activity) => (
               <ActivityLogItem 
                 key={activity.id}
@@ -40,16 +44,16 @@ const RecentActivity: React.FC = () => {
         )}
       </CardContent>
       
-      <CardFooter className="bg-muted/10 py-3">
+      {/* 8VC Style Footer with right-aligned View All link */}
+      <div className="px-6 py-4 flex justify-end">
         <Button 
           variant="ghost" 
-          className="w-full text-xs flex items-center justify-center"
+          className="text-xs uppercase tracking-wider text-primary hover:bg-transparent hover:text-primary-600"
           onClick={() => navigate("/audit-log")}
         >
-          View All Activity
-          <ArrowRight className="h-3 w-3 ml-1" />
+          VIEW ALL
         </Button>
-      </CardFooter>
+      </div>
     </Card>
   );
 };

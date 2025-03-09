@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { transfers } from "@/lib/mockData";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RepeatIcon, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 import { Transfer } from "@/types";
 import { TransferItem } from "@/components/dashboard/TransferItem";
@@ -49,13 +48,17 @@ const PendingTransfers: React.FC = () => {
 
   return (
     <Card className="overflow-hidden border border-border mb-6 dashboard-card">
-      <CardHeader className="bg-muted/40 pb-2">
-        <div className="flex items-center gap-2">
-          <RepeatIcon className="h-5 w-5 text-primary" />
-          <CardTitle className="text-xl">Pending Transfer Requests</CardTitle>
+      {/* 8VC Style Header */}
+      <div className="p-6 pb-4">
+        {/* Category Label */}
+        <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+          ACTIVE TRANSFERS
         </div>
-        <CardDescription>Equipment transfer requests requiring approval</CardDescription>
-      </CardHeader>
+        {/* Main Title */}
+        <div className="text-lg font-normal text-gray-900 dark:text-white">
+          Recent transfer requests
+        </div>
+      </div>
       
       <CardContent className="p-0">
         {pendingTransfers.length === 0 ? (
@@ -63,7 +66,7 @@ const PendingTransfers: React.FC = () => {
             No pending transfer requests
           </div>
         ) : (
-          <div className="divide-y divide-border p-4">
+          <div className="divide-y divide-border px-6">
             {pendingTransfers.map((transfer) => (
               <TransferItem 
                 key={transfer.id}
@@ -81,16 +84,16 @@ const PendingTransfers: React.FC = () => {
         )}
       </CardContent>
       
-      <CardFooter className="bg-muted/10 py-3">
+      {/* 8VC Style Footer with right-aligned View All link */}
+      <div className="px-6 py-4 flex justify-end">
         <Button 
           variant="ghost" 
-          className="w-full text-xs flex items-center justify-center" 
+          className="text-xs uppercase tracking-wider text-primary hover:bg-transparent hover:text-primary-600"
           onClick={() => navigate("/transfers")}
         >
-          View All Transfers
-          <ArrowRight className="h-3 w-3 ml-1" />
+          VIEW ALL
         </Button>
-      </CardFooter>
+      </div>
     </Card>
   );
 };
