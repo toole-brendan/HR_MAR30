@@ -26,7 +26,18 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PageWrapper } from "@/components/ui/page-wrapper";
 import QRCodeGenerator from "@/components/common/QRCodeGenerator";
 import TransferRequestModal from "@/components/modals/TransferRequestModal";
-import { Search, Filter, ArrowDownUp, Info, ClipboardCheck, Calendar, ShieldCheck } from "lucide-react";
+import { 
+  Search, 
+  Filter, 
+  ArrowDownUp, 
+  ArrowLeftRight,
+  Info, 
+  ClipboardCheck, 
+  Calendar, 
+  ShieldCheck, 
+  Send, 
+  CheckCircle 
+} from "lucide-react";
 
 const PropertyBook: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -235,7 +246,7 @@ const PropertyBook: React.FC = () => {
 
         {/* Assigned to Me Tab */}
         <TabsContent value="assigned">
-          <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+          <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
             <div className="p-4 flex justify-between items-baseline">
               <div>
                 <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
@@ -245,55 +256,82 @@ const PropertyBook: React.FC = () => {
                   Items Assigned to Me
                 </div>
               </div>
+              
+              <Button 
+                variant="ghost" 
+                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+                onClick={() => {}}
+              >
+                EXPORT LIST
+              </Button>
             </div>
+            
             <CardContent className="p-0">
-              <div className="divide-y divide-gray-200 dark:divide-white/10">
+              <div className="divide-y divide-gray-100 dark:divide-white/5 px-4">
                 {getFilteredItems(assignedToMe, "assigned").length === 0 ? (
                   <div className="py-6 text-center text-gray-500 dark:text-gray-400">No items found</div>
                 ) : (
                   getFilteredItems(assignedToMe, "assigned").map((item) => (
-                    <div key={item.id} className="py-4 px-4 flex flex-col sm:flex-row sm:items-center justify-between">
-                      <div className="flex items-center mb-3 sm:mb-0">
-                        <div className={`h-10 w-10 ${getCategoryColor(item.name)} rounded-full flex items-center justify-center text-white`}>
+                    <div key={item.id} className="py-3 hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className={`h-8 w-8 ${getCategoryColor(item.name)} rounded-full flex items-center justify-center text-white`}>
                           {getCategoryIcon(item.name)}
                         </div>
-                        <div className="ml-4">
-                          <h4 className="font-medium tracking-tight">{item.name}</h4>
-                          <div className="flex flex-col sm:flex-row sm:items-center text-xs tracking-wide uppercase text-gray-500 dark:text-gray-400">
+                        <div className="ml-3">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">{item.name}</h4>
+                            <Badge 
+                              variant="outline" 
+                              className={`text-[10px] uppercase tracking-wider rounded-none 
+                                ${item.status === "active" 
+                                  ? "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-500 border border-green-200 dark:border-green-700/50" 
+                                  : item.status === "pending" 
+                                  ? "bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500 border border-amber-200 dark:border-amber-700/50"
+                                  : "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-500 border border-blue-200 dark:border-blue-700/50"
+                              }`}
+                            >
+                              {item.status}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-col sm:flex-row sm:items-center text-xs text-gray-500 dark:text-gray-400">
                             <span className="font-mono">SN: {item.serialNumber}</span>
                             <span className="hidden sm:inline mx-2">•</span>
                             <span>Assigned: {item.assignedDate}</span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex flex-wrap gap-2 justify-end">
+                      <div className="flex items-center gap-1.5">
                         <Button 
-                          variant="outline" 
-                          size="sm"
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:text-gray-500 dark:hover:text-purple-400"
                           onClick={() => handleTransferRequest(item)}
-                          className="text-xs uppercase tracking-wider rounded-none border-gray-200 dark:border-white/10"
+                          title="Transfer Item"
                         >
-                          Transfer
+                          <Send className="h-4 w-4" />
                         </Button>
+                        
+                        <Button 
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:text-gray-500 dark:hover:text-purple-400"
+                          onClick={() => handleViewDetails(item)}
+                          title="View Details"
+                        >
+                          <Info className="h-4 w-4" />
+                        </Button>
+                        
                         <QRCodeGenerator 
                           itemName={item.name} 
                           serialNumber={item.serialNumber}
                         />
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewDetails(item)}
-                          className="text-xs uppercase tracking-wider rounded-none border-gray-200 dark:border-white/10"
-                        >
-                          Details
-                        </Button>
                       </div>
                     </div>
                   ))
                 )}
               </div>
             </CardContent>
-            <div className="px-4 py-2 border-t border-gray-200 dark:border-white/10">
+            <div className="px-4 py-2 border-t border-gray-100 dark:border-white/5">
               <div className="text-xs tracking-wide text-muted-foreground">
                 {getFilteredItems(assignedToMe, "assigned").length} items displayed • Last updated: Today, 08:30
               </div>
@@ -303,7 +341,7 @@ const PropertyBook: React.FC = () => {
 
         {/* Signed Out to Others Tab */}
         <TabsContent value="signedout">
-          <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+          <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
             <div className="p-4 flex justify-between items-baseline">
               <div>
                 <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
@@ -313,12 +351,20 @@ const PropertyBook: React.FC = () => {
                   Items Signed to Others
                 </div>
               </div>
+              
+              <Button 
+                variant="ghost" 
+                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+                onClick={() => {}}
+              >
+                GENERATE REPORT
+              </Button>
             </div>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-b border-gray-200 dark:border-white/10">
+                    <TableRow className="border-b border-gray-100 dark:border-white/5">
                       <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium">Item</TableHead>
                       <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium">Serial Number</TableHead>
                       <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium">Signed To</TableHead>
@@ -336,50 +382,62 @@ const PropertyBook: React.FC = () => {
                       </TableRow>
                     ) : (
                       getFilteredItems(signedOutItems, "signedout").map((item) => (
-                        <TableRow key={item.id} className="border-b border-gray-200 dark:border-white/10">
+                        <TableRow key={item.id} className="border-b border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5">
                           <TableCell className="font-medium">
                             <div className="flex items-center">
                               <div className={`h-8 w-8 ${getCategoryColor(item.name)} rounded-full flex items-center justify-center text-white mr-2`}>
                                 {getCategoryIcon(item.name)}
                               </div>
-                              {item.name}
+                              <span className="text-sm">{item.name}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="font-mono text-sm">{item.serialNumber}</TableCell>
-                          <TableCell>{item.assignedTo}</TableCell>
-                          <TableCell>{item.transferDate}</TableCell>
+                          <TableCell className="font-mono text-xs">{item.serialNumber}</TableCell>
+                          <TableCell className="text-sm">{item.assignedTo}</TableCell>
+                          <TableCell className="text-sm">{item.transferDate}</TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30 uppercase text-[10px] tracking-wider font-medium rounded-none">
+                            <Badge variant="outline" className="bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-500 border border-green-200 dark:border-green-700/50 uppercase text-[10px] tracking-wider font-medium rounded-none">
                               Active
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-1.5">
                               <Button 
-                                variant="outline" 
-                                size="sm"
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:text-gray-500 dark:hover:text-purple-400"
                                 onClick={() => {
                                   toast({
                                     title: "Verification Requested",
                                     description: `Request sent to ${item.assignedTo}`
                                   });
                                 }}
-                                className="text-xs uppercase tracking-wider rounded-none border-gray-200 dark:border-white/10"
+                                title="Verify Item"
                               >
-                                Verify
+                                <CheckCircle className="h-4 w-4" />
                               </Button>
+                              
                               <Button 
-                                variant="outline" 
-                                size="sm"
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:text-gray-500 dark:hover:text-purple-400"
                                 onClick={() => {
                                   toast({
                                     title: "Item Recalled",
                                     description: `Recall notice sent to ${item.assignedTo}`
                                   });
                                 }}
-                                className="text-xs uppercase tracking-wider rounded-none border-gray-200 dark:border-white/10"
+                                title="Recall Item"
                               >
-                                Recall
+                                <ArrowLeftRight className="h-4 w-4" />
+                              </Button>
+                              
+                              <Button 
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:text-gray-500 dark:hover:text-purple-400"
+                                title="View Details"
+                              >
+                                <Info className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>
@@ -390,7 +448,7 @@ const PropertyBook: React.FC = () => {
                 </Table>
               </div>
             </CardContent>
-            <div className="px-4 py-2 border-t border-gray-200 dark:border-white/10">
+            <div className="px-4 py-2 border-t border-gray-100 dark:border-white/5">
               <div className="text-xs tracking-wide text-muted-foreground">
                 {getFilteredItems(signedOutItems, "signedout").length} items displayed • Last updated: Today, 08:30
               </div>
