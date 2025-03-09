@@ -97,7 +97,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none">
           <DialogHeader className="border-b border-gray-200 dark:border-white/10 pb-4">
-            <div className="text-category-tag mb-1 text-muted-foreground">
+            <div className="text-xs uppercase tracking-wider font-medium mb-1 text-muted-foreground">
               QR CODE GENERATOR
             </div>
             <DialogTitle className="font-normal text-xl tracking-tight">Generate Equipment QR Code</DialogTitle>

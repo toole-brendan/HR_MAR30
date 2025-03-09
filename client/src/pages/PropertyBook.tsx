@@ -185,23 +185,20 @@ const PropertyBook: React.FC = () => {
   return (
     <PageWrapper withPadding={true}>
       {/* Header section with 8VC style formatting */}
-      <div className="mb-6 sm:mb-7 md:mb-8">
+      <div className="pt-16 pb-10">
         {/* Category label - Small all-caps category label */}
-        <div className="text-category-tag mb-1 text-muted-foreground">
+        <div className="text-xs uppercase tracking-wider font-medium mb-1 text-muted-foreground">
           EQUIPMENT
         </div>
         
         {/* Main title - following 8VC typography */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
           <div>
             <h1 className="text-3xl font-light tracking-tight mb-1">Property Book</h1>
-            <p className="text-subtitle text-muted-foreground">View your assigned equipment and items signed down to others</p>
+            <p className="text-sm text-muted-foreground">View your assigned equipment and items signed down to others</p>
           </div>
           {actions}
         </div>
-        
-        {/* Subtle horizontal divider */}
-        <div className="horizontal-divider mt-6"></div>
       </div>
       
       <Tabs defaultValue="assigned" value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -216,7 +213,7 @@ const PropertyBook: React.FC = () => {
 
         {/* Common Filters */}
         <div className="mb-6">
-          <div className="text-section-header mb-4 text-muted-foreground">
+          <div className="text-xs uppercase tracking-wider font-medium mb-4 text-muted-foreground">
             SEARCH & FILTERS
           </div>
           <div className="flex flex-col md:flex-row gap-4">
@@ -474,7 +471,7 @@ const PropertyBook: React.FC = () => {
         <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
           <DialogContent className="sm:max-w-md bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none">
             <DialogHeader className="border-b border-gray-200 dark:border-white/10 pb-4">
-              <div className="text-category-tag mb-1 text-muted-foreground">
+              <div className="text-xs uppercase tracking-wider font-medium mb-1 text-muted-foreground">
                 EQUIPMENT DETAILS
               </div>
               <DialogTitle className="font-normal text-xl tracking-tight">{selectedItem.name}</DialogTitle>
