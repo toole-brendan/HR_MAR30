@@ -112,7 +112,9 @@ const QRManagement = () => {
           ? { 
               ...item, 
               lastPrinted: new Date().toISOString().split('T')[0],
-              qrCodeStatus: item.qrCodeStatus === "damaged" || item.qrCodeStatus === "missing" ? "replaced" : "active"
+              qrCodeStatus: (item.qrCodeStatus === "damaged" || item.qrCodeStatus === "missing") ? 
+                "replaced" as const : 
+                "active" as const
             } 
           : item
       );
@@ -172,7 +174,7 @@ const QRManagement = () => {
       item.qrCodeStatus === "damaged" 
         ? { 
             ...item, 
-            qrCodeStatus: "replaced",
+            qrCodeStatus: "replaced" as const,
             lastPrinted: new Date().toISOString().split('T')[0]
           } 
         : item
@@ -235,50 +237,52 @@ const QRManagement = () => {
       
       <Tabs defaultValue="all">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <TabsList className="h-12 rounded-none bg-gray-50 dark:bg-white/5 p-1 w-full sm:w-auto">
-              <TabsTrigger 
-                value="all" 
-                className="uppercase tracking-wider text-xs font-medium h-10 px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:shadow-sm"
-              >
-                ALL QR CODES
-              </TabsTrigger>
-              <TabsTrigger 
-                value="damaged" 
-                className="uppercase tracking-wider text-xs font-medium h-10 px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:shadow-sm"
-              >
-                DAMAGED
-              </TabsTrigger>
-              <TabsTrigger 
-                value="reports" 
-                className="uppercase tracking-wider text-xs font-medium h-10 px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:shadow-sm"
-              >
-                REPORTS
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto pb-1">
+              <TabsList className="h-12 rounded-none bg-gray-50 dark:bg-white/5 p-1 w-full min-w-fit">
+                <TabsTrigger 
+                  value="all" 
+                  className="uppercase tracking-wider text-xs font-medium h-10 px-4 sm:px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:shadow-sm"
+                >
+                  ALL QR CODES
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="damaged" 
+                  className="uppercase tracking-wider text-xs font-medium h-10 px-4 sm:px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:shadow-sm"
+                >
+                  DAMAGED
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="reports" 
+                  className="uppercase tracking-wider text-xs font-medium h-10 px-4 sm:px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:shadow-sm"
+                >
+                  REPORTS
+                </TabsTrigger>
+              </TabsList>
+            </div>
             
             <Button 
               variant="outline" 
               onClick={handleBatchReplaceDamaged}
-              className="flex items-center uppercase tracking-wider text-xs h-10 border-gray-200 dark:border-white/10"
+              className="flex-shrink-0 flex items-center uppercase tracking-wider text-xs h-10 border-gray-200 dark:border-white/10 whitespace-nowrap"
             >
               <RefreshCw className="mr-2 h-3.5 w-3.5" />
               Replace Damaged
             </Button>
           </div>
           
-          <div className="border border-gray-200 dark:border-white/10 bg-white dark:bg-black p-4 mb-6">
+          <div className="border border-gray-200 dark:border-white/10 bg-white dark:bg-black p-4 mb-6 overflow-hidden">
             <div className="uppercase text-xs tracking-wider font-medium mb-3 text-gray-500 dark:text-gray-400">
               FILTER OPTIONS
             </div>
             
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <div className="relative flex-1 min-w-0">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by name or serial number"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 bg-white dark:bg-black border-gray-200 dark:border-white/10"
+                  className="pl-8 bg-white dark:bg-black border-gray-200 dark:border-white/10 w-full"
                 />
                 {searchTerm && (
                   <Button 
@@ -291,12 +295,12 @@ const QRManagement = () => {
                 )}
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[180px] bg-white dark:bg-black border-gray-200 dark:border-white/10">
-                    <div className="flex items-center">
-                      <Filter className="mr-2 h-4 w-4" />
-                      <span>Status: {statusFilter === "all" ? "All" : statusFilter}</span>
+                  <SelectTrigger className="w-[140px] sm:w-[180px] bg-white dark:bg-black border-gray-200 dark:border-white/10">
+                    <div className="flex items-center truncate">
+                      <Filter className="mr-2 flex-shrink-0 h-4 w-4" />
+                      <span className="truncate">Status: {statusFilter === "all" ? "All" : statusFilter}</span>
                     </div>
                   </SelectTrigger>
                   <SelectContent>
@@ -312,7 +316,7 @@ const QRManagement = () => {
                   <Button 
                     variant="outline" 
                     onClick={clearFilters}
-                    className="uppercase tracking-wider text-xs"
+                    className="uppercase tracking-wider text-xs border-gray-200 dark:border-white/10"
                     size="sm"
                   >
                     Clear Filters
