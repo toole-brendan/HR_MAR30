@@ -298,48 +298,7 @@ const Transfers: React.FC = () => {
     }
   }, []);
 
-  // Page actions
-  const actions = (
-    <div className="flex items-center gap-2">
-      <Button 
-        size="sm" 
-        variant="outline" 
-        onClick={() => setShowScanner(true)}
-        className="flex items-center gap-1 uppercase tracking-wider text-xs"
-      >
-        <ScanLine className="h-4 w-4" />
-        <span className="hidden sm:inline">Scan QR</span>
-      </Button>
-      
-      <Button 
-        size="sm" 
-        variant="default" 
-        onClick={() => {
-          setShowNewTransfer(true);
-          setActiveView('outgoing');
-        }}
-        className="flex items-center gap-1 bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs"
-      >
-        <Plus className="h-4 w-4" />
-        <span className="hidden sm:inline">Initiate Transfer</span>
-      </Button>
-      
-      <Button 
-        variant="ghost" 
-        size="sm"
-        className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1.5"
-        onClick={() => {
-          toast({
-            title: "Export Generated",
-            description: "Transfer report has been generated"
-          });
-        }}
-      >
-        <FileText className="h-4 w-4" />
-        EXPORT REPORT
-      </Button>
-    </div>
-  );
+  // No longer needed since we've integrated actions directly in the header
 
   // Table header component
   const TableHeader = () => (
@@ -620,24 +579,59 @@ const Transfers: React.FC = () => {
 
   return (
     <PageWrapper withPadding={true}>
-      {/* Header section with 8VC style formatting */}
-      <div className="mb-6 sm:mb-7 md:mb-8">
+      {/* Header section matching Inventory Management styling */}
+      <div className="pt-4 pb-10">
         {/* Category label - Small all-caps category label */}
-        <div className="text-category-tag mb-1 text-muted-foreground">
-          LOGISTICS
+        <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+          TRANSFERS
         </div>
         
-        {/* Main title - following 8VC typography */}
-        <div className="flex items-center justify-between">
+        {/* Main title - following Inventory Management typography */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-light tracking-tight mb-1">Transfer Management</h1>
-            <p className="text-subtitle text-muted-foreground">{getPageDescription()}</p>
+            <h1 className="text-2xl font-medium mb-1">Transfer Management</h1>
+            <p className="text-sm text-muted-foreground">{getPageDescription()}</p>
           </div>
-          {actions}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => setShowScanner(true)}
+              className="h-9 px-3 flex items-center gap-1.5 bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-md"
+            >
+              <ScanLine className="h-4 w-4" />
+              <span className="text-xs">SCAN QR</span>
+            </Button>
+            
+            <Button 
+              size="sm" 
+              variant="default" 
+              onClick={() => {
+                setShowNewTransfer(true);
+                setActiveView('outgoing');
+              }}
+              className="h-9 px-3 flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 rounded-md"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="text-xs">INITIATE TRANSFER</span>
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="h-9 px-3 text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1.5"
+              onClick={() => {
+                toast({
+                  title: "Export Generated",
+                  description: "Transfer report has been exported"
+                });
+              }}
+            >
+              <FileText className="h-4 w-4" />
+              <span className="text-xs">EXPORT REPORT</span>
+            </Button>
+          </div>
         </div>
-        
-        {/* Subtle horizontal divider */}
-        <Separator className="mt-6" />
       </div>
       
       {/* View Selection Tabs with 8VC design */}
