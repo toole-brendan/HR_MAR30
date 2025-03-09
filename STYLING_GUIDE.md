@@ -17,11 +17,12 @@ The design approach embraces the 8VC aesthetic with these key principles:
 
 Based on the provided examples, the HandReceipt design adopts a sophisticated enterprise SaaS aesthetic with these characteristics:
 
-* **Light Theme**: Clean, bright interfaces with subtle gray backgrounds for content separation
-* **Dark Theme**: Rich, deeply contrasted interfaces with true black backgrounds and subtle gradients
+* **Light Theme**: Clean, bright interfaces with pure white backgrounds (#FFFFFF) for main content areas
+* **Dark Theme**: Rich, deeply contrasted interfaces with true black backgrounds (#000000) 
+* **Sharp Corners**: All UI elements feature sharp corners (no rounded corners) for a more professional, enterprise appearance
 * **Minimalism**: Emphasis on content over decoration, with strategic use of color for functional elements
 * **Data-Forward Design**: Prominence given to data visualization, metrics, and tabular information
-* **Enterprise Formality**: Professional appearance with careful component spacing and alignment
+* **Enterprise Formality**: Professional appearance with precise component spacing and strict alignment
 * **Blockchain Integration**: Subtle visual cues for blockchain-related functionality without overwhelming technical details
 
 ## Color Palette
@@ -89,6 +90,9 @@ Typography choices establish a clear information hierarchy:
 
 * **Status Indicators**:
   * Badge text: All caps, extra small with wide tracking
+  * Badge appearance: Sharp corners (no rounding) for a professional, enterprise aesthetic
+  * Color-coding: Green for success/active, amber for pending/warning, blue for information
+  * Consistent border treatment and background opacity for all status indicators
   * Alert text: Slightly larger than body text with appropriate color contrast
   * Toast notifications: Concise, medium weight for high readability
 
@@ -97,11 +101,12 @@ Typography choices establish a clear information hierarchy:
 Based on the examples, content areas employ these characteristics:
 
 * **Card Styling**:
-  * Light mode: White cards with very subtle gray borders
-  * Dark mode: Slightly elevated black (#111111) containers with subtle white/10 borders
-  * Consistent internal padding (p-6) with title sections having slightly less bottom padding
-  * No rounded corners for a more enterprise look (or extremely subtle rounding)
-  * Thin horizontal dividers between content sections
+  * Light mode: Pure white (#FFFFFF) cards with very subtle gray borders
+  * Dark mode: True black (#000000) containers with subtle white/10 borders
+  * Tighter internal padding (p-4) with consistent application across all containers
+  * No rounded corners for a modern, professional, enterprise look
+  * Shadow-free design for flat, clean appearance in both light and dark modes
+  * Thin horizontal dividers between content sections with minimal opacity
 
 * **Card Typography**:
   * Clear visual hierarchy with larger titles and smaller supporting text
