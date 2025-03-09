@@ -184,8 +184,8 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="mb-6">
-        <h3 className="text-lg font-medium mb-4 flex items-center">
+      <div className="mb-8">
+        <h3 className="text-lg font-medium mb-5 flex items-center tracking-tight">
           <Activity className="h-5 w-5 mr-2 text-primary" />
           Quick Actions
         </h3>
@@ -215,28 +215,28 @@ export default function Dashboard() {
             <CardContent className="p-0">
               <Tabs defaultValue="overview" className="w-full">
                 <TabsList className="grid grid-cols-3 w-full rounded-none bg-muted/70">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="readiness">Readiness</TabsTrigger>
-                  <TabsTrigger value="verification">Verification</TabsTrigger>
+                  <TabsTrigger value="overview" className="uppercase tracking-wider text-xs font-medium">Overview</TabsTrigger>
+                  <TabsTrigger value="readiness" className="uppercase tracking-wider text-xs font-medium">Readiness</TabsTrigger>
+                  <TabsTrigger value="verification" className="uppercase tracking-wider text-xs font-medium">Verification</TabsTrigger>
                 </TabsList>
                 
                 <div className="p-4">
                   <TabsContent value="overview" className="m-0">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="bg-muted/20 p-4 rounded-sm">
-                        <h4 className="text-sm font-medium text-muted-foreground mb-2">Pending Actions</h4>
-                        <div className="text-2xl font-bold">{pendingTransfersCount + pendingMaintenanceCount + sensitiveItemVerifications}</div>
-                        <p className="text-xs text-muted-foreground">Across all categories</p>
+                        <h4 className="text-sm font-medium text-muted-foreground tracking-wide mb-2">Pending Actions</h4>
+                        <div className="text-2xl font-medium">{pendingTransfersCount + pendingMaintenanceCount + sensitiveItemVerifications}</div>
+                        <p className="text-xs tracking-wide text-muted-foreground">Across all categories</p>
                       </div>
                       <div className="bg-muted/20 p-4 rounded-sm">
-                        <h4 className="text-sm font-medium text-muted-foreground mb-2">Transfer Rate</h4>
-                        <div className="text-2xl font-bold">8.5/day</div>
-                        <p className="text-xs text-muted-foreground">Last 7 days average</p>
+                        <h4 className="text-sm font-medium text-muted-foreground tracking-wide mb-2">Transfer Rate</h4>
+                        <div className="text-2xl font-medium">8.5/day</div>
+                        <p className="text-xs tracking-wide text-muted-foreground">Last 7 days average</p>
                       </div>
                       <div className="bg-muted/20 p-4 rounded-sm">
-                        <h4 className="text-sm font-medium text-muted-foreground mb-2">QR Scans</h4>
-                        <div className="text-2xl font-bold">32</div>
-                        <p className="text-xs text-muted-foreground">Last 24 hours</p>
+                        <h4 className="text-sm font-medium text-muted-foreground tracking-wide mb-2">QR Scans</h4>
+                        <div className="text-2xl font-medium">32</div>
+                        <p className="text-xs tracking-wide text-muted-foreground">Last 24 hours</p>
                       </div>
                     </div>
                   </TabsContent>
@@ -246,7 +246,7 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                          <span className="text-sm">Operational</span>
+                          <span className="text-sm tracking-wide">Operational</span>
                         </div>
                         <div className="flex items-center">
                           <span className="text-sm font-medium mr-2">92%</span>
@@ -256,7 +256,7 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <Clock8 className="h-4 w-4 mr-2 text-amber-500" />
-                          <span className="text-sm">In Maintenance</span>
+                          <span className="text-sm tracking-wide">In Maintenance</span>
                         </div>
                         <div className="flex items-center">
                           <span className="text-sm font-medium mr-2">5%</span>
@@ -266,7 +266,7 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <AlertTriangle className="h-4 w-4 mr-2 text-red-500" />
-                          <span className="text-sm">Non-operational</span>
+                          <span className="text-sm tracking-wide">Non-operational</span>
                         </div>
                         <div className="flex items-center">
                           <span className="text-sm font-medium mr-2">3%</span>
@@ -281,39 +281,39 @@ export default function Dashboard() {
                       <div className="flex justify-between items-center text-sm border-b pb-2">
                         <div className="flex items-center">
                           <Calendar className="h-4 w-4 mr-2 text-primary" />
-                          <span>Today - Morning Check</span>
+                          <span className="tracking-wide">Today - Morning Check</span>
                         </div>
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 mr-2 text-amber-500" />
-                          <span>0600</span>
+                          <span className="font-medium">0600</span>
                         </div>
-                        <Badge variant="outline" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30">
+                        <Badge variant="outline" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30 uppercase text-[10px] tracking-wider font-medium">
                           Completed
                         </Badge>
                       </div>
                       <div className="flex justify-between items-center text-sm border-b pb-2">
                         <div className="flex items-center">
                           <Calendar className="h-4 w-4 mr-2 text-primary" />
-                          <span>Today - Evening Check</span>
+                          <span className="tracking-wide">Today - Evening Check</span>
                         </div>
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 mr-2 text-amber-500" />
-                          <span>1800</span>
+                          <span className="font-medium">1800</span>
                         </div>
-                        <Badge variant="outline" className="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30">
+                        <Badge variant="outline" className="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 uppercase text-[10px] tracking-wider font-medium">
                           Pending
                         </Badge>
                       </div>
                       <div className="flex justify-between items-center text-sm border-b pb-2">
                         <div className="flex items-center">
                           <Calendar className="h-4 w-4 mr-2 text-primary" />
-                          <span>Tomorrow - Morning Check</span>
+                          <span className="tracking-wide">Tomorrow - Morning Check</span>
                         </div>
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 mr-2 text-amber-500" />
-                          <span>0600</span>
+                          <span className="font-medium">0600</span>
                         </div>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-900/30">
+                        <Badge variant="outline" className="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-900/30 uppercase text-[10px] tracking-wider font-medium">
                           Scheduled
                         </Badge>
                       </div>
@@ -325,7 +325,7 @@ export default function Dashboard() {
             <CardFooter className="bg-muted/10 py-3">
               <Button 
                 variant="ghost" 
-                className="w-full text-xs flex items-center justify-center"
+                className="w-full text-xs uppercase tracking-wider flex items-center justify-center"
                 onClick={() => navigate("/reports")}
               >
                 View Detailed Reports
@@ -352,25 +352,25 @@ export default function Dashboard() {
             <CardContent className="pt-4">
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-sm">
-                  <span>Total QR Codes</span>
+                  <span className="tracking-wide">Total QR Codes</span>
                   <span className="font-medium">{inventory.length}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center text-sm">
-                  <span>Needs Reprinting</span>
-                  <Badge variant="outline" className="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30">2</Badge>
+                  <span className="tracking-wide">Needs Reprinting</span>
+                  <Badge variant="outline" className="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 uppercase text-[10px] tracking-wider font-medium">2</Badge>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center text-sm">
-                  <span>Recently Generated</span>
-                  <Badge variant="outline" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30">5</Badge>
+                  <span className="tracking-wide">Recently Generated</span>
+                  <Badge variant="outline" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30 uppercase text-[10px] tracking-wider font-medium">5</Badge>
                 </div>
               </div>
             </CardContent>
             <CardFooter className="bg-muted/10 py-3">
               <Button 
                 variant="ghost" 
-                className="w-full text-xs flex items-center justify-center"
+                className="w-full text-xs uppercase tracking-wider flex items-center justify-center"
                 onClick={() => navigate('/qr-management')}
               >
                 Manage QR Codes
@@ -415,7 +415,7 @@ export default function Dashboard() {
             <CardFooter className="bg-muted/10 py-3">
               <Button 
                 variant="ghost" 
-                className="w-full text-xs flex items-center justify-center" 
+                className="w-full text-xs uppercase tracking-wider flex items-center justify-center" 
                 onClick={() => navigate('/audit-log')}
               >
                 View All Activity

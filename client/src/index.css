@@ -477,6 +477,40 @@
     @apply border-border shadow-military;
   }
   
+  /* 8VC Dashboard Cards */
+  .dashboard-card {
+    @apply bg-black border-0 rounded-none overflow-hidden;
+  }
+  
+  .dark .dashboard-card {
+    @apply bg-black border-0;
+  }
+  
+  .dashboard-card .card-header {
+    @apply border-b border-neutral-800 pb-3;
+  }
+  
+  .dashboard-card .card-title {
+    @apply uppercase text-xs tracking-wider font-medium;
+  }
+  
+  .dashboard-card .card-value {
+    @apply text-2xl font-normal tracking-tight;
+  }
+  
+  .dashboard-card .card-metric {
+    @apply text-xs tracking-wide uppercase;
+  }
+  
+  /* Performance indicators */
+  .metric-up {
+    @apply text-green-500 flex items-center;
+  }
+  
+  .metric-down {
+    @apply text-red-500 flex items-center;
+  }
+  
   /* Layout utilities */
   .content-narrow {
     max-width: var(--content-width-narrow);
