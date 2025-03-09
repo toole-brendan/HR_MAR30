@@ -273,7 +273,7 @@ export default function Dashboard() {
                           <Clock className="h-4 w-4 mr-2 text-amber-500" />
                           <span className="font-medium text-sm">0600</span>
                         </div>
-                        <Badge variant="outline" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30 uppercase text-[10px] tracking-wider font-medium">
+                        <Badge variant="outline" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30 uppercase text-[10px] tracking-wider font-medium rounded-none">
                           Completed
                         </Badge>
                       </div>
@@ -286,7 +286,7 @@ export default function Dashboard() {
                           <Clock className="h-4 w-4 mr-2 text-amber-500" />
                           <span className="font-medium text-sm">1800</span>
                         </div>
-                        <Badge variant="outline" className="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 uppercase text-[10px] tracking-wider font-medium">
+                        <Badge variant="outline" className="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 uppercase text-[10px] tracking-wider font-medium rounded-none">
                           Pending
                         </Badge>
                       </div>
@@ -299,7 +299,7 @@ export default function Dashboard() {
                           <Clock className="h-4 w-4 mr-2 text-amber-500" />
                           <span className="font-medium text-sm">0600</span>
                         </div>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-900/30 uppercase text-[10px] tracking-wider font-medium">
+                        <Badge variant="outline" className="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-900/30 uppercase text-[10px] tracking-wider font-medium rounded-none">
                           Scheduled
                         </Badge>
                       </div>
@@ -356,12 +356,12 @@ export default function Dashboard() {
                 <Separator className="bg-gray-100 dark:bg-white/5" />
                 <div className="flex justify-between items-center text-sm">
                   <span className="tracking-wide text-gray-700 dark:text-gray-300">Needs Reprinting</span>
-                  <Badge variant="outline" className="bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500 border-amber-200 dark:border-amber-700/50 uppercase text-[10px] tracking-wider">2</Badge>
+                  <Badge variant="outline" className="bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500 border-amber-200 dark:border-amber-700/50 uppercase text-[10px] tracking-wider rounded-none">2</Badge>
                 </div>
                 <Separator className="bg-gray-100 dark:bg-white/5" />
                 <div className="flex justify-between items-center text-sm">
                   <span className="tracking-wide text-gray-700 dark:text-gray-300">Recently Generated</span>
-                  <Badge variant="outline" className="bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-500 border-green-200 dark:border-green-700/50 uppercase text-[10px] tracking-wider">5</Badge>
+                  <Badge variant="outline" className="bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-500 border-green-200 dark:border-green-700/50 uppercase text-[10px] tracking-wider rounded-none">5</Badge>
                 </div>
               </div>
             </CardContent>

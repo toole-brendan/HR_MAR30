@@ -29,7 +29,7 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item }) => {
             <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">{item.name}</h4>
             <Badge 
               variant="outline" 
-              className={`text-[10px] uppercase tracking-wider ${
+              className={`text-[10px] uppercase tracking-wider rounded-none ${
                 item.status === "active" 
                   ? "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-500 border border-green-200 dark:border-green-700/50" 
                   : item.status === "pending" 

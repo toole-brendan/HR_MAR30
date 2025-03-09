@@ -62,11 +62,11 @@ export function TransferItem({
           </Button>
         </div>
       ) : status === 'pending' ? (
-        <Badge className="uppercase bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500 border border-amber-200 dark:border-amber-700/50 text-[10px] tracking-wider px-2">
+        <Badge className="uppercase bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500 border border-amber-200 dark:border-amber-700/50 text-[10px] tracking-wider px-2 rounded-none">
           Pending
         </Badge>
       ) : (
-        <Badge className="uppercase bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-500 border border-green-200 dark:border-green-700/50 text-[10px] tracking-wider px-2">
+        <Badge className="uppercase bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-500 border border-green-200 dark:border-green-700/50 text-[10px] tracking-wider px-2 rounded-none">
           Completed
         </Badge>
       )}
