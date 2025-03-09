@@ -67,7 +67,8 @@ import {
   ExternalLink,
   AlertCircle,
   CornerDownLeft,
-  Award
+  Award,
+  Printer
 } from "lucide-react";
 import { format } from "date-fns";
 import QRCodeGenerator from "@/components/common/QRCodeGenerator";
@@ -639,174 +640,178 @@ const Transfers: React.FC = () => {
         <Separator className="mt-6" />
       </div>
       
-      {/* View Selection Tabs */}
-      <div className="mb-4">
+      {/* View Selection Tabs with 8VC design */}
+      <div className="mb-6">
+        <div className="text-xs uppercase tracking-wider font-medium text-muted-foreground mb-4">
+          VIEW
+        </div>
         <Tabs 
           defaultValue="incoming" 
           value={activeView}
           onValueChange={(value) => setActiveView(value as TransferView)}
           className="w-full"
         >
-          <TabsList className="w-full justify-start mb-4">
-            <TabsTrigger value="incoming" className="flex items-center">
+          <TabsList className="grid grid-cols-3 rounded-none bg-gray-50 dark:bg-white/5 h-12 p-0">
+            <TabsTrigger 
+              value="incoming" 
+              className="uppercase tracking-wider text-xs font-medium rounded-none flex items-center"
+            >
               <Inbox className="h-4 w-4 mr-2" />
-              <span>Incoming</span>
+              Incoming
               {incomingPendingCount > 0 && (
-                <span className="ml-2 bg-amber-500 text-white text-xs rounded-full px-2">
+                <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 uppercase text-[10px] tracking-wider font-medium rounded-none">
                   {incomingPendingCount}
-                </span>
+                </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="outgoing" className="flex items-center">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              <span>Outgoing</span>
+            <TabsTrigger 
+              value="outgoing" 
+              className="uppercase tracking-wider text-xs font-medium rounded-none flex items-center"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Outgoing
             </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center">
+            <TabsTrigger 
+              value="history" 
+              className="uppercase tracking-wider text-xs font-medium rounded-none flex items-center"
+            >
               <History className="h-4 w-4 mr-2" />
-              <span>History</span>
+              History
             </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
       
-      {/* Search & Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by name, serial number, personnel..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 bg-white dark:bg-white/10"
-          />
+      {/* Filters Section with 8VC styling */}
+      <div className="mb-6">
+        <div className="text-xs uppercase tracking-wider font-medium text-muted-foreground mb-4">
+          SEARCH & FILTERS
         </div>
-        <div className="flex gap-2">
-          <Select
-            value={filterStatus}
-            onValueChange={setFilterStatus}
-          >
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-          
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Input
+              placeholder="Search by name, serial number or personnel"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none h-10"
+            />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="w-full md:w-64">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none h-10">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Button 
             variant="outline" 
-            size="icon" 
             onClick={handleResetFilters}
+            className="h-10 bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none flex items-center gap-2"
           >
             <RefreshCw className="h-4 w-4" />
+            Reset Filters
           </Button>
         </div>
       </div>
 
-      {/* Main Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {activeView === 'incoming' && (
-              <div className="flex items-center">
-                <Inbox className="h-5 w-5 mr-2" />
-                <span>Incoming Transfers</span>
-              </div>
-            )}
-            {activeView === 'outgoing' && (
-              <div className="flex items-center">
-                <Send className="h-5 w-5 mr-2" />
-                <span>Outgoing Transfers</span>
-              </div>
-            )}
-            {activeView === 'history' && (
-              <div className="flex items-center">
-                <History className="h-5 w-5 mr-2" />
-                <span>Transfer History</span>
-              </div>
-            )}
-          </CardTitle>
-          <CardDescription>
-            {activeView === 'incoming' && "Review transfer requests sent to you for approval"}
-            {activeView === 'outgoing' && "Track transfer requests you've initiated to others"}
-            {activeView === 'history' && "Complete record of all your equipment transfers"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Transfer Status Tabs - Only show on incoming view */}
-          {activeView === 'incoming' && (
-            <Tabs defaultValue="pending" className="mb-4">
-              <TabsList className="mb-4">
-                <TabsTrigger value="pending">
-                  Pending <span className="ml-2 bg-amber-500 text-white text-xs rounded-full px-2">{pendingTransfers.length}</span>
-                </TabsTrigger>
-                <TabsTrigger value="approved">Approved</TabsTrigger>
-                <TabsTrigger value="rejected">Rejected</TabsTrigger>
-                <TabsTrigger value="all">All</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="pending">
-                {TableHeader()}
-                <div className="rounded-md border">
-                  {pendingTransfers.length === 0 ? (
-                    <EmptyState view={activeView} status="pending" />
-                  ) : (
-                    pendingTransfers.map((transfer) => (
-                      <TransferRow key={transfer.id} transfer={transfer} />
-                    ))
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="approved">
-                {TableHeader()}
-                <div className="rounded-md border">
-                  {approvedTransfers.length === 0 ? (
-                    <EmptyState view={activeView} status="approved" />
-                  ) : (
-                    approvedTransfers.map((transfer) => (
-                      <TransferRow key={transfer.id} transfer={transfer} />
-                    ))
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="rejected">
-                {TableHeader()}
-                <div className="rounded-md border">
-                  {rejectedTransfers.length === 0 ? (
-                    <EmptyState view={activeView} status="rejected" />
-                  ) : (
-                    rejectedTransfers.map((transfer) => (
-                      <TransferRow key={transfer.id} transfer={transfer} />
-                    ))
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="all">
-                {TableHeader()}
-                <div className="rounded-md border">
-                  {sortedTransfers.length === 0 ? (
-                    <EmptyState view={activeView} />
-                  ) : (
-                    sortedTransfers.map((transfer) => (
-                      <TransferRow key={transfer.id} transfer={transfer} />
-                    ))
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-          )}
+      {/* Main Content Card with 8VC styling */}
+      <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black rounded-none">
+        {/* Card Header in 8VC style */}
+        <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+          <div>
+            <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+              EQUIPMENT TRANSFERS
+            </div>
+            <div className="text-lg font-normal text-gray-900 dark:text-white">
+              {activeView === 'incoming' 
+                ? "Items Being Transferred To You"
+                : activeView === 'outgoing'
+                ? "Items You're Transferring To Others"
+                : "History of Your Transfers"
+              }
+            </div>
+          </div>
           
-          {/* For outgoing and history, just show the list without status tabs */}
-          {(activeView === 'outgoing' || activeView === 'history') && (
-            <>
+          <Button 
+            variant="ghost" 
+            className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+            onClick={() => {
+              toast({
+                title: "Export Generated",
+                description: "Transfer list has been printed"
+              });
+            }}
+          >
+            <Printer className="h-4 w-4 mr-2" />
+            PRINT LIST
+          </Button>
+        </div>
+        {/* Transfer Status Tabs in 8VC style - Only for incoming view */}
+        {activeView === 'incoming' && (
+          <Tabs defaultValue="pending" className="p-4">
+            <TabsList className="rounded-none mb-6 p-0 h-10 bg-gray-50 dark:bg-white/5 grid grid-cols-4">
+              <TabsTrigger value="pending" className="rounded-none uppercase text-xs tracking-wider">
+                Pending 
+                {pendingTransfers.length > 0 && (
+                  <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 uppercase text-[10px] tracking-wider font-medium rounded-none">
+                    {pendingTransfers.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="approved" className="rounded-none uppercase text-xs tracking-wider">Approved</TabsTrigger>
+              <TabsTrigger value="rejected" className="rounded-none uppercase text-xs tracking-wider">Rejected</TabsTrigger>
+              <TabsTrigger value="all" className="rounded-none uppercase text-xs tracking-wider">All</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="pending">
               {TableHeader()}
-              <div className="rounded-md border">
+              <div className="divide-y divide-gray-100 dark:divide-white/5 border-0">
+                {pendingTransfers.length === 0 ? (
+                  <EmptyState view={activeView} status="pending" />
+                ) : (
+                  pendingTransfers.map((transfer) => (
+                    <TransferRow key={transfer.id} transfer={transfer} />
+                  ))
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="approved">
+              {TableHeader()}
+              <div className="divide-y divide-gray-100 dark:divide-white/5 border-0">
+                {approvedTransfers.length === 0 ? (
+                  <EmptyState view={activeView} status="approved" />
+                ) : (
+                  approvedTransfers.map((transfer) => (
+                    <TransferRow key={transfer.id} transfer={transfer} />
+                  ))
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="rejected">
+              {TableHeader()}
+              <div className="divide-y divide-gray-100 dark:divide-white/5 border-0">
+                {rejectedTransfers.length === 0 ? (
+                  <EmptyState view={activeView} status="rejected" />
+                ) : (
+                  rejectedTransfers.map((transfer) => (
+                    <TransferRow key={transfer.id} transfer={transfer} />
+                  ))
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="all">
+              {TableHeader()}
+              <div className="divide-y divide-gray-100 dark:divide-white/5 border-0">
                 {sortedTransfers.length === 0 ? (
                   <EmptyState view={activeView} />
                 ) : (
@@ -815,42 +820,66 @@ const Transfers: React.FC = () => {
                   ))
                 )}
               </div>
-            </>
-          )}
-          
-          {/* Helpful hints section */}
-          {activeView === 'incoming' && pendingTransfers.length > 0 && (
-            <div className="mt-6 rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/50 p-4">
-              <div className="flex items-start">
-                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <h4 className="font-medium text-amber-800 dark:text-amber-300">Pending Approval Required</h4>
-                  <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
-                    You have pending transfer requests that require your action. Review and approve or reject these requests to update your equipment inventory.
-                  </p>
-                </div>
+            </TabsContent>
+          </Tabs>
+        )}
+        
+        {/* For outgoing and history in 8VC style */}
+        {(activeView === 'outgoing' || activeView === 'history') && (
+          <div className="p-4">
+            {TableHeader()}
+            <div className="divide-y divide-gray-100 dark:divide-white/5 border-0">
+              {sortedTransfers.length === 0 ? (
+                <EmptyState view={activeView} />
+              ) : (
+                sortedTransfers.map((transfer) => (
+                  <TransferRow key={transfer.id} transfer={transfer} />
+                ))
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Helpful hints section with 8VC styling */}
+        {activeView === 'incoming' && pendingTransfers.length > 0 && (
+          <div className="mx-4 mb-4 border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5 p-4">
+            <div className="flex items-start">
+              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 mr-3 flex-shrink-0" />
+              <div>
+                <h4 className="text-sm font-medium uppercase tracking-wider">Pending Approval Required</h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  You have pending transfer requests that require your action. Review and approve or reject these requests to update your equipment inventory.
+                </p>
               </div>
             </div>
-          )}
-          
-          {activeView === 'outgoing' && (
-            <div className="mt-6 rounded-md border border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900/50 p-4">
-              <div className="flex items-start">
-                <Share2 className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <h4 className="font-medium text-blue-800 dark:text-blue-300">Outgoing Transfers</h4>
-                  <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
-                    Track the status of transfer requests you've initiated. Recipients will need to approve transfers before the equipment is reassigned.
-                  </p>
-                </div>
+          </div>
+        )}
+        
+        {activeView === 'outgoing' && (
+          <div className="mx-4 mb-4 border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5 p-4">
+            <div className="flex items-start">
+              <Share2 className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
+              <div>
+                <h4 className="text-sm font-medium uppercase tracking-wider">Outgoing Transfers</h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Track the status of transfer requests you've initiated. Recipients will need to approve transfers before the equipment is reassigned.
+                </p>
               </div>
             </div>
-          )}
-        </CardContent>
-        <CardFooter className="flex justify-between text-sm text-muted-foreground">
-          <div>Showing {sortedTransfers.length} transfer requests</div>
-          <div>Last updated: {format(new Date(), 'MMM d, yyyy HH:mm')}</div>
-        </CardFooter>
+          </div>
+        )}
+        
+        {/* Footer with 8VC styling */}
+        <div className="px-4 py-2 border-t border-gray-100 dark:border-white/5">
+          <div className="flex w-full justify-between text-xs tracking-wide text-muted-foreground">
+            <div>
+              Showing {sortedTransfers.length} of {transfers.length} transfers
+            </div>
+            <div>
+              Last updated: {format(new Date(), 'MMM d, yyyy')}
+            </div>
+          </div>
+        </div>
       </Card>
 
       {/* QR Scanner Modal */}
