@@ -459,9 +459,9 @@ const QRManagement = () => {
                             <h3 className="text-lg font-normal">{item.name}</h3>
                             <div className="text-sm font-mono text-muted-foreground">SN: {item.serialNumber}</div>
                           </div>
-                          <Badge className="uppercase text-[10px] tracking-wider font-medium rounded-none py-0.5 px-2.5"
+                          <Badge 
                             variant="outline"
-                            className="bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-900/30"
+                            className="uppercase text-[10px] tracking-wider font-medium rounded-none py-0.5 px-2.5 bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-900/30"
                           >
                             DAMAGED
                           </Badge>
@@ -616,44 +616,71 @@ const QRManagement = () => {
 
       {/* Report Damaged QR Code Dialog */}
       <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Report Damaged QR Code</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-[425px] rounded-none border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+          <DialogHeader className="pb-2">
+            <div className="uppercase text-xs tracking-wider font-medium mb-1 text-red-600 dark:text-red-400">
+              REPORT ISSUE
+            </div>
+            <DialogTitle className="text-lg font-normal">Damaged QR Code</DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-1">
               Report a damaged or unreadable QR code for replacement.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <Separator className="bg-gray-100 dark:bg-white/5" />
+          <div className="py-4">
             {selectedItem && (
               <>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label className="text-right text-sm font-medium" htmlFor="item-name">Item:</label>
-                  <div id="item-name" className="col-span-3 font-medium">{selectedItem.name}</div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label className="text-right text-sm font-medium" htmlFor="serial-number">Serial Number:</label>
-                  <div id="serial-number" className="col-span-3">{selectedItem.serialNumber}</div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label className="text-right text-sm font-medium" htmlFor="reason">Reason:</label>
-                  <Input
-                    id="reason"
-                    placeholder="Enter reason for damaged QR code"
-                    className="col-span-3"
-                    value={reportReason}
-                    onChange={(e) => setReportReason(e.target.value)}
-                  />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400">
+                      ITEM DETAILS
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Name:</span>
+                        <span className="ml-1 font-medium">{selectedItem.name}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Serial Number:</span>
+                        <span className="ml-1 font-medium font-mono">{selectedItem.serialNumber}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400">
+                      REASON FOR REPORT
+                    </div>
+                    <Input
+                      id="reason"
+                      placeholder="Enter reason for damaged QR code"
+                      className="w-full border-gray-200 dark:border-white/10 bg-white dark:bg-black"
+                      value={reportReason}
+                      onChange={(e) => setReportReason(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground italic">
+                      Please provide a brief description of the issue with this QR code.
+                    </p>
+                  </div>
                 </div>
               </>
             )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsReportDialogOpen(false)}>Cancel</Button>
+          <Separator className="bg-gray-100 dark:bg-white/5" />
+          <DialogFooter className="pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsReportDialogOpen(false)}
+              className="uppercase tracking-wider text-xs border-gray-200 dark:border-white/10"
+            >
+              Cancel
+            </Button>
             <Button
-              className="bg-[#4B5320] hover:bg-[#3a4019]"
+              className="bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs"
               onClick={handleReportDamaged}
               disabled={!reportReason}
             >
+              <AlertTriangle className="mr-2 h-3.5 w-3.5" />
               Report Damaged
             </Button>
           </DialogFooter>
@@ -662,45 +689,62 @@ const QRManagement = () => {
 
       {/* Print QR Code Dialog */}
       <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
-          <DialogHeader>
-            <DialogTitle>Print QR Code</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-[550px] rounded-none border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+          <DialogHeader className="pb-2">
+            <div className="uppercase text-xs tracking-wider font-medium mb-1 text-blue-600 dark:text-blue-400">
+              PRINT QR CODE
+            </div>
+            <DialogTitle className="text-lg font-normal">Generate Printable QR Code</DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-1">
               Preview and print the QR code for this equipment item.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 flex flex-col items-center">
+          <Separator className="bg-gray-100 dark:bg-white/5" />
+          <div className="py-4">
             {selectedItem && (
-              <>
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-bold">{selectedItem.name}</h3>
-                  <p className="text-sm text-muted-foreground">SN: {selectedItem.serialNumber}</p>
+              <div className="flex flex-col items-center">
+                <div className="space-y-2 mb-4 text-center">
+                  <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400">
+                    ITEM INFORMATION
+                  </div>
+                  <h3 className="text-lg font-normal">{selectedItem.name}</h3>
+                  <p className="text-sm font-mono text-muted-foreground">SN: {selectedItem.serialNumber}</p>
                 </div>
-                <div className="p-6 border rounded-lg bg-gray-50 mb-4">
+                
+                <div className="p-6 border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5 mb-4">
                   <QRCodeGenerator 
                     itemName={selectedItem.name} 
                     serialNumber={selectedItem.serialNumber} 
                   />
                 </div>
-                <div className="text-sm text-muted-foreground text-center mb-4">
+                
+                <div className="text-sm text-center space-y-2 mb-4 w-full border border-gray-100 dark:border-white/5 p-3">
+                  <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400">
+                    IMPORTANT NOTE
+                  </div>
                   {selectedItem.qrCodeStatus === "damaged" ? (
-                    <p>Printing this QR code will mark it as replaced</p>
+                    <p className="text-sm">This action will mark the QR code as <span className="font-medium text-blue-600 dark:text-blue-400">replaced</span> in the system.</p>
                   ) : (
-                    <p>Print this QR code and attach it to the equipment</p>
+                    <p className="text-sm">Print this QR code and attach it securely to the equipment for easy tracking.</p>
                   )}
                 </div>
-              </>
+              </div>
             )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPrintDialogOpen(false)}>
+          <Separator className="bg-gray-100 dark:bg-white/5" />
+          <DialogFooter className="pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsPrintDialogOpen(false)}
+              className="uppercase tracking-wider text-xs border-gray-200 dark:border-white/10"
+            >
               Cancel
             </Button>
             <Button 
-              className="bg-[#4B5320] hover:bg-[#3a4019]"
+              className="bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs"
               onClick={handlePrintQRCode}
             >
-              <Printer className="mr-2 h-4 w-4" />
+              <Printer className="mr-2 h-3.5 w-3.5" />
               {selectedItem?.qrCodeStatus === "damaged" ? "Print Replacement" : "Print QR Code"}
             </Button>
           </DialogFooter>
@@ -709,57 +753,83 @@ const QRManagement = () => {
 
       {/* Generate New QR Code Dialog */}
       <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
-          <DialogHeader>
-            <DialogTitle>Generate New QR Code</DialogTitle>
-            <DialogDescription>
-              Create a new QR code for equipment tracking.
+        <DialogContent className="sm:max-w-[550px] rounded-none border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+          <DialogHeader className="pb-2">
+            <div className="uppercase text-xs tracking-wider font-medium mb-1 text-green-600 dark:text-green-400">
+              CREATE NEW
+            </div>
+            <DialogTitle className="text-lg font-normal">Generate New QR Code</DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-1">
+              Create a new QR code for equipment inventory tracking.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm font-medium" htmlFor="new-item-name">Item Name:</label>
-              <Input
-                id="new-item-name"
-                placeholder="Enter item name"
-                className="col-span-3"
-                value={newItemInfo.name}
-                onChange={(e) => setNewItemInfo({...newItemInfo, name: e.target.value})}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm font-medium" htmlFor="new-serial-number">Serial Number:</label>
-              <Input
-                id="new-serial-number"
-                placeholder="Enter serial number"
-                className="col-span-3"
-                value={newItemInfo.serialNumber}
-                onChange={(e) => setNewItemInfo({...newItemInfo, serialNumber: e.target.value})}
-              />
-            </div>
-            
-            {newItemInfo.name && newItemInfo.serialNumber && (
-              <div className="flex justify-center my-4">
-                <div className="p-6 border rounded-lg bg-gray-50">
-                  <QRCodeGenerator 
-                    itemName={newItemInfo.name} 
-                    serialNumber={newItemInfo.serialNumber} 
-                  />
+          <Separator className="bg-gray-100 dark:bg-white/5" />
+          <div className="py-4">
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400">
+                  EQUIPMENT DETAILS
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-item-name" className="text-xs uppercase tracking-wider">Item Name</Label>
+                    <Input
+                      id="new-item-name"
+                      placeholder="Enter item name"
+                      className="w-full border-gray-200 dark:border-white/10 bg-white dark:bg-black"
+                      value={newItemInfo.name}
+                      onChange={(e) => setNewItemInfo({...newItemInfo, name: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-serial-number" className="text-xs uppercase tracking-wider">Serial Number</Label>
+                    <Input
+                      id="new-serial-number"
+                      placeholder="Enter serial number"
+                      className="w-full border-gray-200 dark:border-white/10 bg-white dark:bg-black font-mono"
+                      value={newItemInfo.serialNumber}
+                      onChange={(e) => setNewItemInfo({...newItemInfo, serialNumber: e.target.value})}
+                    />
+                  </div>
                 </div>
               </div>
-            )}
+              
+              {newItemInfo.name && newItemInfo.serialNumber && (
+                <div className="space-y-3">
+                  <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400">
+                    PREVIEW QR CODE
+                  </div>
+                  <div className="flex justify-center">
+                    <div className="p-6 border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5">
+                      <QRCodeGenerator 
+                        itemName={newItemInfo.name} 
+                        serialNumber={newItemInfo.serialNumber} 
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-center text-muted-foreground">
+                    This QR code will be automatically associated with this equipment item.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsGenerateDialogOpen(false)}>
+          <Separator className="bg-gray-100 dark:bg-white/5" />
+          <DialogFooter className="pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsGenerateDialogOpen(false)}
+              className="uppercase tracking-wider text-xs border-gray-200 dark:border-white/10"
+            >
               Cancel
             </Button>
-            <Button 
-              className="bg-[#4B5320] hover:bg-[#3a4019]"
+            <Button
+              className="bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs"
               onClick={handleGenerateNewQRCode}
               disabled={!newItemInfo.name || !newItemInfo.serialNumber}
             >
-              <QrCode className="mr-2 h-4 w-4" />
-              Generate & Print
+              <Plus className="mr-2 h-3.5 w-3.5" />
+              Generate QR Code
             </Button>
           </DialogFooter>
         </DialogContent>
