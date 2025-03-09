@@ -140,7 +140,7 @@ const Sidebar = ({
             onClick={handleLogoClick}
           >
             <div className="border border-gray-800/70 dark:border-gray-100/70 px-4 py-1.5">
-              <h1 className="text-lg font-light tracking-widest text-gray-800 dark:text-gray-100 m-0 font-serif">HandReceipt</h1>
+              <h1 className="text-lg font-light tracking-widest text-gray-800 dark:text-gray-100 m-0 font-['Georgia']">HandReceipt</h1>
             </div>
           </div>
         </div>
@@ -261,7 +261,7 @@ const Sidebar = ({
             onClick={handleLogoClick}
           >
             <div className="border border-gray-800/70 dark:border-gray-100/70 px-4 py-1.5">
-              <h1 className="text-lg font-light tracking-widest text-gray-800 dark:text-gray-100 m-0 font-serif">HandReceipt</h1>
+              <h1 className="text-lg font-light tracking-widest text-gray-800 dark:text-gray-100 m-0 font-['Georgia']">HandReceipt</h1>
             </div>
           </div>
         ) : (
