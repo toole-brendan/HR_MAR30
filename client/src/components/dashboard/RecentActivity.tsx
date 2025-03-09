@@ -10,7 +10,7 @@ const RecentActivity: React.FC = () => {
   const recentActivities = activities.slice(0, 4); // Only show 4 most recent activities
 
   return (
-    <Card className="overflow-hidden border border-border">
+    <Card className="overflow-hidden border border-border dashboard-card">
       <CardHeader className="bg-muted/40 pb-2">
         <div className="flex items-center gap-2">
           <Activity className="h-5 w-5 text-primary" />
