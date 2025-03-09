@@ -246,7 +246,7 @@ const Sidebar = ({
               title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
             >
               {theme === 'light' ? 
-                <Moon className="h-5 w-5 text-venture-purple dark:text-gray-200" /> : 
+                <Moon className="h-5 w-5 text-gray-900 dark:text-gray-200" /> : 
                 <Sun className="h-5 w-5 text-gray-200 dark:text-gray-200" />
               }
             </button>
