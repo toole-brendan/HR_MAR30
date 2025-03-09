@@ -434,15 +434,23 @@ const Reports = () => {
 
           {/* Inventory Reports */}
           <TabsContent value="inventory">
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Inventory Status</CardTitle>
-                <CardDescription>Current status of all inventory items</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black mb-6">
+              <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                <div>
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    INVENTORY OVERVIEW
+                  </div>
+                  <div className="text-lg font-normal text-gray-900 dark:text-white">
+                    Current Inventory Status
+                  </div>
+                </div>
+              </div>
+              <CardContent className="p-4">
+                <div className="flex flex-col md:flex-row gap-6 mb-6">
                   <div className="md:w-1/2">
-                    <h4 className="text-sm font-semibold mb-4">Status Distribution</h4>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                      STATUS DISTRIBUTION
+                    </div>
                     <div className="h-[300px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
@@ -467,7 +475,9 @@ const Reports = () => {
                     </div>
                   </div>
                   <div className="md:w-1/2">
-                    <h4 className="text-sm font-semibold mb-4">Category Distribution</h4>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                      CATEGORY DISTRIBUTION
+                    </div>
                     <div className="h-[300px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
@@ -491,8 +501,10 @@ const Reports = () => {
                 </div>
 
                 <div className="mb-6">
-                  <h4 className="text-sm font-semibold mb-4">Inventory Action Items</h4>
-                  <Alert>
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                    ACTION ITEMS
+                  </div>
+                  <Alert className="border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-500 rounded-none">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
                       {maintenanceItems.filter(item => item.status === 'scheduled').length} maintenance items scheduled this week
@@ -500,21 +512,23 @@ const Reports = () => {
                   </Alert>
                 </div>
 
-                <div className="space-y-4">
+                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
                   <div className="flex justify-between">
                     <Button
                       variant="outline"
+                      className="text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
                       onClick={() => handleExportReport('pdf')}
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      Export as PDF
+                      EXPORT AS PDF
                     </Button>
                     <Button
                       variant="outline"
+                      className="text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
                       onClick={() => handleExportReport('csv')}
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      Export as CSV
+                      EXPORT AS CSV
                     </Button>
                   </div>
                 </div>
@@ -524,109 +538,114 @@ const Reports = () => {
 
           {/* Transfers Reports */}
           <TabsContent value="transfers">
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Transfer Analytics</CardTitle>
-                <CardDescription>Analysis of transfer requests and status changes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] mb-6">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={transfersData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="approved" 
-                        stroke="#22c55e" 
-                        name="Approved" 
-                        activeDot={{ r: 8 }} 
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="pending" 
-                        stroke="#f59e0b" 
-                        name="Pending" 
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="rejected" 
-                        stroke="#ef4444" 
-                        name="Rejected" 
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+            <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black mb-6">
+              <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                <div>
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    TRANSFER METRICS
+                  </div>
+                  <div className="text-lg font-normal text-gray-900 dark:text-white">
+                    Transfer Analytics
+                  </div>
                 </div>
-
+              </div>
+              <CardContent className="p-4">
                 <div className="mb-6">
-                  <h4 className="text-sm font-semibold mb-4">Transfer Status Summary</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-green-500">
-                            {transfers.filter(t => t.status === "approved").length}
-                          </div>
-                          <div className="text-sm text-muted-foreground">Approved</div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-amber-500">
-                            {transfers.filter(t => t.status === "pending").length}
-                          </div>
-                          <div className="text-sm text-muted-foreground">Pending</div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-red-500">
-                            {transfers.filter(t => t.status === "rejected").length}
-                          </div>
-                          <div className="text-sm text-muted-foreground">Rejected</div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                    HISTORICAL TRENDS
+                  </div>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={transfersData}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="approved" 
+                          stroke="#22c55e" 
+                          name="Approved" 
+                          activeDot={{ r: 8 }} 
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="pending" 
+                          stroke="#f59e0b" 
+                          name="Pending" 
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="rejected" 
+                          stroke="#ef4444" 
+                          name="Rejected" 
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
 
                 <div className="mb-6">
-                  <h4 className="text-sm font-semibold mb-4">Average Transfer Time</h4>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold">2.4 days</div>
-                        <div className="text-sm text-muted-foreground">Avg. time to approval</div>
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                    TRANSFER STATUS SUMMARY
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                      <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">APPROVED</div>
+                      <div className="text-2xl font-light tracking-tight text-green-500">
+                        {transfers.filter(t => t.status === "approved").length}
                       </div>
-                    </CardContent>
-                  </Card>
+                      <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Total approved transfers</p>
+                    </div>
+                    <div className="p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                      <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">PENDING</div>
+                      <div className="text-2xl font-light tracking-tight text-amber-500">
+                        {transfers.filter(t => t.status === "pending").length}
+                      </div>
+                      <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Awaiting approval</p>
+                    </div>
+                    <div className="p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                      <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">REJECTED</div>
+                      <div className="text-2xl font-light tracking-tight text-red-500">
+                        {transfers.filter(t => t.status === "rejected").length}
+                      </div>
+                      <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Transfer requests denied</p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="mb-6">
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                    PROCESSING METRICS
+                  </div>
+                  <div className="p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                    <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">AVERAGE APPROVAL TIME</div>
+                    <div className="text-2xl font-light tracking-tight">2.4 days</div>
+                    <p className="text-xs tracking-wide text-muted-foreground mt-0.5">From request to approval</p>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
                   <div className="flex justify-between">
                     <Button
                       variant="outline"
+                      className="text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
                       onClick={() => handleExportReport('pdf')}
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      Export as PDF
+                      EXPORT AS PDF
                     </Button>
                     <Button
                       variant="outline"
+                      className="text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
                       onClick={() => handleExportReport('csv')}
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      Export as CSV
+                      EXPORT AS CSV
                     </Button>
                   </div>
                 </div>
@@ -636,15 +655,23 @@ const Reports = () => {
 
           {/* Sensitive Items Reports */}
           <TabsContent value="sensitive">
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Sensitive Items Verification</CardTitle>
-                <CardDescription>Current verification status of sensitive items</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black mb-6">
+              <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                <div>
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    SENSITIVE ITEMS
+                  </div>
+                  <div className="text-lg font-normal text-gray-900 dark:text-white">
+                    Verification Status Report
+                  </div>
+                </div>
+              </div>
+              <CardContent className="p-4">
+                <div className="flex flex-col md:flex-row gap-6 mb-6">
                   <div className="md:w-1/2">
-                    <h4 className="text-sm font-semibold mb-4">Verification Status</h4>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                      VERIFICATION STATUS
+                    </div>
                     <div className="h-[300px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
@@ -669,31 +696,35 @@ const Reports = () => {
                     </div>
                   </div>
                   <div className="md:w-1/2">
-                    <h4 className="text-sm font-semibold mb-4">Verification Schedule</h4>
-                    <div className="space-y-4">
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                      VERIFICATION SCHEDULE
+                    </div>
+                    <div className="space-y-4 border-l-4 border-primary/30 pl-4">
                       <div className="flex justify-between items-center">
-                        <span>Daily Verification</span>
-                        <Badge>5 items</Badge>
+                        <span className="text-sm">Daily Verification</span>
+                        <Badge className="bg-primary hover:bg-primary-600 rounded-sm">5 items</Badge>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span>Weekly Verification</span>
-                        <Badge>12 items</Badge>
+                        <span className="text-sm">Weekly Verification</span>
+                        <Badge className="bg-primary hover:bg-primary-600 rounded-sm">12 items</Badge>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span>Monthly Verification</span>
-                        <Badge>28 items</Badge>
+                        <span className="text-sm">Monthly Verification</span>
+                        <Badge className="bg-primary hover:bg-primary-600 rounded-sm">28 items</Badge>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span>Quarterly Verification</span>
-                        <Badge>15 items</Badge>
+                        <span className="text-sm">Quarterly Verification</span>
+                        <Badge className="bg-primary hover:bg-primary-600 rounded-sm">15 items</Badge>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="mb-6">
-                  <h4 className="text-sm font-semibold mb-4">Verification Alerts</h4>
-                  <Alert className="bg-red-500/10 text-red-700 border-red-700/20">
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                    VERIFICATION ALERTS
+                  </div>
+                  <Alert className="border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-500 rounded-none">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
                       3 sensitive items are overdue for verification
@@ -701,21 +732,23 @@ const Reports = () => {
                   </Alert>
                 </div>
 
-                <div className="space-y-4">
+                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
                   <div className="flex justify-between">
                     <Button
                       variant="outline"
+                      className="text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
                       onClick={() => handleExportReport('pdf')}
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      Export as PDF
+                      EXPORT AS PDF
                     </Button>
                     <Button
                       variant="outline"
+                      className="text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
                       onClick={() => handleExportReport('csv')}
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      Export as CSV
+                      EXPORT AS CSV
                     </Button>
                   </div>
                 </div>
@@ -725,17 +758,25 @@ const Reports = () => {
 
           {/* Custom Reports */}
           <TabsContent value="custom">
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Custom Report Generation</CardTitle>
-                <CardDescription>Create customized reports based on specific criteria</CardDescription>
-              </CardHeader>
-              <CardContent>
+            <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black mb-6">
+              <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                <div>
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    CUSTOM REPORT
+                  </div>
+                  <div className="text-lg font-normal text-gray-900 dark:text-white">
+                    Create Customized Reports
+                  </div>
+                </div>
+              </div>
+              <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Report Type</label>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">
+                      REPORT TYPE
+                    </div>
                     <Select defaultValue="inventory">
-                      <SelectTrigger>
+                      <SelectTrigger className="border-gray-200 dark:border-white/10 rounded-none">
                         <SelectValue placeholder="Select report type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -748,9 +789,11 @@ const Reports = () => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Date Range</label>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">
+                      DATE RANGE
+                    </div>
                     <Select defaultValue="30">
-                      <SelectTrigger>
+                      <SelectTrigger className="border-gray-200 dark:border-white/10 rounded-none">
                         <SelectValue placeholder="Select date range" />
                       </SelectTrigger>
                       <SelectContent>
@@ -763,9 +806,11 @@ const Reports = () => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Format</label>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">
+                      FORMAT
+                    </div>
                     <Select defaultValue="pdf">
-                      <SelectTrigger>
+                      <SelectTrigger className="border-gray-200 dark:border-white/10 rounded-none">
                         <SelectValue placeholder="Select format" />
                       </SelectTrigger>
                       <SelectContent>
@@ -779,10 +824,12 @@ const Reports = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Additional Filters</label>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">
+                      ADDITIONAL FILTERS
+                    </div>
                     <div className="flex gap-2">
                       <Select defaultValue="all">
-                        <SelectTrigger>
+                        <SelectTrigger className="border-gray-200 dark:border-white/10 rounded-none">
                           <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -793,7 +840,7 @@ const Reports = () => {
                         </SelectContent>
                       </Select>
                       <Select defaultValue="all">
-                        <SelectTrigger>
+                        <SelectTrigger className="border-gray-200 dark:border-white/10 rounded-none">
                           <SelectValue placeholder="Category" />
                         </SelectTrigger>
                         <SelectContent>
@@ -807,81 +854,92 @@ const Reports = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Search</label>
+                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">
+                      SEARCH
+                    </div>
                     <div className="relative">
                       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="Search by name, serial number, etc." className="pl-8" />
+                      <Input 
+                        placeholder="Search by name, serial number, etc." 
+                        className="pl-8 border-gray-200 dark:border-white/10 rounded-none" 
+                      />
                     </div>
                   </div>
                 </div>
 
                 <div className="flex justify-end">
                   <Button 
-                    className="bg-[#4B5320] hover:bg-[#3a4019]"
+                    className="text-xs uppercase tracking-wider bg-primary hover:bg-primary-600 rounded-none"
                     onClick={() => handleGenerateReport("Custom")}
                   >
                     <FileText className="h-4 w-4 mr-2" />
-                    Generate Report
+                    GENERATE REPORT
                   </Button>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Saved Reports</CardTitle>
-                <CardDescription>Your previously generated reports</CardDescription>
-              </CardHeader>
-              <CardContent>
+            <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+              <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+                <div>
+                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    SAVED REPORTS
+                  </div>
+                  <div className="text-lg font-normal text-gray-900 dark:text-white">
+                    Previously Generated Reports
+                  </div>
+                </div>
+              </div>
+              <CardContent className="p-4">
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                  <div className="flex justify-between items-center p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
                     <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-blue-500" />
+                      <FileText className="h-5 w-5 text-primary" />
                       <div>
                         <div className="font-medium">Monthly Inventory Status</div>
-                        <div className="text-sm text-muted-foreground">Generated 2 days ago</div>
+                        <div className="text-xs tracking-wide text-muted-foreground mt-0.5">Generated 2 days ago</div>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                       </Button>
-                      <Button variant="ghost" size="sm">
-                        <Printer className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <Printer className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                       </Button>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                  <div className="flex justify-between items-center p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
                     <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-blue-500" />
+                      <FileText className="h-5 w-5 text-primary" />
                       <div>
                         <div className="font-medium">Quarterly Sensitive Items Verification</div>
-                        <div className="text-sm text-muted-foreground">Generated 1 week ago</div>
+                        <div className="text-xs tracking-wide text-muted-foreground mt-0.5">Generated 1 week ago</div>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                       </Button>
-                      <Button variant="ghost" size="sm">
-                        <Printer className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <Printer className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                       </Button>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                  <div className="flex justify-between items-center p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
                     <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-blue-500" />
+                      <FileText className="h-5 w-5 text-primary" />
                       <div>
                         <div className="font-medium">Annual Property Book Audit</div>
-                        <div className="text-sm text-muted-foreground">Generated 3 weeks ago</div>
+                        <div className="text-xs tracking-wide text-muted-foreground mt-0.5">Generated 3 weeks ago</div>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                       </Button>
-                      <Button variant="ghost" size="sm">
-                        <Printer className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <Printer className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                       </Button>
                     </div>
                   </div>
