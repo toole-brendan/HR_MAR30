@@ -481,144 +481,169 @@ const Settings: React.FC = () => {
         
         {/* Security Settings */}
         <TabsContent value="security">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>Configure access and security preferences</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  ACCESS CONTROL
+                </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  Security Settings
+                </div>
+              </div>
+            </div>
+            <CardContent className="p-4">
               <Form {...securityForm}>
                 <form onSubmit={securityForm.handleSubmit(onSecuritySubmit)} className="space-y-6">
-                  <FormField
-                    control={securityForm.control}
-                    name="requirePinForSensitive"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">PIN for Sensitive Items</FormLabel>
-                          <FormDescription>
-                            Require PIN verification for sensitive item access
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={securityForm.control}
-                    name="showItemDetails"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Show Item Details</FormLabel>
-                          <FormDescription>
-                            Display sensitive item details in listings
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Separator />
-                  
-                  <FormField
-                    control={securityForm.control}
-                    name="autoLogout"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Auto Logout (minutes)</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={securityForm.control}
+                      name="requirePinForSensitive"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">PIN for Sensitive Items</FormLabel>
+                            <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
+                              Require PIN verification for sensitive item access
+                            </FormDescription>
+                          </div>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select timeout" />
-                            </SelectTrigger>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="data-[state=checked]:bg-primary"
+                            />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="5">5 minutes</SelectItem>
-                            <SelectItem value="15">15 minutes</SelectItem>
-                            <SelectItem value="30">30 minutes</SelectItem>
-                            <SelectItem value="60">1 hour</SelectItem>
-                            <SelectItem value="never">Never</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Automatically log out after period of inactivity
-                        </FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={securityForm.control}
-                    name="pinTimeout"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>PIN Verification Timeout (minutes)</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={securityForm.control}
+                      name="showItemDetails"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Show Item Details</FormLabel>
+                            <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
+                              Display sensitive item details in listings
+                            </FormDescription>
+                          </div>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select timeout" />
-                            </SelectTrigger>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="data-[state=checked]:bg-primary"
+                            />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="1">1 minute</SelectItem>
-                            <SelectItem value="5">5 minutes</SelectItem>
-                            <SelectItem value="15">15 minutes</SelectItem>
-                            <SelectItem value="30">30 minutes</SelectItem>
-                            <SelectItem value="0">Every time</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          How often to require PIN re-entry for sensitive items
-                        </FormDescription>
-                      </FormItem>
-                    )}
-                  />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   
-                  <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="advanced">
-                      <AccordionTrigger className="text-sm font-medium">
+                  <div className="horizontal-divider"></div>
+                  
+                  <div className="uppercase text-xs tracking-wider font-medium mb-4 text-gray-500 dark:text-gray-400">
+                    TIMEOUT SETTINGS
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={securityForm.control}
+                      name="autoLogout"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Auto Logout (minutes)</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="rounded-none border-gray-200 dark:border-white/10">
+                                <SelectValue placeholder="Select timeout" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="5">5 minutes</SelectItem>
+                              <SelectItem value="15">15 minutes</SelectItem>
+                              <SelectItem value="30">30 minutes</SelectItem>
+                              <SelectItem value="60">1 hour</SelectItem>
+                              <SelectItem value="never">Never</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
+                            Automatically log out after period of inactivity
+                          </FormDescription>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={securityForm.control}
+                      name="pinTimeout"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">PIN Verification Timeout</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="rounded-none border-gray-200 dark:border-white/10">
+                                <SelectValue placeholder="Select timeout" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="1">1 minute</SelectItem>
+                              <SelectItem value="5">5 minutes</SelectItem>
+                              <SelectItem value="15">15 minutes</SelectItem>
+                              <SelectItem value="30">30 minutes</SelectItem>
+                              <SelectItem value="0">Every time</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
+                            How often to require PIN re-entry for sensitive items
+                          </FormDescription>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="horizontal-divider"></div>
+                  
+                  <div className="uppercase text-xs tracking-wider font-medium mb-4 text-gray-500 dark:text-gray-400">
+                    ADVANCED OPTIONS
+                  </div>
+                  
+                  <Accordion type="single" collapsible className="w-full border-none">
+                    <AccordionItem value="advanced" className="border-none">
+                      <AccordionTrigger className="text-sm font-medium text-gray-700 dark:text-gray-300 py-2 hover:no-underline">
                         Advanced Security Options
                       </AccordionTrigger>
                       <AccordionContent>
-                        <div className="space-y-4 pt-2">
-                          <div className="flex items-center justify-between">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                          <div className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                             <div>
-                              <h4 className="font-medium">Biometric Authentication</h4>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">Use fingerprint or face ID when available</p>
+                              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Biometric Authentication</h4>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Use fingerprint or face ID when available</p>
                             </div>
-                            <Switch disabled />
+                            <Switch disabled className="data-[state=checked]:bg-primary" />
                           </div>
                           
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                             <div>
-                              <h4 className="font-medium">Secure Boot</h4>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">Verify app integrity on startup</p>
+                              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Secure Boot</h4>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Verify app integrity on startup</p>
                             </div>
-                            <Switch defaultChecked={true} />
+                            <Switch defaultChecked={true} className="data-[state=checked]:bg-primary" />
                           </div>
-                          
+                        </div>
+                        
+                        <div className="pt-4">
                           <Button
                             variant="outline"
                             size="sm"
+                            className="rounded-none border-gray-200 dark:border-white/10 text-xs uppercase tracking-wider"
                             onClick={() => {
                               toast({
                                 title: "Security Log Cleared",
@@ -633,10 +658,15 @@ const Settings: React.FC = () => {
                     </AccordionItem>
                   </Accordion>
                   
-                  <Button type="submit" className="flex items-center gap-1">
-                    <Shield className="h-4 w-4" />
-                    <span>Save Security Settings</span>
-                  </Button>
+                  <div className="pt-4 flex justify-end">
+                    <Button 
+                      type="submit" 
+                      className="rounded-none uppercase tracking-wider text-xs font-medium bg-primary hover:bg-primary-600 flex items-center gap-1"
+                    >
+                      <Shield className="h-4 w-4" />
+                      <span>SAVE SECURITY SETTINGS</span>
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </CardContent>
@@ -645,26 +675,36 @@ const Settings: React.FC = () => {
         
         {/* QR Code Settings */}
         <TabsContent value="qr-codes">
-          <Card>
-            <CardHeader>
-              <CardTitle>QR Code Settings</CardTitle>
-              <CardDescription>Configure QR code generation and scanning preferences</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  QR MANAGEMENT
+                </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  QR Code Settings
+                </div>
+              </div>
+            </div>
+            <CardContent className="p-4">
               <Form {...qrForm}>
                 <form onSubmit={qrForm.handleSubmit(onQRSubmit)} className="space-y-6">
+                  <div className="uppercase text-xs tracking-wider font-medium mb-4 text-gray-500 dark:text-gray-400">
+                    PRINT SETTINGS
+                  </div>
+                  
                   <FormField
                     control={qrForm.control}
                     name="defaultPrintSize"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Default QR Code Size</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Default QR Code Size</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="rounded-none border-gray-200 dark:border-white/10">
                               <SelectValue placeholder="Select size" />
                             </SelectTrigger>
                           </FormControl>
@@ -675,21 +715,27 @@ const Settings: React.FC = () => {
                             <SelectItem value="xlarge">Extra Large (4" x 4")</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormDescription>
+                        <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
                           Standard size for printing QR codes
                         </FormDescription>
                       </FormItem>
                     )}
                   />
                   
+                  <div className="horizontal-divider"></div>
+                  
+                  <div className="uppercase text-xs tracking-wider font-medium mb-4 text-gray-500 dark:text-gray-400">
+                    QR CODE CONTENT
+                  </div>
+                  
                   <FormField
                     control={qrForm.control}
                     name="autoRegenerate"
                     render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                      <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                         <div className="space-y-0.5">
-                          <FormLabel className="text-base">Auto-Regenerate Damaged QR Codes</FormLabel>
-                          <FormDescription>
+                          <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Auto-Regenerate Damaged QR Codes</FormLabel>
+                          <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
                             Automatically generate replacement QR codes when damage is reported
                           </FormDescription>
                         </div>
@@ -697,21 +743,22 @@ const Settings: React.FC = () => {
                           <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
+                            className="data-[state=checked]:bg-primary"
                           />
                         </FormControl>
                       </FormItem>
                     )}
                   />
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <FormField
                       control={qrForm.control}
                       name="includeName"
                       render={({ field }) => (
-                        <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                        <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-base">Include Item Name</FormLabel>
-                            <FormDescription>
+                            <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Include Item Name</FormLabel>
+                            <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
                               Print item name on QR code label
                             </FormDescription>
                           </div>
@@ -719,6 +766,7 @@ const Settings: React.FC = () => {
                             <Switch
                               checked={field.value}
                               onCheckedChange={field.onChange}
+                              className="data-[state=checked]:bg-primary"
                             />
                           </FormControl>
                         </FormItem>
@@ -729,17 +777,18 @@ const Settings: React.FC = () => {
                       control={qrForm.control}
                       name="includeSerialNumber"
                       render={({ field }) => (
-                        <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                        <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-base">Include Serial Number</FormLabel>
-                            <FormDescription>
-                              Print serial number on QR code label
+                            <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Include Serial Number</FormLabel>
+                            <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
+                              Print item name on QR code label
                             </FormDescription>
                           </div>
                           <FormControl>
                             <Switch
                               checked={field.value}
                               onCheckedChange={field.onChange}
+                              className="data-[state=checked]:bg-primary"
                             />
                           </FormControl>
                         </FormItem>
@@ -751,10 +800,10 @@ const Settings: React.FC = () => {
                     control={qrForm.control}
                     name="scanConfirmation"
                     render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                      <FormItem className="flex items-center justify-between border border-gray-200 dark:border-white/10 p-4 rounded-none mt-4">
                         <div className="space-y-0.5">
-                          <FormLabel className="text-base">Scan Confirmation</FormLabel>
-                          <FormDescription>
+                          <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Scan Confirmation</FormLabel>
+                          <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
                             Require confirmation after scanning before processing
                           </FormDescription>
                         </div>
@@ -762,36 +811,46 @@ const Settings: React.FC = () => {
                           <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
+                            className="data-[state=checked]:bg-primary"
                           />
                         </FormControl>
                       </FormItem>
                     )}
                   />
                   
-                  <Separator />
+                  <div className="horizontal-divider"></div>
                   
-                  <div className="rounded-lg border p-4">
-                    <h3 className="font-medium mb-2">QR Code Format</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  <div className="uppercase text-xs tracking-wider font-medium mb-4 text-gray-500 dark:text-gray-400">
+                    SECURITY INFORMATION
+                  </div>
+                  
+                  <div className="border border-gray-200 dark:border-white/10 p-4 rounded-none">
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">QR Code Format</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
                       HandReceipt uses a secure, blockchain-verified format for all QR codes
                     </p>
                     
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="font-medium">Error Correction:</div>
-                      <div>High (Level H)</div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="font-medium text-gray-700 dark:text-gray-300">Error Correction:</div>
+                      <div className="text-gray-500 dark:text-gray-400">High (Level H)</div>
                       
-                      <div className="font-medium">Encryption:</div>
-                      <div>AES-256</div>
+                      <div className="font-medium text-gray-700 dark:text-gray-300">Encryption:</div>
+                      <div className="text-gray-500 dark:text-gray-400">AES-256</div>
                       
-                      <div className="font-medium">Verification:</div>
-                      <div>SHA-256 hash</div>
+                      <div className="font-medium text-gray-700 dark:text-gray-300">Verification:</div>
+                      <div className="text-gray-500 dark:text-gray-400">SHA-256 hash</div>
                     </div>
                   </div>
                   
-                  <Button type="submit" className="flex items-center gap-1">
-                    <QrCode className="h-4 w-4" />
-                    <span>Save QR Settings</span>
-                  </Button>
+                  <div className="pt-4 flex justify-end">
+                    <Button 
+                      type="submit" 
+                      className="rounded-none uppercase tracking-wider text-xs font-medium bg-primary hover:bg-primary-600 flex items-center gap-1"
+                    >
+                      <QrCode className="h-4 w-4" />
+                      <span>SAVE QR SETTINGS</span>
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </CardContent>
@@ -800,12 +859,18 @@ const Settings: React.FC = () => {
         
         {/* Notification Settings */}
         <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
-              <CardDescription>Configure alerts and notification preferences</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Card className="overflow-hidden border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+            <div className="p-4 flex justify-between items-baseline">
+              <div>
+                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  ALERTS
+                </div>
+                <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  Notification Settings
+                </div>
+              </div>
+            </div>
+            <CardContent className="p-4">
               <Form {...notificationForm}>
                 <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-6">
                   <FormField
