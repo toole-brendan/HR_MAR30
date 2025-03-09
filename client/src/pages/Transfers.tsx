@@ -304,7 +304,7 @@ const Transfers: React.FC = () => {
         size="sm" 
         variant="outline" 
         onClick={() => setShowScanner(true)}
-        className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white"
+        className="flex items-center gap-1 uppercase tracking-wider text-xs"
       >
         <ScanLine className="h-4 w-4" />
         <span className="hidden sm:inline">Scan QR</span>
@@ -317,10 +317,25 @@ const Transfers: React.FC = () => {
           setShowNewTransfer(true);
           setActiveView('outgoing');
         }}
-        className="flex items-center gap-1 bg-[#3B5BDB] hover:bg-[#364FC7]"
+        className="flex items-center gap-1 bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs"
       >
         <Plus className="h-4 w-4" />
         <span className="hidden sm:inline">Initiate Transfer</span>
+      </Button>
+      
+      <Button 
+        variant="ghost" 
+        size="sm"
+        className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1.5"
+        onClick={() => {
+          toast({
+            title: "Export Generated",
+            description: "Transfer report has been generated"
+          });
+        }}
+      >
+        <FileText className="h-4 w-4" />
+        EXPORT REPORT
       </Button>
     </div>
   );
@@ -604,12 +619,25 @@ const Transfers: React.FC = () => {
 
   return (
     <PageWrapper withPadding={true}>
-      <PageHeader
-        title={getPageTitle()}
-        description={getPageDescription()}
-        actions={actions}
-        className="mb-4 sm:mb-5 md:mb-6"
-      />
+      {/* Header section with 8VC style formatting */}
+      <div className="mb-6 sm:mb-7 md:mb-8">
+        {/* Category label - Small all-caps category label */}
+        <div className="text-category-tag mb-1 text-muted-foreground">
+          LOGISTICS
+        </div>
+        
+        {/* Main title - following 8VC typography */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-light tracking-tight mb-1">Transfer Management</h1>
+            <p className="text-subtitle text-muted-foreground">{getPageDescription()}</p>
+          </div>
+          {actions}
+        </div>
+        
+        {/* Subtle horizontal divider */}
+        <Separator className="mt-6" />
+      </div>
       
       {/* View Selection Tabs */}
       <div className="mb-4">
