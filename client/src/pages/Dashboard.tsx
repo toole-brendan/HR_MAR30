@@ -69,7 +69,7 @@ export default function Dashboard() {
         size="sm" 
         variant="outline" 
         onClick={() => setShowQRScannerModal(true)}
-        className="flex items-center gap-1"
+        className="flex items-center gap-1 uppercase tracking-wider text-xs"
       >
         <QrCode className="h-4 w-4" />
         <span className="hidden sm:inline">Scan QR</span>
@@ -79,7 +79,7 @@ export default function Dashboard() {
         size="sm" 
         variant="default" 
         onClick={() => navigate('/transfers')}
-        className="flex items-center gap-1 bg-venture-purple hover:bg-venture-purple/90"
+        className="flex items-center gap-1 bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs"
       >
         <Send className="h-4 w-4" />
         <span className="hidden sm:inline">New Transfer</span>
@@ -89,7 +89,7 @@ export default function Dashboard() {
         size="sm" 
         variant="outline" 
         onClick={() => navigate('/reports')}
-        className="flex items-center gap-1"
+        className="flex items-center gap-1 uppercase tracking-wider text-xs"
       >
         <FileText className="h-4 w-4" />
         <span className="hidden sm:inline">Reports</span>
@@ -99,14 +99,27 @@ export default function Dashboard() {
 
   return (
     <PageWrapper withPadding={true}>
-      <PageHeader
-        title={`Welcome, CPT Rodriguez`}
-        description="HandReceipt Dashboard"
-        actions={actions}
-        className="mb-6 sm:mb-7 md:mb-8"
-      />
+      {/* Header section with 8VC style formatting */}
+      <div className="mb-6 sm:mb-7 md:mb-8">
+        {/* Category label - Small all-caps category label */}
+        <div className="text-category-tag mb-1 text-muted-foreground">
+          DASHBOARD
+        </div>
+        
+        {/* Main title - following 8VC typography */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-light tracking-tight mb-1">Welcome, CPT Rodriguez</h1>
+            <p className="text-subtitle text-muted-foreground">HandReceipt Supply Chain System</p>
+          </div>
+          {actions}
+        </div>
+        
+        {/* Subtle horizontal divider */}
+        <Separator className="mt-6" />
+      </div>
       
-      {/* Summary Stats & Alerts */}
+      {/* Summary Stats - Metric cards with 8VC styling */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard 
           title="Total Inventory"
@@ -122,7 +135,7 @@ export default function Dashboard() {
         <StatCard 
           title="Pending Transfers"
           value={pendingTransfersCount}
-          icon={<ArrowRightLeft size={20} className="text-purple-500" />}
+          icon={<ArrowRightLeft size={20} className="text-primary" />}
           change={{
             value: 8.1,
             label: "from last week",
@@ -153,16 +166,15 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions with 8VC styled header */}
       <div className="mb-8">
-        <h3 className="text-lg font-medium mb-5 flex items-center tracking-tight">
-          <Activity className="h-5 w-5 mr-2 text-primary" />
-          Quick Actions
-        </h3>
+        <div className="text-section-header mb-4 text-muted-foreground">
+          QUICK ACTIONS
+        </div>
         <QuickActions openScanner={() => setShowQRScannerModal(true)} />
       </div>
 
-      {/* Main Content Grid */}
+      {/* Main Content Grid with 8VC split layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           {/* Pending Transfers */}
@@ -174,45 +186,49 @@ export default function Dashboard() {
           </div>
           
           {/* Stats Tabs */}
-          <Card className="mb-6 overflow-hidden border border-border dashboard-card">
-            <CardHeader className="bg-muted/40 pb-2">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                <CardTitle className="text-xl tracking-tight">Equipment Status</CardTitle>
+          <Card className="mb-6 overflow-hidden border-gray-200 dark:border-white/10 dashboard-card">
+            <div className="p-6 pb-4">
+              {/* Category Label */}
+              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                EQUIPMENT STATUS
               </div>
-              <CardDescription className="tracking-wide text-xs">Overview of equipment readiness and verification</CardDescription>
-            </CardHeader>
+              {/* Main Title */}
+              <div className="text-lg font-normal text-gray-900 dark:text-white">
+                Readiness and verification
+              </div>
+            </div>
+            
             <CardContent className="p-0">
               <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid grid-cols-3 w-full rounded-none bg-muted/70">
+                <TabsList className="grid grid-cols-3 w-full rounded-none bg-muted/30">
                   <TabsTrigger value="overview" className="uppercase tracking-wider text-xs font-medium">Overview</TabsTrigger>
                   <TabsTrigger value="readiness" className="uppercase tracking-wider text-xs font-medium">Readiness</TabsTrigger>
                   <TabsTrigger value="verification" className="uppercase tracking-wider text-xs font-medium">Verification</TabsTrigger>
                 </TabsList>
                 
-                <div className="p-4">
+                <div className="p-6">
                   <TabsContent value="overview" className="m-0">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="bg-muted/20 p-4 rounded-sm">
-                        <h4 className="text-sm font-medium text-muted-foreground tracking-wide mb-2">Pending Actions</h4>
-                        <div className="text-2xl font-medium">{pendingTransfersCount + pendingMaintenanceCount + sensitiveItemVerifications}</div>
-                        <p className="text-xs tracking-wide text-muted-foreground">Across all categories</p>
+                      <div className="p-4 border border-gray-100 dark:border-white/5">
+                        <h4 className="text-sm uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">Pending Actions</h4>
+                        <div className="text-2xl font-light tracking-tight">{pendingTransfersCount + pendingMaintenanceCount + sensitiveItemVerifications}</div>
+                        <p className="text-xs tracking-wide text-muted-foreground mt-1">Across all categories</p>
                       </div>
-                      <div className="bg-muted/20 p-4 rounded-sm">
-                        <h4 className="text-sm font-medium text-muted-foreground tracking-wide mb-2">Transfer Rate</h4>
-                        <div className="text-2xl font-medium">8.5/day</div>
-                        <p className="text-xs tracking-wide text-muted-foreground">Last 7 days average</p>
+                      <div className="p-4 border border-gray-100 dark:border-white/5">
+                        <h4 className="text-sm uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">Transfer Rate</h4>
+                        <div className="text-2xl font-light tracking-tight">8.5/day</div>
+                        <p className="text-xs tracking-wide text-muted-foreground mt-1">Last 7 days average</p>
                       </div>
-                      <div className="bg-muted/20 p-4 rounded-sm">
-                        <h4 className="text-sm font-medium text-muted-foreground tracking-wide mb-2">QR Scans</h4>
-                        <div className="text-2xl font-medium">32</div>
-                        <p className="text-xs tracking-wide text-muted-foreground">Last 24 hours</p>
+                      <div className="p-4 border border-gray-100 dark:border-white/5">
+                        <h4 className="text-sm uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">QR Scans</h4>
+                        <div className="text-2xl font-light tracking-tight">32</div>
+                        <p className="text-xs tracking-wide text-muted-foreground mt-1">Last 24 hours</p>
                       </div>
                     </div>
                   </TabsContent>
                   
                   <TabsContent value="readiness" className="m-0">
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
@@ -247,41 +263,41 @@ export default function Dashboard() {
                   </TabsContent>
                   
                   <TabsContent value="verification" className="m-0">
-                    <div className="space-y-4 data-table-military">
-                      <div className="flex justify-between items-center text-sm border-b pb-2">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/5 pb-3">
                         <div className="flex items-center">
                           <Calendar className="h-4 w-4 mr-2 text-primary" />
-                          <span className="tracking-wide">Today - Morning Check</span>
+                          <span className="tracking-wide text-sm">Today - Morning Check</span>
                         </div>
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 mr-2 text-amber-500" />
-                          <span className="font-medium">0600</span>
+                          <span className="font-medium text-sm">0600</span>
                         </div>
                         <Badge variant="outline" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30 uppercase text-[10px] tracking-wider font-medium">
                           Completed
                         </Badge>
                       </div>
-                      <div className="flex justify-between items-center text-sm border-b pb-2">
+                      <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/5 pb-3">
                         <div className="flex items-center">
                           <Calendar className="h-4 w-4 mr-2 text-primary" />
-                          <span className="tracking-wide">Today - Evening Check</span>
+                          <span className="tracking-wide text-sm">Today - Evening Check</span>
                         </div>
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 mr-2 text-amber-500" />
-                          <span className="font-medium">1800</span>
+                          <span className="font-medium text-sm">1800</span>
                         </div>
                         <Badge variant="outline" className="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 uppercase text-[10px] tracking-wider font-medium">
                           Pending
                         </Badge>
                       </div>
-                      <div className="flex justify-between items-center text-sm border-b pb-2">
+                      <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/5 pb-3">
                         <div className="flex items-center">
                           <Calendar className="h-4 w-4 mr-2 text-primary" />
-                          <span className="tracking-wide">Tomorrow - Morning Check</span>
+                          <span className="tracking-wide text-sm">Tomorrow - Morning Check</span>
                         </div>
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 mr-2 text-amber-500" />
-                          <span className="font-medium">0600</span>
+                          <span className="font-medium text-sm">0600</span>
                         </div>
                         <Badge variant="outline" className="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-900/30 uppercase text-[10px] tracking-wider font-medium">
                           Scheduled
@@ -292,16 +308,16 @@ export default function Dashboard() {
                 </div>
               </Tabs>
             </CardContent>
-            <CardFooter className="bg-muted/10 py-3">
+            <div className="px-6 py-4 border-t border-gray-100 dark:border-white/5 flex justify-end">
               <Button 
                 variant="ghost" 
-                className="w-full text-xs uppercase tracking-wider flex items-center justify-center"
+                className="text-xs uppercase tracking-wider text-primary hover:bg-transparent hover:text-primary-600"
                 onClick={() => navigate("/reports")}
               >
-                View Detailed Reports
+                View All Reports
                 <ArrowRight className="h-3 w-3 ml-1" />
               </Button>
-            </CardFooter>
+            </div>
           </Card>
         </div>
         
@@ -311,57 +327,64 @@ export default function Dashboard() {
           <RecentActivity />
           
           {/* QR Management Summary */}
-          <Card className="overflow-hidden border border-border dashboard-card">
-            <CardHeader className="bg-muted/40 pb-2">
-              <div className="flex items-center gap-2">
-                <QrCode className="h-5 w-5 text-primary" />
-                <CardTitle className="text-xl tracking-tight">QR Management</CardTitle>
+          <Card className="overflow-hidden border-gray-200 dark:border-white/10 dashboard-card">
+            <div className="p-6 pb-4">
+              {/* Category Label */}
+              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                QR TRACKING
               </div>
-              <CardDescription className="tracking-wide text-xs">Barcode and QR code status</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="space-y-3">
+              {/* Main Title */}
+              <div className="text-lg font-normal text-gray-900 dark:text-white">
+                Barcode status
+              </div>
+            </div>
+            
+            <CardContent className="px-6 pb-4">
+              <div className="space-y-4">
                 <div className="flex justify-between items-center text-sm">
                   <span className="tracking-wide">Total QR Codes</span>
                   <span className="font-medium">{inventory.length}</span>
                 </div>
-                <Separator />
+                <Separator className="bg-gray-100 dark:bg-white/5" />
                 <div className="flex justify-between items-center text-sm">
                   <span className="tracking-wide">Needs Reprinting</span>
                   <Badge variant="outline" className="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 uppercase text-[10px] tracking-wider font-medium">2</Badge>
                 </div>
-                <Separator />
+                <Separator className="bg-gray-100 dark:bg-white/5" />
                 <div className="flex justify-between items-center text-sm">
                   <span className="tracking-wide">Recently Generated</span>
                   <Badge variant="outline" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30 uppercase text-[10px] tracking-wider font-medium">5</Badge>
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="bg-muted/10 py-3">
+            <div className="px-6 py-4 border-t border-gray-100 dark:border-white/5 flex justify-end">
               <Button 
                 variant="ghost" 
-                className="w-full text-xs uppercase tracking-wider flex items-center justify-center"
+                className="text-xs uppercase tracking-wider text-primary hover:bg-transparent hover:text-primary-600"
                 onClick={() => navigate('/qr-management')}
               >
-                Manage QR Codes
-                <ArrowRight className="h-3 w-3 ml-1" />
+                MANAGE QR CODES
               </Button>
-            </CardFooter>
+            </div>
           </Card>
           
           {/* Notifications Preview */}
-          <Card className="overflow-hidden border border-border dashboard-card">
-            <CardHeader className="bg-muted/40 pb-2">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                <CardTitle className="text-xl tracking-tight">Team Activity</CardTitle>
+          <Card className="overflow-hidden border-gray-200 dark:border-white/10 dashboard-card">
+            <div className="p-6 pb-4">
+              {/* Category Label */}
+              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                TEAM ACTIVITY
               </div>
-              <CardDescription className="tracking-wide text-xs">Recent notifications and updates</CardDescription>
-            </CardHeader>
+              {/* Main Title */}
+              <div className="text-lg font-normal text-gray-900 dark:text-white">
+                Recent notifications
+              </div>
+            </div>
+            
             <CardContent className="p-0">
-              <div className="divide-y divide-border">
+              <div className="divide-y divide-gray-100 dark:divide-white/5">
                 {notifications.slice(0, 3).map(notification => (
-                  <div key={notification.id} className="p-4 hover:bg-muted/10">
+                  <div key={notification.id} className="p-6 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                     <div className="flex items-start">
                       <div className={`h-8 w-8 flex-shrink-0 rounded-full bg-primary/10 flex items-center justify-center mr-3 ${
                         notification.type === 'transfer-request' ? 'text-amber-500' : 
@@ -382,16 +405,15 @@ export default function Dashboard() {
                 ))}
               </div>
             </CardContent>
-            <CardFooter className="bg-muted/10 py-3">
+            <div className="px-6 py-4 border-t border-gray-100 dark:border-white/5 flex justify-end">
               <Button 
                 variant="ghost" 
-                className="w-full text-xs uppercase tracking-wider flex items-center justify-center" 
+                className="text-xs uppercase tracking-wider text-primary hover:bg-transparent hover:text-primary-600"
                 onClick={() => navigate('/audit-log')}
               >
-                View All Activity
-                <ArrowRight className="h-3 w-3 ml-1" />
+                VIEW ALL ACTIVITY
               </Button>
-            </CardFooter>
+            </div>
           </Card>
         </div>
       </div>
