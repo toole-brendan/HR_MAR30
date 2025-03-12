@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
   Card,
@@ -63,7 +63,11 @@ import {
   VerificationLog 
 } from "@/lib/sensitiveItemsData";
 
-const SensitiveItems: React.FC = () => {
+interface SensitiveItemsProps {
+  id?: string;
+}
+
+const SensitiveItems: React.FC<SensitiveItemsProps> = ({ id }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -75,6 +79,18 @@ const SensitiveItems: React.FC = () => {
   const [tabValue, setTabValue] = useState("inventory");
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  
+  // If an ID is provided, find and show the specific sensitive item
+  useEffect(() => {
+    if (id) {
+      const item = sensitiveItems.find(item => item.id === id);
+      if (item) {
+        // Show details of the specific item
+        setSelectedItem(item);
+        setDetailsModalOpen(true);
+      }
+    }
+  }, [id]);
   
   // Filter sensitive items based on search term and filters
   const filteredItems = sensitiveItems.filter(item => {

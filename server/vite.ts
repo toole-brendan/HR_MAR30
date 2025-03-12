@@ -26,7 +26,6 @@ export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
-    allowedHosts: true,
   };
 
   const vite = await createViteServer({
@@ -44,9 +43,11 @@ export async function setupVite(app: Express, server: Server) {
   });
 
   app.use(vite.middlewares);
-  app.use("*", async (req, res, next) => {
+  
+  // Handle /defense path for the frontend
+  app.use(["/defense", "/defense/*"], async (req, res, next) => {
     const url = req.originalUrl;
-
+    
     try {
       const clientTemplate = path.resolve(
         __dirname,
@@ -58,8 +59,38 @@ export async function setupVite(app: Express, server: Server) {
       // always reload the index.html file from disk incase it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
-        `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`,
+        `src="./src/main.tsx"`,
+        `src="/defense/src/main.tsx?v=${nanoid()}"`,
+      );
+      const page = await vite.transformIndexHtml(url, template);
+      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+    } catch (e) {
+      vite.ssrFixStacktrace(e as Error);
+      next(e);
+    }
+  });
+  
+  // Default route for development (fallback)
+  app.use("*", async (req, res, next) => {
+    // If not starting with /defense, redirect to /defense
+    if (!req.originalUrl.startsWith("/defense") && !req.originalUrl.startsWith("/api")) {
+      return res.redirect(`/defense${req.originalUrl === "/" ? "" : req.originalUrl}`);
+    }
+    
+    const url = req.originalUrl;
+    try {
+      const clientTemplate = path.resolve(
+        __dirname,
+        "..",
+        "client",
+        "index.html",
+      );
+
+      // always reload the index.html file from disk incase it changes
+      let template = await fs.promises.readFile(clientTemplate, "utf-8");
+      template = template.replace(
+        `src="./src/main.tsx"`,
+        `src="/defense/src/main.tsx?v=${nanoid()}"`,
       );
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
@@ -79,10 +110,36 @@ export function serveStatic(app: Express) {
     );
   }
 
+  // Serve static files with the correct base path
+  app.use('/defense', express.static(distPath));
+  
+  // Serve static assets without needing the /defense prefix
   app.use(express.static(distPath));
 
+  // Handle API routes first
+  app.use("/defense/api/*", (req, res, next) => {
+    // Remove /defense from the path and redirect to regular API
+    const apiPath = req.originalUrl.replace("/defense/api", "/api");
+    req.url = apiPath;
+    next('route');
+  });
+
+  // Handle /defense routes for frontend
+  app.use(["/defense", "/defense/*"], (req, res) => {
+    res.sendFile(path.resolve(distPath, "index.html"));
+  });
+
+  // Redirect root to /defense 
+  app.use("/", (req, res) => {
+    res.redirect("/defense");
+  });
+
   // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
+  app.use("*", (req, res) => {
+    // If not starting with /defense, redirect to /defense
+    if (!req.originalUrl.startsWith("/defense") && !req.originalUrl.startsWith("/api")) {
+      return res.redirect(`/defense${req.originalUrl === "/" ? "" : req.originalUrl}`);
+    }
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }

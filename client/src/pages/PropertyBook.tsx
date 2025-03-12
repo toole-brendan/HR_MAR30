@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { inventory as mockInventory, transfers as mockTransfers } from "@/lib/mockData";
 import { InventoryItem, Transfer } from "@/types";
 import { 
@@ -40,7 +40,11 @@ import {
   FileText
 } from "lucide-react";
 
-const PropertyBook: React.FC = () => {
+interface PropertyBookProps {
+  id?: string;
+}
+
+const PropertyBook: React.FC<PropertyBookProps> = ({ id }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
@@ -181,6 +185,18 @@ const PropertyBook: React.FC = () => {
       />
     </div>
   );
+
+  // If an ID is provided, find and show the specific property item
+  useEffect(() => {
+    if (id) {
+      const item = mockInventory.find(item => item.id === id);
+      if (item) {
+        // Show details of the specific item
+        setSelectedItem(item);
+        setDetailsModalOpen(true);
+      }
+    }
+  }, [id]);
 
   return (
     <PageWrapper withPadding={true}>

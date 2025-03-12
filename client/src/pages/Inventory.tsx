@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { inventory } from "@/lib/mockData";
 import { 
   Card, 
@@ -18,13 +18,28 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PageWrapper } from "@/components/ui/page-wrapper";
 import { Search, Filter, Plus } from "lucide-react";
 
-const Inventory: React.FC = () => {
+interface InventoryProps {
+  id?: string;
+}
+
+const Inventory: React.FC<InventoryProps> = ({ id }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedItem, setSelectedItem] = useState<{id: string, name: string, serialNumber: string} | null>(null);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const { toast } = useToast();
+
+  // If an ID is provided, find and show the specific item
+  useEffect(() => {
+    if (id) {
+      const item = inventory.find(item => item.id === id);
+      if (item) {
+        setSelectedItem(item);
+        setDetailsModalOpen(true);
+      }
+    }
+  }, [id]);
 
   const filteredInventory = inventory.filter(item => {
     const matchesSearch = 

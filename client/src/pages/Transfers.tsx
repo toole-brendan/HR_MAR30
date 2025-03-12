@@ -83,7 +83,11 @@ interface SortConfig {
   order: SortOrder;
 }
 
-const Transfers: React.FC = () => {
+interface TransfersProps {
+  id?: string;
+}
+
+const Transfers: React.FC<TransfersProps> = ({ id }) => {
   const { user } = useAuth();
   const [transferList, setTransferList] = useState(transfers);
   const [searchTerm, setSearchTerm] = useState("");
@@ -97,6 +101,17 @@ const Transfers: React.FC = () => {
 
   // Simulate current user (in a real app, this would come from auth context)
   const currentUser = user?.name || "John Doe";
+
+  // If an ID is provided, find and show the specific transfer
+  useEffect(() => {
+    if (id) {
+      const transfer = transfers.find(t => t.id === id);
+      if (transfer) {
+        // Show details of the specific transfer
+        setShowTransferDetails(transfer);
+      }
+    }
+  }, [id]);
 
   // Handle approving a transfer request
   const handleApprove = (id: string) => {

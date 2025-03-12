@@ -1,10 +1,19 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { createServer } from "http";
+import { AddressInfo } from "net";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add middleware to handle /defense/api requests
+app.use('/defense/api/*', (req, res, next) => {
+  // Rewrite the URL to strip off the /defense prefix
+  req.url = req.url.replace('/defense/api', '/api');
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -19,7 +28,7 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
+    if (path.startsWith("/api") || path.startsWith("/defense/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
@@ -35,6 +44,51 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// Function to find an available port dynamically
+function findAvailablePort(startPort: number, maxAttempts: number = 10): Promise<number> {
+  return new Promise((resolve, reject) => {
+    let currentAttempt = 0;
+    let currentPort = startPort;
+
+    function tryPort() {
+      if (currentAttempt >= maxAttempts) {
+        reject(new Error(`Could not find an available port after ${maxAttempts} attempts`));
+        return;
+      }
+
+      const testServer = createServer();
+      
+      testServer.once('error', (err: any) => {
+        if (err.code === 'EADDRINUSE') {
+          // Port is in use, try the next one
+          currentPort++;
+          currentAttempt++;
+          tryPort();
+        } else {
+          // Some other error
+          reject(err);
+        }
+      });
+
+      testServer.once('listening', () => {
+        // Found an available port
+        const address = testServer.address() as AddressInfo;
+        const port = address.port;
+        
+        // Close the test server
+        testServer.close(() => {
+          resolve(port);
+        });
+      });
+
+      // Try to bind to the current port
+      testServer.listen(currentPort, 'localhost');
+    }
+
+    tryPort();
+  });
+}
 
 (async () => {
   const server = await registerRoutes(app);
@@ -56,14 +110,20 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  try {
+    // Start with the preferred port
+    const preferredPort = 5000;
+    // Find an available port starting from the preferred port
+    const port = await findAvailablePort(preferredPort);
+    
+    server.listen({
+      port,
+      host: "localhost",
+    }, () => {
+      log(`Server running at http://localhost:${port}`);
+    });
+  } catch (error) {
+    log(`Failed to start server: ${error}`);
+    process.exit(1);
+  }
 })();

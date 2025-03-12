@@ -31,7 +31,11 @@ const mockQRItems: QRCodeItem[] = inventory.map((item) => ({
   lastUpdated: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 }));
 
-const QRManagement = () => {
+interface QRManagementProps {
+  code?: string;
+}
+
+const QRManagement: React.FC<QRManagementProps> = ({ code }) => {
   const [qrItems, setQrItems] = useState<QRCodeItem[]>(mockQRItems);
   const [filteredItems, setFilteredItems] = useState<QRCodeItem[]>(mockQRItems);
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,6 +47,9 @@ const QRManagement = () => {
   const [newItemInfo, setNewItemInfo] = useState({ name: "", serialNumber: "" });
   const [reportReason, setReportReason] = useState("");
   const { toast } = useToast();
+  const [qrValue, setQrValue] = useState("");
+  const [qrDetailsOpen, setQrDetailsOpen] = useState(false);
+
   // Apply filters
   useEffect(() => {
     let result = qrItems;
@@ -63,6 +70,15 @@ const QRManagement = () => {
     
     setFilteredItems(result);
   }, [qrItems, searchTerm, statusFilter]);
+
+  // If a code is provided, find and show the specific QR code
+  useEffect(() => {
+    if (code) {
+      // Show the provided QR code
+      setQrValue(code);
+      setQrDetailsOpen(true);
+    }
+  }, [code]);
 
   // Handle opening the report dialog
   const handleOpenReportDialog = (item: QRCodeItem) => {

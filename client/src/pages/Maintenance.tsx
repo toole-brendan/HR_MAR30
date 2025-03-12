@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, subDays, addDays } from "date-fns";
 import { 
   Card, 
@@ -118,7 +118,11 @@ const maintenanceBulletins: MaintenanceBulletin[] = [
   }
 ];
 
-const Maintenance: React.FC = () => {
+interface MaintenanceProps {
+  id?: string;
+}
+
+const Maintenance: React.FC<MaintenanceProps> = ({ id }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedItem, setSelectedItem] = useState<MaintenanceItem | null>(null);
@@ -212,6 +216,18 @@ const Maintenance: React.FC = () => {
 
   // Page actions - empty now as redundant button removed
   const actions = null;
+
+  // If an ID is provided, find and show the specific maintenance record
+  useEffect(() => {
+    if (id) {
+      const record = maintenanceItems.find(item => item.id === id);
+      if (record) {
+        // Show details of the specific maintenance record
+        setSelectedItem(record);
+        setDetailsModalOpen(true);
+      }
+    }
+  }, [id]);
 
   return (
     <PageWrapper withPadding={true}>
@@ -470,7 +486,7 @@ const Maintenance: React.FC = () => {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="mt-2 text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+                              className="mt-2 text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400"
                               onClick={handleNewRequestClick}
                             >
                               <Plus className="h-4 w-4 mr-2" />

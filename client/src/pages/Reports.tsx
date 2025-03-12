@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { 
   Card, 
@@ -125,8 +125,11 @@ interface ReportFilter {
   status: string;
 }
 
-// Reports page component
-const Reports = () => {
+interface ReportsProps {
+  type?: string;
+}
+
+const Reports: React.FC<ReportsProps> = ({ type }) => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedReportType, setSelectedReportType] = useState<string | null>(null);
   const [filters, setFilters] = useState<ReportFilter>({
@@ -136,6 +139,33 @@ const Reports = () => {
   });
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const [activeReport, setActiveReport] = useState("dashboard");
+
+  // If a type is provided, switch to that report type
+  useEffect(() => {
+    if (type) {
+      // Set the active report type based on the URL parameter
+      switch(type) {
+        case 'inventory':
+          setActiveReport('inventory');
+          break;
+        case 'maintenance':
+          setActiveReport('maintenance');
+          break;
+        case 'usage':
+          setActiveReport('usage');
+          break;
+        case 'audit':
+          setActiveReport('audit');
+          break;
+        case 'compliance':
+          setActiveReport('compliance');
+          break;
+        // Add other report types as needed
+      }
+    }
+  }, [type]);
+
   const handleGenerateReport = (reportType: string) => {
     setSelectedReportType(reportType);
     toast({
