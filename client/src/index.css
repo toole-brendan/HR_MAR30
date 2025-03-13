@@ -5,8 +5,7 @@
 /* D-Din Font */
 @font-face {
   font-family: 'D-Din';
-  src: url('https://cdn.jsdelivr.net/npm/d-din/D-DIN.woff2') format('woff2'),
-       url('https://cdn.jsdelivr.net/npm/d-din/D-DIN.woff') format('woff');
+  src: url('/defense/fonts/d-din.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -14,8 +13,7 @@
 
 @font-face {
   font-family: 'D-Din';
-  src: url('https://cdn.jsdelivr.net/npm/d-din/D-DIN-Bold.woff2') format('woff2'),
-       url('https://cdn.jsdelivr.net/npm/d-din/D-DIN-Bold.woff') format('woff');
+  src: url('/defense/fonts/d-din-bold.woff2') format('woff2');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
