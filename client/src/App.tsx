@@ -129,14 +129,11 @@ function App() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
-  // Create a basename-aware router
-  const customLocationHook = () => useBaseLocation();
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppProvider>
-          <WouterRouter hook={customLocationHook}>
+          <WouterRouter hook={useBaseLocation}>
             <Router />
           </WouterRouter>
           <Toaster />
