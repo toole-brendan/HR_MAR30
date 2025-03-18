@@ -35,64 +35,51 @@ interface QRPageProps {
   code?: string;
 }
 
-// Create a custom hook that handles the base path
-function useBaseLocation() {
-  // Get the original wouter location hook
-  const [location, setLocation] = useLocation();
-
-  // Return a modified version that handles base path
-  return [
-    // The location without the base path prefix
-    location,
-    // Modified setter that adds the base path
-    (to: string, options = {}) => {
-      // Handle the base path in navigation
-      const path = to.startsWith("/") ? `${BASE_PATH}${to}` : `${BASE_PATH}/${to}`;
-      setLocation(path, options);
-    }
-  ] as [string, (path: string, ...args: any[]) => any];
-}
-
 // Make all component props have any type to fix TypeScript errors with wouter
 function Router() {
+  // Base path for all routes
+  const basePath = BASE_PATH;
+  
   return (
     <AppShell>
       <Switch>
-        <Route path="/" component={() => <Dashboard />} />
-        <Route path="/scan" component={() => <Scan />} />
-        <Route path="/transfers" component={() => <Transfers />} />
-        <Route path="/transfers/:id">
+        <Route path={`${basePath}`} component={() => <Dashboard />} />
+        <Route path={`${basePath}/`} component={() => <Dashboard />} />
+        <Route path={`${basePath}/dashboard`} component={() => <Dashboard />} />
+        <Route path={`${basePath}/scan`} component={() => <Scan />} />
+        <Route path={`${basePath}/transfers`} component={() => <Transfers />} />
+        <Route path={`${basePath}/transfers/:id`}>
           {(params) => <Transfers id={params.id} />}
         </Route>
-        <Route path="/property-book" component={() => <PropertyBook />} />
-        <Route path="/property-book/:id">
+        <Route path={`${basePath}/property-book`} component={() => <PropertyBook />} />
+        <Route path={`${basePath}/property-book/:id`}>
           {(params) => <PropertyBook id={params.id} />}
         </Route>
-        <Route path="/inventory" component={() => <Inventory />} />
-        <Route path="/inventory/:id">
+        <Route path={`${basePath}/inventory`} component={() => <Inventory />} />
+        <Route path={`${basePath}/inventory/:id`}>
           {(params) => <Inventory id={params.id} />}
         </Route>
-        <Route path="/sensitive-items" component={() => <SensitiveItems />} />
-        <Route path="/sensitive-items/:id">
+        <Route path={`${basePath}/sensitive-items`} component={() => <SensitiveItems />} />
+        <Route path={`${basePath}/sensitive-items/:id`}>
           {(params) => <SensitiveItems id={params.id} />}
         </Route>
-        <Route path="/maintenance" component={() => <Maintenance />} />
-        <Route path="/maintenance/:id">
+        <Route path={`${basePath}/maintenance`} component={() => <Maintenance />} />
+        <Route path={`${basePath}/maintenance/:id`}>
           {(params) => <Maintenance id={params.id} />}
         </Route>
-        <Route path="/qr-management" component={() => <QRManagement />} />
-        <Route path="/qr-management/:code">
+        <Route path={`${basePath}/qr-management`} component={() => <QRManagement />} />
+        <Route path={`${basePath}/qr-management/:code`}>
           {(params) => <QRManagement code={params.code} />}
         </Route>
-        <Route path="/reports" component={() => <Reports />} />
-        <Route path="/reports/:type">
+        <Route path={`${basePath}/reports`} component={() => <Reports />} />
+        <Route path={`${basePath}/reports/:type`}>
           {(params) => <Reports type={params.type} />}
         </Route>
-        <Route path="/audit-log" component={() => <AuditLog />} />
-        <Route path="/settings" component={() => <Settings />} />
-        <Route path="/profile" component={() => <Profile />} />
-        <Route path="/login" component={() => <Login />} />
-        <Route component={() => <NotFound />} />
+        <Route path={`${basePath}/audit-log`} component={() => <AuditLog />} />
+        <Route path={`${basePath}/settings`} component={() => <Settings />} />
+        <Route path={`${basePath}/profile`} component={() => <Profile />} />
+        <Route path={`${basePath}/login`} component={() => <Login />} />
+        <Route path={`${basePath}/*`} component={() => <NotFound />} />
       </Switch>
     </AppShell>
   );
@@ -102,11 +89,9 @@ function App() {
   // Handle initial redirection if needed
   useEffect(() => {
     const path = window.location.pathname;
-    // If we're not already at a defense-prefixed URL and not accessing the API directly
-    if (!path.startsWith(BASE_PATH) && !path.startsWith('/api')) {
-      // Construct the path with the base prefix
-      const newPath = path === '/' ? BASE_PATH : `${BASE_PATH}${path}`;
-      window.history.replaceState(null, "", newPath);
+    // If we're at the root path, redirect to the defense path
+    if (path === '/' || path === '') {
+      window.history.replaceState(null, "", `${BASE_PATH}`);
     }
   }, []);
 
@@ -133,7 +118,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppProvider>
-          <WouterRouter hook={useBaseLocation}>
+          <WouterRouter>
             <Router />
           </WouterRouter>
           <Toaster />
