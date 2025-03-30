@@ -47,6 +47,23 @@ export const inventory: InventoryItem[] = [
     serialNumber: "MOLLE-98745632",
     assignedDate: "03/22/2023",
     status: "active",
+    components: [
+      {
+        id: 'comp-ruck-1',
+        name: 'Sustainment Pouch',
+        quantity: 2,
+        required: true,
+        status: 'present',
+        nsn: '8465-01-524-7226'
+      },
+      {
+        id: 'comp-ruck-2',
+        name: 'Waist Belt',
+        quantity: 1,
+        required: true,
+        status: 'present'
+      }
+    ]
   },
   {
     id: "3",
@@ -61,6 +78,30 @@ export const inventory: InventoryItem[] = [
     serialNumber: "IOTV-78912345",
     assignedDate: "04/05/2023",
     status: "active",
+    components: [
+      {
+        id: 'comp-iotv-1',
+        name: 'Side Plate Pouch (Left)',
+        quantity: 1,
+        required: true,
+        status: 'present'
+      },
+      {
+        id: 'comp-iotv-2',
+        name: 'Side Plate Pouch (Right)',
+        quantity: 1,
+        required: true,
+        status: 'missing',
+        notes: 'Reported missing 07/10/2023'
+      },
+       {
+        id: 'comp-iotv-3',
+        name: 'Shoulder Pads (Pair)',
+        quantity: 1,
+        required: true,
+        status: 'present'
+      }
+    ]
   },
   {
     id: "5",
@@ -96,6 +137,18 @@ export const inventory: InventoryItem[] = [
     serialNumber: "PEQ-78123456",
     assignedDate: "12/22/2022",
     status: "active",
+    requiresCalibration: true,
+    calibrationInfo: {
+      lastCalibrationDate: "2024-03-15",
+      nextCalibrationDueDate: "2025-03-15",
+      calibrationIntervalDays: 365,
+      status: 'current',
+      notes: "Calibrated by Unit TMDE support.",
+      history: [
+         { date: "2024-03-15", performedBy: "TMDE Lab", notes: "Annual calibration performed." },
+         { date: "2023-03-10", performedBy: "TMDE Lab", notes: "Initial calibration." },
+      ]
+    }
   },
   {
     id: "10",
@@ -104,6 +157,21 @@ export const inventory: InventoryItem[] = [
     assignedDate: "05/18/2023",
     status: "active",
   },
+  {
+    id: "11",
+    name: "Fluke 87V Multimeter",
+    serialNumber: "FLK-11223344",
+    assignedDate: "01/10/2024",
+    status: "active",
+    requiresCalibration: true,
+    calibrationInfo: {
+       lastCalibrationDate: "2024-01-15",
+       nextCalibrationDueDate: "2024-07-15",
+       calibrationIntervalDays: 180,
+       status: 'due-soon',
+       notes: "Precision measurement tool."
+    }
+  }
 ];
 
 // Mock Transfer Requests

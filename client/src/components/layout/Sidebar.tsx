@@ -3,6 +3,7 @@ import { useLocation, Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useApp } from "@/context/AppContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 import {
   Home,
   Package,
@@ -21,6 +22,7 @@ import {
   Wrench,
   FileText,
   User,
+  Bell,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -29,6 +31,7 @@ interface SidebarProps {
   openQRScanner?: () => void;
   toggleTheme?: () => void;
   toggleSidebar?: () => void;
+  openNotificationPanel?: () => void;
 }
 
 const Sidebar = ({
@@ -36,11 +39,13 @@ const Sidebar = ({
   closeMobileMenu,
   openQRScanner,
   toggleTheme: toggleThemeProp,
-  toggleSidebar: toggleSidebarProp
+  toggleSidebar: toggleSidebarProp,
+  openNotificationPanel,
 }: SidebarProps) => {
   const [location] = useLocation();
   const { user } = useAuth();
   const { theme, toggleTheme: contextToggleTheme, sidebarCollapsed, toggleSidebar: contextToggleSidebar } = useApp();
+  const { unreadCount } = useNotifications();
 
   // Use the functions from context directly if they're not passed as props
   const toggleTheme = () => {
@@ -87,6 +92,15 @@ const Sidebar = ({
     }
   };
 
+  const handleNotificationClick = () => {
+    if (openNotificationPanel) {
+      openNotificationPanel();
+    }
+    if (isMobile && closeMobileMenu) {
+      closeMobileMenu();
+    }
+  };
+
   interface NavItem {
     path: string;
     icon: React.ReactNode;
@@ -99,6 +113,7 @@ const Sidebar = ({
   const navItems: NavItem[] = [
     { path: "/", icon: <Home className="sidebar-item-icon" />, label: "Dashboard" },
     { path: "/property-book", icon: <BookOpen className="sidebar-item-icon" />, label: "Property Book" },
+    { path: "/inventory", icon: <Package className="sidebar-item-icon" />, label: "Inventory" },
     { path: "/sensitive-items", icon: <Shield className="sidebar-item-icon" />, label: "Sensitive Items" },
     { 
       path: "/transfers", 
@@ -134,7 +149,7 @@ const Sidebar = ({
     return (
       <nav className="flex-1 flex flex-col">
         {/* Header - Logo */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+        <div className="p-6">
           <div 
             className="flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
             onClick={handleLogoClick}
@@ -145,19 +160,39 @@ const Sidebar = ({
           </div>
         </div>
         
-        {/* User Profile section */}
-        <div className="p-4 flex items-center cursor-pointer border-b border-gray-200 dark:border-gray-800">
-          <div className="w-8 h-8 rounded-full bg-venture-purple flex items-center justify-center text-white text-sm font-medium mr-3">
-            M
-          </div>
-          <div>
-            <p className="text-sm font-medium profile-name">CPT Rodriguez, Michael</p>
-            <p className="text-xs profile-role text-gray-500">Company Commander</p>
-          </div>
+        {/* Divider with same styling as Quick Action dividers */}
+        <div className="px-4">
+          <div className="border-t border-gray-700/50 dark:border-white/10 mb-2"></div>
+        </div>
+        
+        {/* User Profile section with proper vertical centering */}
+        <div className="flex items-center min-h-[80px]"> {/* Fixed height container with flexbox centering */}
+          {!sidebarCollapsed ? (
+            <div className="flex items-center cursor-pointer px-4 w-full">
+              <div className="w-8 h-8 rounded-full bg-blue-300 dark:bg-blue-500/70 flex items-center justify-center text-blue-800 dark:text-white text-sm font-medium mr-3 shadow-sm">
+                M
+              </div>
+              <div>
+                <p className="text-sm font-medium tracking-wider profile-name">CPT Rodriguez, Michael</p>
+                <p className="text-xs tracking-wide text-gray-400">Company Commander</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center w-full">
+              <div className="w-8 h-8 rounded-full bg-blue-300 dark:bg-blue-500/70 flex items-center justify-center text-blue-800 dark:text-white text-sm font-medium cursor-pointer shadow-sm">
+                M
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Divider with same styling as Quick Action dividers */}
+        <div className="px-4">
+          <div className="border-t border-gray-700/50 dark:border-white/10 mb-2"></div>
         </div>
         
         {/* Main navigation section */}
-        <div className="flex-1 space-y-1 p-4">
+        <div className="flex-1 space-y-1 py-2 px-4">
           {/* Main navigation items */}
           {navItems.map((item) => 
             item.onClick ? (
@@ -198,14 +233,28 @@ const Sidebar = ({
           {/* Footer divider */}
           <div className="border-t border-gray-700/50 dark:border-white/10 my-3"></div>
           
-          {/* QR Scanner button */}
+          {/* QR Scanner button - Mobile */}
           <div 
             key={qrScanAction.path}
             onClick={() => handleLinkClick(qrScanAction.onClick)}
-            className="sidebar-item bg-venture-purple/10 hover:bg-venture-purple/20"
+            className="flex items-center justify-center bg-blue-300 hover:bg-blue-400 text-blue-800 dark:bg-blue-500/70 dark:hover:bg-blue-500/90 dark:text-white rounded-md py-2 px-4 cursor-pointer transition-colors border-0"
           >
-            {qrScanAction.icon}
-            <span>{qrScanAction.label}</span>
+            <QrCode className="h-4 w-4 mr-1.5" />
+            <span className="text-xs uppercase tracking-wider">Scan QR Code</span>
+          </div>
+          
+          {/* Mobile version - Notification Item */}
+          <div 
+            className="sidebar-item relative cursor-pointer"
+            onClick={handleNotificationClick}
+          >
+            <Bell className="sidebar-item-icon" />
+            <span>Notifications</span>
+            {unreadCount > 0 && (
+              <span className="absolute inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-red-600 rounded-full top-1/2 right-1 transform -translate-y-1/2">
+                {unreadCount}
+              </span>
+            )}
           </div>
           
           {/* Settings link */}
@@ -254,7 +303,7 @@ const Sidebar = ({
   return (
     <aside className={`sidebar hidden md:flex flex-col ${sidebarCollapsed ? 'collapsed' : ''}`}>
       {/* Header - Logo */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+      <div className="p-6">
         {!sidebarCollapsed ? (
           <div 
             className="flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
@@ -271,11 +320,16 @@ const Sidebar = ({
         )}
       </div>
       
-      {/* User Profile section after logo */}
-      <div className="py-3 px-4 border-b border-gray-700/50 dark:border-white/10">
+      {/* Divider with same styling as Quick Action dividers */}
+      <div className="px-2">
+        <div className="border-t border-gray-700/50 dark:border-white/10"></div>
+      </div>
+      
+      {/* User Profile section with proper vertical centering */}
+      <div className="flex items-center min-h-[80px]"> {/* Fixed height container with flexbox centering */}
         {!sidebarCollapsed ? (
-          <div className="flex items-center cursor-pointer">
-            <div className="w-8 h-8 rounded-full bg-venture-purple flex items-center justify-center text-white text-sm font-medium mr-3">
+          <div className="flex items-center cursor-pointer px-4 w-full">
+            <div className="w-8 h-8 rounded-full bg-blue-300 dark:bg-blue-500/70 flex items-center justify-center text-blue-800 dark:text-white text-sm font-medium mr-3 shadow-sm">
               M
             </div>
             <div>
@@ -284,17 +338,22 @@ const Sidebar = ({
             </div>
           </div>
         ) : (
-          <div className="flex justify-center">
-            <div className="w-8 h-8 rounded-full bg-venture-purple flex items-center justify-center text-white text-sm font-medium cursor-pointer">
+          <div className="flex justify-center w-full">
+            <div className="w-8 h-8 rounded-full bg-blue-300 dark:bg-blue-500/70 flex items-center justify-center text-blue-800 dark:text-white text-sm font-medium cursor-pointer shadow-sm">
               M
             </div>
           </div>
         )}
       </div>
       
+      {/* Divider with same styling as Quick Action dividers */}
+      <div className="px-2">
+        <div className="border-t border-gray-700/50 dark:border-white/10 mb-2"></div>
+      </div>
+      
       <div className="flex flex-col flex-1">
         {/* Main navigation items section */}
-        <nav className={`flex-1 px-2 py-4 space-y-1 overflow-y-auto ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        <nav className={`flex-1 px-2 pt-1 pb-4 space-y-1 overflow-y-auto ${sidebarCollapsed ? 'collapsed' : ''}`}>
           {navItems.map((item) => 
             item.onClick ? (
               <div 
@@ -330,44 +389,76 @@ const Sidebar = ({
         </nav>
         
         {/* Bottom action links section */}
-        <div className={`mt-auto px-2 pt-2 pb-4 space-y-3 ${sidebarCollapsed ? 'text-center' : ''}`}>
-          {/* Divider before quick actions */}
-          <div className="border-t border-gray-700/50 dark:border-white/10 my-3"></div>
+        <div className={`mt-auto px-2 pt-2 pb-4 ${sidebarCollapsed ? 'text-center' : ''}`}>
+          {/* First divider */}
+          <div className="border-t border-gray-700/50 dark:border-white/10 mb-2"></div>
           
-          {/* QR Scanner button */}
-          <div 
-            key={qrScanAction.path}
-            onClick={() => handleLinkClick(qrScanAction.onClick)}
-            className={`sidebar-item ${isActive(qrScanAction.path) ? "active" : ""} bg-venture-purple/10 hover:bg-venture-purple/20`}
-          >
-            {qrScanAction.icon}
-            {!sidebarCollapsed && <span className="text-nav-item">{qrScanAction.label}</span>}
+          {/* Make QR Scanner look like an action button distinct from regular nav items */}
+          <div className="px-2 mb-2">
+            <div 
+              key={`desktop-${qrScanAction.path}`}
+              onClick={() => handleLinkClick(qrScanAction.onClick)}
+              className={cn(
+                "flex items-center justify-center bg-blue-300 hover:bg-blue-400 text-blue-800 dark:bg-blue-500/70 dark:hover:bg-blue-500/90 dark:text-white rounded-md py-2 cursor-pointer transition-colors border-0",
+                sidebarCollapsed ? "px-2.5" : "px-4" // Slightly more horizontal padding when collapsed
+              )}
+            >
+              <QrCode className={cn(
+                "h-4 w-4",
+                !sidebarCollapsed && "mr-1.5", // Only add right margin when NOT collapsed
+                sidebarCollapsed && "mx-auto" // Center the icon when collapsed
+              )} />
+              {!sidebarCollapsed && <span className="text-xs uppercase tracking-wider">Scan QR Code</span>}
+            </div>
           </div>
           
-          {/* Settings link */}
-          <Link href={settingsAction.path}>
-            <div
-              className={`sidebar-item ${isActive(settingsAction.path) ? "active" : ""}`}
-              onClick={() => handleLinkClick()}
+          {/* Navigation items group - styled as regular sidebar items */}
+          <div className="mb-2">
+            {/* Desktop version - Notification Item */}
+            <div 
+              className="sidebar-item relative cursor-pointer"
+              onClick={handleNotificationClick}
+              title="Notifications"
             >
-              {settingsAction.icon}
-              {!sidebarCollapsed && <span className="text-nav-item">{settingsAction.label}</span>}
+              <Bell className="sidebar-item-icon" />
+              {!sidebarCollapsed && <span className="text-nav-item">Notifications</span>}
+              {unreadCount > 0 && (
+                <span className={cn(
+                  "absolute inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-red-600 rounded-full",
+                  sidebarCollapsed 
+                    ? "top-0 right-0 transform translate-x-1/2 -translate-y-1/2" 
+                    : "top-1/2 right-1 transform -translate-y-1/2" // Centered vertically and moved closer
+                )}>
+                  {unreadCount}
+                </span>
+              )}
             </div>
-          </Link>
+            
+            {/* Settings link */}
+            <Link href={settingsAction.path}>
+              <div
+                className={`sidebar-item ${isActive(settingsAction.path) ? "active" : ""}`}
+                onClick={() => handleLinkClick()}
+              >
+                {settingsAction.icon}
+                {!sidebarCollapsed && <span className="text-nav-item">{settingsAction.label}</span>}
+              </div>
+            </Link>
+            
+            {/* Profile link */}
+            <Link href="/profile">
+              <div
+                className={`sidebar-item ${isActive("/profile") ? "active" : ""}`}
+                onClick={() => handleLinkClick()}
+              >
+                <User className="sidebar-item-icon" />
+                {!sidebarCollapsed && <span className="text-nav-item">Profile</span>}
+              </div>
+            </Link>
+          </div>
           
-          {/* Profile link */}
-          <Link href="/profile">
-            <div
-              className={`sidebar-item ${isActive("/profile") ? "active" : ""}`}
-              onClick={() => handleLinkClick()}
-            >
-              <User className="sidebar-item-icon" />
-              {!sidebarCollapsed && <span className="text-nav-item">Profile</span>}
-            </div>
-          </Link>
-          
-          {/* Divider before controls */}
-          <div className="border-t border-gray-700/50 dark:border-white/10 my-3"></div>
+          {/* Second divider */}
+          <div className="border-t border-gray-700/50 dark:border-white/10 mb-2"></div>
           
           {/* Theme toggle and sidebar collapse buttons */}
           {!sidebarCollapsed ? (

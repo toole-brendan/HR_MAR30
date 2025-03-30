@@ -33,14 +33,14 @@ const QuickAction: React.FC<QuickActionProps> = ({
 }) => {
   return (
     <Card 
-      className={`${bgGradient} ${darkBgGradient} ${borderColor} ${darkBorderColor} cursor-pointer hover:shadow-md transition-shadow`}
+      className={`${bgGradient} ${darkBgGradient} ${borderColor} ${darkBorderColor} cursor-pointer hover:shadow-md transition-shadow rounded-none`}
       onClick={onClick}
     >
       <CardContent className="p-4 flex items-center justify-between">
         <div>
           <p className="text-sm font-medium">{label}</p>
         </div>
-        <div className={`${iconBgColor} ${darkIconBgColor} p-3 rounded-full`}>
+        <div className={`${iconBgColor} ${darkIconBgColor} p-3 rounded-none`}>
           {React.cloneElement(icon as React.ReactElement, { 
             className: `h-5 w-5 ${iconColor} ${darkIconColor}` 
           })}

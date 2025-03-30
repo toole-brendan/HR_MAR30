@@ -10,20 +10,20 @@ const RecentActivity: React.FC = () => {
   const recentActivities = activities.slice(0, 4); // Only show 4 most recent activities
 
   return (
-    <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+    <Card className="overflow-hidden border-border shadow-none bg-card">
       <div className="p-4 flex justify-between items-baseline">
         <div>
-          <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+          <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
             ACTIVITY LOG
           </div>
-          <div className="text-lg font-normal text-gray-900 dark:text-white">
+          <div className="text-lg font-normal">
             Recent blockchain activity
           </div>
         </div>
         
         <Button 
           variant="ghost" 
-          className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+          className="text-xs uppercase tracking-wider text-blue-600 dark:text-blue-400 hover:bg-transparent hover:text-blue-800 dark:hover:text-blue-300"
           onClick={() => navigate("/audit-log")}
         >
           VIEW ALL
@@ -37,7 +37,7 @@ const RecentActivity: React.FC = () => {
             <p>No activity recorded yet</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-white/5 px-4 pb-2">
+          <div className="divide-y divide-border px-4 pb-2">
             {recentActivities.map((activity) => (
               <ActivityLogItem 
                 key={activity.id}

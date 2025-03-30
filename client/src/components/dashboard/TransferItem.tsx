@@ -29,13 +29,13 @@ export function TransferItem({
       <div className="flex-1">
         <div className="flex items-center mb-1">
           {direction === 'inbound' ? (
-            <ArrowRight className="h-4 w-4 text-purple-500 mr-2" />
+            <ArrowRight className="h-4 w-4 text-blue-600 dark:text-blue-400 mr-2" />
           ) : (
-            <ArrowLeft className="h-4 w-4 text-purple-500 mr-2" />
+            <ArrowLeft className="h-4 w-4 text-blue-600 dark:text-blue-400 mr-2" />
           )}
-          <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{name}</div>
+          <div className="font-medium text-sm">{name}</div>
         </div>
-        <div className="text-xs text-gray-500 dark:text-gray-400 ml-6">
+        <div className="text-xs text-muted-foreground ml-6">
           {direction === 'inbound' 
             ? `From: ${source}` 
             : `To: ${destination}`}
@@ -47,7 +47,7 @@ export function TransferItem({
           <Button 
             variant="outline" 
             size="sm" 
-            className="h-8 bg-transparent border-purple-200 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 uppercase text-xs tracking-wider"
+            className="h-8 bg-transparent border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 uppercase text-xs tracking-wider rounded-none"
             onClick={onAccept}
           >
             Accept
@@ -55,18 +55,18 @@ export function TransferItem({
           <Button 
             variant="outline" 
             size="sm" 
-            className="h-8 bg-transparent border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 uppercase text-xs tracking-wider"
+            className="h-8 bg-transparent border-border text-muted-foreground hover:bg-muted/50 uppercase text-xs tracking-wider rounded-none"
             onClick={onDecline}
           >
             Decline
           </Button>
         </div>
       ) : status === 'pending' ? (
-        <Badge className="uppercase bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500 border border-amber-200 dark:border-amber-700/50 text-[10px] tracking-wider px-2 rounded-none">
+        <Badge className="uppercase bg-yellow-100/70 dark:bg-transparent text-yellow-700 dark:text-yellow-400 border border-yellow-600 dark:border-yellow-500 text-[10px] tracking-wider px-2 rounded-none">
           Pending
         </Badge>
       ) : (
-        <Badge className="uppercase bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-500 border border-green-200 dark:border-green-700/50 text-[10px] tracking-wider px-2 rounded-none">
+        <Badge className="uppercase bg-green-100/70 dark:bg-transparent text-green-700 dark:text-green-400 border border-green-600 dark:border-green-500 text-[10px] tracking-wider px-2 rounded-none">
           Completed
         </Badge>
       )}

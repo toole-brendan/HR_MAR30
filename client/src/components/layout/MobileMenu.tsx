@@ -6,12 +6,14 @@ interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
   openQRScanner?: () => void;
+  openNotificationPanel?: () => void;
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ 
   isOpen, 
   onClose,
-  openQRScanner
+  openQRScanner,
+  openNotificationPanel
 }) => {
   const { toggleTheme } = useApp();
   
@@ -32,6 +34,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           closeMobileMenu={onClose} 
           openQRScanner={openQRScanner}
           toggleTheme={toggleTheme}
+          openNotificationPanel={openNotificationPanel}
         />
       </div>
     </div>

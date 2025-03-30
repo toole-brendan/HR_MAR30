@@ -53,6 +53,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           openQRScanner={openScanner} 
           toggleTheme={toggleTheme}
           toggleSidebar={toggleSidebar}
+          openNotificationPanel={openNotifications}
         />
       </div>
       
@@ -61,6 +62,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         isOpen={mobileMenuOpen} 
         onClose={() => setMobileMenuOpen(false)} 
         openQRScanner={openScanner}
+        openNotificationPanel={openNotifications}
       />
       
       {/* Mobile header - visible only on mobile */}

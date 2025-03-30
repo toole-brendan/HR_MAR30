@@ -62,7 +62,7 @@ export default function Profile() {
     <div className="flex items-center gap-2">
       <Button 
         size="sm" 
-        variant="outline" 
+        variant="default"
         className="flex items-center gap-1 uppercase tracking-wider text-xs"
       >
         <FileText className="h-4 w-4" />
@@ -71,8 +71,8 @@ export default function Profile() {
       
       <Button 
         size="sm" 
-        variant="default" 
-        className="flex items-center gap-1 bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs"
+        variant="default"
+        className="flex items-center gap-1 uppercase tracking-wider text-xs"
       >
         <UserCheck className="h-4 w-4" />
         <span className="hidden sm:inline">Update Profile</span>

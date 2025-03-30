@@ -56,6 +56,9 @@ import {
 import { inventory, transfers, activities, user } from "@/lib/mockData";
 import { sensitiveItems } from "@/lib/sensitiveItemsData";
 import { maintenanceItems } from "@/lib/maintenanceData";
+import ReadinessDashboard from "@/components/reports/ReadinessDashboard";
+import ShortageAnalysis from "@/components/reports/ShortageAnalysis";
+import MockAuthorizationManager from "@/components/reports/MockAuthorizationManager";
 
 // Define mock data for reports
 const inventoryByCategory = [
@@ -205,15 +208,18 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
           </div>
           <div className="flex items-center gap-2">
             <Button 
-              variant="ghost" 
-              className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1.5"
+              variant="default"
+              size="sm"
+              className="text-xs uppercase tracking-wider flex items-center gap-1.5"
               onClick={() => handlePrintReport()}
             >
               <Printer className="h-4 w-4" />
               PRINT
             </Button>
             <Button 
-              className="text-xs uppercase tracking-wider bg-primary hover:bg-primary-600 flex items-center gap-1.5"
+              variant="default"
+              size="sm"
+              className="text-xs uppercase tracking-wider flex items-center gap-1.5"
               onClick={() => handleGenerateReport("Custom")}
             >
               <FileText className="h-4 w-4" />
@@ -222,15 +228,17 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
           </div>
         </div>
       </div>
-      <Tabs defaultValue="dashboard" onValueChange={setActiveTab}>
+      <Tabs defaultValue="dashboard" onValueChange={setActiveTab} value={activeTab}>
           <div className="mb-6">
             <div className="text-xs uppercase tracking-wider font-medium mb-4 text-muted-foreground">
               REPORT CATEGORIES
             </div>
-            <TabsList className="grid grid-cols-5 w-full rounded-none bg-gray-50 dark:bg-white/5 h-10">
+            <TabsList className="grid grid-cols-7 w-full rounded-none bg-gray-50 dark:bg-white/5 h-10">
               <TabsTrigger value="dashboard" className="uppercase tracking-wider text-xs font-medium rounded-none">DASHBOARD</TabsTrigger>
               <TabsTrigger value="inventory" className="uppercase tracking-wider text-xs font-medium rounded-none">INVENTORY</TabsTrigger>
               <TabsTrigger value="transfers" className="uppercase tracking-wider text-xs font-medium rounded-none">TRANSFERS</TabsTrigger>
+              <TabsTrigger value="readiness" className="uppercase tracking-wider text-xs font-medium rounded-none">READINESS</TabsTrigger>
+              <TabsTrigger value="shortages" className="uppercase tracking-wider text-xs font-medium rounded-none">SHORTAGES</TabsTrigger>
               <TabsTrigger value="sensitive" className="uppercase tracking-wider text-xs font-medium rounded-none">SENSITIVE</TabsTrigger>
               <TabsTrigger value="custom" className="uppercase tracking-wider text-xs font-medium rounded-none">CUSTOM</TabsTrigger>
             </TabsList>
@@ -683,6 +691,11 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
             </Card>
           </TabsContent>
 
+          {/* Readiness Tab Content - Added */}
+          <TabsContent value="readiness">
+             <ReadinessDashboard />
+          </TabsContent>
+
           {/* Sensitive Items Reports */}
           <TabsContent value="sensitive">
             <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black mb-6">
@@ -784,6 +797,14 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Shortages Tab Content - Added Manager */}
+          <TabsContent value="shortages" className="space-y-6">
+             {/* Render Manager first */}
+             <MockAuthorizationManager />
+             {/* Then render Analysis */}
+             <ShortageAnalysis />
           </TabsContent>
 
           {/* Custom Reports */}

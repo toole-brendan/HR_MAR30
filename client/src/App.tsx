@@ -3,6 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
 import { AppProvider } from "@/context/AppContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotFound from "@/pages/not-found";
 import AppShell from "./components/layout/AppShell";
 import Dashboard from "./pages/Dashboard";
@@ -21,6 +22,8 @@ import Login from "./pages/Login";
 import { queryClient } from "./lib/queryClient";
 import { useState, useEffect, useMemo } from "react";
 import { BASE_PATH } from "./lib/queryClient";
+import { saveInventoryItemsToDB, getInventoryItemsFromDB } from "./lib/idb";
+import { inventory as mockInventory } from "./lib/mockData";
 
 // Define interfaces for component props with ID parameters
 interface ItemPageProps {
@@ -114,14 +117,38 @@ function App() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
+  // --- Load Initial Data into IndexedDB ---
+  useEffect(() => {
+    const initializeInventoryDB = async () => {
+      try {
+        console.log("Checking IndexedDB for inventory data...");
+        const itemsInDB = await getInventoryItemsFromDB();
+        if (itemsInDB.length === 0) {
+          console.log("IndexedDB is empty, populating with mock inventory data...");
+          await saveInventoryItemsToDB(mockInventory);
+          console.log("Mock inventory data saved to IndexedDB.");
+        } else {
+          console.log(`${itemsInDB.length} items already found in IndexedDB.`);
+        }
+      } catch (error) {
+        console.error("Error initializing inventory in IndexedDB:", error);
+      }
+    };
+
+    initializeInventoryDB();
+  }, []); // Empty dependency array ensures this runs only once on mount
+  // --- End Load Initial Data ---
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppProvider>
-          <WouterRouter>
-            <Router />
-          </WouterRouter>
-          <Toaster />
+          <NotificationProvider>
+            <WouterRouter>
+              <Router />
+            </WouterRouter>
+            <Toaster />
+          </NotificationProvider>
         </AppProvider>
       </AuthProvider>
     </QueryClientProvider>

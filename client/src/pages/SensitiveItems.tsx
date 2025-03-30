@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import {
   Card,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -22,24 +23,25 @@ import { PageWrapper } from "@/components/ui/page-wrapper";
 import { Separator } from "@/components/ui/separator";
 import QRCodeGenerator from "@/components/common/QRCodeGenerator";
 import TransferRequestModal from "@/components/modals/TransferRequestModal";
-import { StandardPageLayout } from "@/components/layout/StandardPageLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useAuth } from "@/context/AuthContext";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-import { 
-  Search, 
-  Filter, 
-  Clock, 
-  ShieldAlert, 
-  AlertTriangle, 
-  ClipboardCheck, 
-  CheckCircle, 
-  XCircle, 
-  Radio, 
-  Eye, 
-  Key, 
-  Calendar, 
-  Clock12, 
+import {
+  Search,
+  Filter,
+  Clock,
+  ShieldAlert,
+  AlertTriangle,
+  ClipboardCheck,
+  CheckCircle,
+  XCircle,
+  Radio,
+  Eye,
+  Key,
+  Calendar,
+  Clock12,
   ArrowUpRight,
   ArrowRight,
   Printer,
@@ -51,21 +53,107 @@ import {
   ScanLine,
   Info,
   Sword,
+  ListFilter,
+  RotateCcw,
+  ArrowRightLeft,
+  Headphones,
+  Package,
+  QrCode,
 } from "lucide-react";
 
-import { 
-  sensitiveItems, 
-  sensitiveItemCategories, 
-  verificationLogs, 
+import {
+  sensitiveItems,
+  sensitiveItemCategories,
+  verificationLogs,
   verificationSchedule,
   sensitiveItemsStats,
   SensitiveItem,
-  VerificationLog 
+  VerificationLog
 } from "@/lib/sensitiveItemsData";
+import { cn } from "@/lib/utils";
 
 interface SensitiveItemsProps {
   id?: string;
 }
+
+const StatusBadgeComponent = ({ status }: { status: string | undefined }) => {
+  const statusKey = status || 'not-verified';
+  
+  // Style mapping for each status type
+  const statusStyles: Record<string, { textColor: string; borderColor: string; bgColor: string; label: string }> = {
+    verified: { 
+      textColor: "text-green-700 dark:text-green-400",
+      borderColor: "border-green-600 dark:border-green-500",
+      bgColor: "bg-green-100/70 dark:bg-transparent",
+      label: "VERIFIED"
+    },
+    pending: { 
+      textColor: "text-yellow-700 dark:text-yellow-400",
+      borderColor: "border-yellow-600 dark:border-yellow-500",
+      bgColor: "bg-yellow-100/70 dark:bg-transparent",
+      label: "PENDING"
+    },
+    overdue: { 
+      textColor: "text-red-700 dark:text-red-400",
+      borderColor: "border-red-600 dark:border-red-500",
+      bgColor: "bg-red-100/70 dark:bg-transparent",
+      label: "OVERDUE" 
+    },
+    'not-verified': { 
+      textColor: "text-blue-700 dark:text-blue-400", 
+      borderColor: "border-blue-600 dark:border-blue-500",
+      bgColor: "bg-blue-100/70 dark:bg-transparent",
+      label: "NOT VERIFIED"
+    },
+    active: { 
+      textColor: "text-blue-700 dark:text-blue-400",
+      borderColor: "border-blue-600 dark:border-blue-500",
+      bgColor: "bg-blue-100/70 dark:bg-transparent",
+      label: "ACTIVE"
+    },
+    maintenance: { 
+      textColor: "text-orange-700 dark:text-orange-400",
+      borderColor: "border-orange-600 dark:border-orange-500",
+      bgColor: "bg-orange-100/70 dark:bg-transparent",
+      label: "MAINTENANCE"
+    },
+    transferred: { 
+      textColor: "text-purple-700 dark:text-purple-400",
+      borderColor: "border-purple-600 dark:border-purple-500",
+      bgColor: "bg-purple-100/70 dark:bg-transparent",
+      label: "TRANSFERRED"
+    }
+  };
+
+  // Default to not-verified if status doesn't exist in our mapping
+  const style = statusStyles[statusKey] || statusStyles['not-verified'];
+  
+  return (
+    <Badge className={`uppercase ${style.bgColor} ${style.textColor} border ${style.borderColor} text-[10px] tracking-[0.3em] font-medium px-2 py-0.5 rounded-none`}>
+      {style.label}
+    </Badge>
+  );
+};
+
+// Helper for Category Cell (Item 3)
+const CategoryCell = ({ category }: { category: SensitiveItem['category'] }) => {
+  const categoryMap: Record<SensitiveItem['category'], { icon: React.ReactNode; colorClasses: string; name: string }> = {
+    weapon: { icon: <Sword className="h-4 w-4" />, colorClasses: "text-red-600 dark:text-red-500", name: "Weapon" },
+    communication: { icon: <Headphones className="h-4 w-4" />, colorClasses: "text-blue-600 dark:text-blue-400", name: "Communication" },
+    optics: { icon: <Eye className="h-4 w-4" />, colorClasses: "text-green-600 dark:text-green-500", name: "Optics" },
+    crypto: { icon: <Key className="h-4 w-4" />, colorClasses: "text-purple-600 dark:text-purple-400", name: "Crypto" },
+    other: { icon: <Package className="h-4 w-4" />, colorClasses: "text-gray-600 dark:text-gray-400", name: "Other" },
+  };
+
+  const { icon, colorClasses, name } = categoryMap[category] || categoryMap['other']; // Default to other
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className={cn(colorClasses)}>{icon}</span>
+      <span className="capitalize">{name}</span> {/* Display capitalized name */} 
+    </div>
+  );
+};
 
 const SensitiveItems: React.FC<SensitiveItemsProps> = ({ id }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -76,40 +164,52 @@ const SensitiveItems: React.FC<SensitiveItemsProps> = ({ id }) => {
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
   const [showQRDialog, setShowQRDialog] = useState(false);
   const [showVerifyDialog, setShowVerifyDialog] = useState(false);
-  const [tabValue, setTabValue] = useState("inventory");
+  const [assignmentTab, setAssignmentTab] = useState<'me' | 'others' | 'unassigned'>('me');
   const isMobile = useIsMobile();
   const { toast } = useToast();
-  
-  // If an ID is provided, find and show the specific sensitive item
+  const { user } = useAuth();
+  const currentUserName = user?.name ?? "";
+  const currentUserFormattedName = "CPT Rodriguez, Michael"; // Define the desired display format
+
   useEffect(() => {
     if (id) {
       const item = sensitiveItems.find(item => item.id === id);
       if (item) {
-        // Show details of the specific item
         setSelectedItem(item);
         setDetailsModalOpen(true);
       }
     }
   }, [id]);
   
-  // Filter sensitive items based on search term and filters
-  const filteredItems = sensitiveItems.filter(item => {
-    const matchesSearch = 
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.serialNumber.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = filterCategory === "all" || item.category === filterCategory;
-    const matchesStatus = filterStatus === "all" || item.status === filterStatus;
-    
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+  const filteredItems = useMemo(() => {
+    return sensitiveItems.filter(item => {
+      const matchesSearch = 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.serialNumber.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCategory = filterCategory === "all" || item.category === filterCategory;
+      const matchesStatus = filterStatus === "all" || item.status === filterStatus;
+      
+      let matchesAssignment = false;
+      const assignedTo = item.assignedTo;
+      const isAssigned = !!(assignedTo && assignedTo.trim() !== "");
 
-  // Get verification logs for a specific item
+      if (assignmentTab === 'me') {
+        matchesAssignment = isAssigned && assignedTo === currentUserName;
+      } else if (assignmentTab === 'others') {
+        matchesAssignment = isAssigned && assignedTo !== currentUserName;
+      } else if (assignmentTab === 'unassigned') {
+        matchesAssignment = !isAssigned;
+      }
+
+      return matchesSearch && matchesCategory && matchesStatus && matchesAssignment;
+    });
+  }, [searchTerm, filterCategory, filterStatus, assignmentTab, currentUserName]);
+
   const getItemVerificationLogs = (itemId: string): VerificationLog[] => {
     return verificationLogs.filter(log => log.itemId === itemId);
   };
 
-  // Handler for opening verification modal
   const handleStartVerification = () => {
     setVerificationModalOpen(true);
     toast({
@@ -118,7 +218,6 @@ const SensitiveItems: React.FC<SensitiveItemsProps> = ({ id }) => {
     });
   };
 
-  // Handler for marking an item as verified
   const handleVerifyItem = (item: SensitiveItem) => {
     toast({
       title: "Item Verified",
@@ -127,674 +226,504 @@ const SensitiveItems: React.FC<SensitiveItemsProps> = ({ id }) => {
     });
   };
 
-  // Handler for viewing item details
   const handleViewDetails = (item: SensitiveItem) => {
     setSelectedItem(item);
     setDetailsModalOpen(true);
   };
 
-  // Page actions
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilterCategory("all");
+    setFilterStatus("all");
+    toast({
+      title: "Filters Cleared",
+      description: "Showing all sensitive items.",
+    });
+  };
+
+  // Renamed helper function for date part
+  const formatMilitaryDateOnly = (date: Date | string | undefined): string => {
+    if (!date) return 'N/A';
+    // If the input is already in ddMMMyyyy format, try to parse it back, otherwise assume it's a Date object or standard string
+    // Basic check - this might need refinement if date strings vary wildly
+    let dateObj: Date;
+    if (typeof date === 'string' && /^[0-9]{2}[A-Z]{3}[0-9]{4}$/.test(date)) {
+       // Attempt to parse ddMMMyyyy - requires careful handling
+       // For simplicity with mock data, we might assume it's passed correctly or rely on logs
+       // Let's assume for now it might be a standard date string or Date object for parsing robustness
+       try { dateObj = new Date(date); } catch { return 'Invalid Date'; }
+    } else if (typeof date === 'string') {
+       try { dateObj = new Date(date); } catch { return 'Invalid Date'; }
+    } else {
+      dateObj = date;
+    }
+    
+    if (isNaN(dateObj.getTime())) return 'Invalid Date'; // Check if date is valid
+    
+    try {
+      const day = format(dateObj, 'dd');
+      const month = format(dateObj, 'MMM').toUpperCase();
+      const year = format(dateObj, 'yyyy');
+      return `${day}${month}${year}`;
+    } catch (error) { // Catch potential date-fns errors
+      console.error("Error formatting date:", error);
+      return 'Invalid Date';
+    }
+  };
+
+  // Helper to find the latest verification time from logs
+  const findLatestVerificationTime = (itemId: string): string => {
+    const logsForItem = verificationLogs
+      .filter(log => log.itemId === itemId && log.status === 'verified') // Only consider successful verifications
+      .sort((a, b) => { 
+          // Combine date and time for proper sorting - assumes YYYY-MM-DD format for date
+          const dateTimeA = new Date(`${a.date}T${a.time}:00`);
+          const dateTimeB = new Date(`${b.date}T${b.time}:00`);
+          // Handle potential invalid dates during sorting
+          if (isNaN(dateTimeA.getTime()) || isNaN(dateTimeB.getTime())) return 0; 
+          return dateTimeB.getTime() - dateTimeA.getTime(); // Sort descending
+      });
+      
+    if (logsForItem.length > 0) {
+      // Format time as HHMM
+      return logsForItem[0].time.replace(':', ''); 
+    } 
+    return 'N/A'; // Return N/A if no verified log found
+  };
+
   const actions = (
-    <div className="flex items-center gap-2">
-      <Button 
-        size="sm" 
-        variant="outline" 
-        onClick={handleStartVerification}
-        className="flex items-center gap-1 uppercase tracking-wider text-xs"
+    <div className="flex flex-wrap items-center gap-2">
+      <Button
+        size="sm"
+        variant="blue"
+        onClick={() => setShowQRDialog(true)}
+        className="h-9 px-3 flex items-center gap-1.5"
+      >
+        <QrCode className="h-4 w-4" />
+        <span className="text-xs uppercase tracking-wider">Scan QR Code</span>
+      </Button>
+
+      <Button
+        size="sm"
+        variant="blue"
+        onClick={() => setShowVerifyDialog(true)}
+        className="h-9 px-3 flex items-center gap-1.5"
       >
         <ClipboardCheck className="h-4 w-4" />
-        <span className="hidden sm:inline">Start Verification</span>
+        <span className="text-xs uppercase tracking-wider">Verify Items</span>
       </Button>
-      <Button 
-        size="sm" 
-        variant="default" 
-        className="flex items-center gap-1 bg-primary hover:bg-primary-600 uppercase tracking-wider text-xs"
-      >
-        <Plus className="h-4 w-4" />
-        <span className="hidden sm:inline">Add Item</span>
-      </Button>
-      <Button 
-        variant="ghost" 
+
+      <Button
+        variant="blue"
         size="sm"
-        className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1.5"
+        className="h-9 px-3 flex items-center gap-1.5"
         onClick={() => {
           toast({
-            title: "Export Generated",
-            description: "Sensitive items report has been generated"
+            title: "Report Generated",
+            description: "Sensitive items report has been exported"
           });
         }}
       >
         <FileText className="h-4 w-4" />
-        EXPORT REPORT
+        <span className="text-xs uppercase tracking-wider">Export Report</span>
       </Button>
     </div>
   );
 
   return (
     <PageWrapper withPadding={true}>
-      {/* Header section with 8VC style formatting */}
-      <div className="pt-16 pb-10">
-        {/* Category label - Small all-caps category label */}
+      <div className="pt-16 pb-12">
         <div className="text-xs uppercase tracking-wider mb-1 text-muted-foreground font-medium">
           SECURITY
         </div>
         
-        {/* Main title - following 8VC typography */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-light tracking-tight mb-1">Sensitive Items</h1>
-            <p className="text-sm text-muted-foreground">Track, verify, and manage sensitive military equipment</p>
+            <p className="text-sm text-muted-foreground max-w-xl">
+              Track, verify, and manage sensitive military equipment requiring special handling and accountability.
+            </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={() => setShowQRDialog(true)}
-              className="h-9 px-3 flex items-center gap-1.5 bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-md"
-            >
-              <ScanLine className="h-4 w-4" />
-              <span className="text-xs">SCAN QR</span>
-            </Button>
-            
-            <Button 
-              size="sm" 
-              variant="default" 
-              onClick={() => setShowVerifyDialog(true)}
-              className="h-9 px-3 flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 rounded-md"
-            >
-              <ClipboardCheck className="h-4 w-4" />
-              <span className="text-xs">VERIFY ITEMS</span>
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="h-9 px-3 text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1.5"
-              onClick={() => {
-                toast({
-                  title: "Report Generated",
-                  description: "Sensitive items report has been exported"
-                });
-              }}
-            >
-              <FileText className="h-4 w-4" />
-              <span className="text-xs">EXPORT REPORT</span>
-            </Button>
-          </div>
+          {actions}
         </div>
       </div>
 
-      {/* Status Summary Cards - in 8VC style */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+        <Card className="border-border shadow-sm bg-card transition-colors">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400">
+              <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground">
                 VERIFIED TODAY
               </div>
-              <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-sm">
-                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-500" />
+              <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-md">
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
             </div>
-            <div className="text-2xl font-light tracking-tight">{sensitiveItemsStats.verifiedToday}/{sensitiveItemsStats.totalItems}</div>
-            <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Last full check: {sensitiveItemsStats.lastFullVerification}</p>
+            <div className="text-2xl font-light tracking-tight text-black dark:text-white">
+              {sensitiveItemsStats.verifiedToday}/{sensitiveItemsStats.totalItems}
+            </div>
+            <p className="text-xs tracking-wide text-muted-foreground mt-0.5">
+              Last full check: {sensitiveItemsStats.lastFullVerification}
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+        <Card className="border-border shadow-sm bg-card transition-colors">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400">
+              <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground">
                 PENDING VERIFICATION
               </div>
-              <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-sm">
-                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+              <div className="p-1.5 bg-yellow-100 dark:bg-yellow-900/30 rounded-md">
+                <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
               </div>
             </div>
-            <div className="text-2xl font-light tracking-tight">{sensitiveItemsStats.pendingVerification}</div>
-            <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Due: Today 1800hrs</p>
+            <div className="text-2xl font-light tracking-tight text-black dark:text-white">
+              {sensitiveItemsStats.pendingVerification}
+            </div>
+             <p className="text-xs tracking-wide text-muted-foreground mt-0.5">
+              Requires attention
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
+        <Card className="border-border shadow-sm bg-card transition-colors">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400">
-                HIGH-RISK ITEMS
+              <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground">
+                NEXT SCHEDULED CHECK
               </div>
-              <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-sm">
-                <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-500" />
-              </div>
-            </div>
-            <div className="text-2xl font-light tracking-tight">{sensitiveItemsStats.highRiskItems}</div>
-            <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Verification: Twice Daily</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400">
-                COMPLIANCE STATUS
-              </div>
-              <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-sm">
-                <ShieldAlert className="h-4 w-4 text-blue-600 dark:text-blue-500" />
+               <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-md">
+                <CalendarClock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
-            <div className="text-2xl font-light tracking-tight">{sensitiveItemsStats.verificationCompliance}</div>
-            <p className="text-xs tracking-wide text-muted-foreground mt-0.5">All items accounted for</p>
+            <div className="text-2xl font-light tracking-tight text-black dark:text-white">
+               {verificationSchedule.length > 0 ? formatMilitaryDateOnly(verificationSchedule[0].date) : 'N/A'}
+            </div>
+            <p className="text-xs tracking-wide text-muted-foreground mt-0.5">
+              Check schedule for details
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Content Tabs */}
-      <Tabs 
-        defaultValue="inventory" 
-        value={tabValue} 
-        onValueChange={setTabValue}
-        className="w-full"
-      >
-        <TabsList className="grid grid-cols-4 mb-6 rounded-none bg-gray-50 dark:bg-white/5 h-10">
-          <TabsTrigger value="inventory" className="uppercase tracking-wider text-xs font-medium rounded-none">
-            Inventory
-          </TabsTrigger>
-          <TabsTrigger value="categories" className="uppercase tracking-wider text-xs font-medium rounded-none">
-            Categories
-          </TabsTrigger>
-          <TabsTrigger value="verification" className="uppercase tracking-wider text-xs font-medium rounded-none">
-            Verification
-          </TabsTrigger>
-          <TabsTrigger value="logs" className="uppercase tracking-wider text-xs font-medium rounded-none">
-            Logs
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Inventory Tab */}
-        <TabsContent value="inventory" className="space-y-6">
-          {/* Filters Section with 8VC styling */}
-          <div className="mb-6">
-            <div className="text-xs uppercase tracking-wider font-medium text-muted-foreground mb-4">
-              SEARCH & FILTERS
+      <Card className="mb-8 border-border shadow-sm bg-card">
+        <CardContent className="p-4 flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex-grow w-full sm:w-auto">
+            <Label htmlFor="search-items" className="sr-only">Search</Label>
+            <div className="relative">
+               <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+               <Input
+                id="search-items"
+                type="search"
+                placeholder="Search by name or serial number..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 w-full"
+              />
             </div>
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Input
-                  placeholder="Search by name or serial number"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none"
-                />
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="w-full md:w-64">
-                <Select value={filterCategory} onValueChange={setFilterCategory}>
-                  <SelectTrigger className="bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none">
-                    <SelectValue placeholder="Filter by category" />
+          </div>
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+             <div className="flex-1">
+               <Label htmlFor="filter-category" className="sr-only">Category</Label>
+               <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger id="filter-category" className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by Category" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="weapon">Weapons</SelectItem>
-                    <SelectItem value="communication">Communications</SelectItem>
-                    <SelectItem value="optics">Optical Systems</SelectItem>
-                    <SelectItem value="crypto">Cryptographic</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    {sensitiveItemCategories.map(category => (
+                      <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="w-full md:w-64">
+             </div>
+             <div className="flex-1">
+                <Label htmlFor="filter-status" className="sr-only">Status</Label>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none">
-                    <SelectValue placeholder="Filter by status" />
+                  <SelectTrigger id="filter-status" className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="verified">Verified</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="maintenance">In Maintenance</SelectItem>
-                    <SelectItem value="transferred">Transferred</SelectItem>
+                    <SelectItem value="overdue">Overdue</SelectItem>
+                    <SelectItem value="not-verified">Not Verified</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
+             </div>
           </div>
+           <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              title="Clear Filters"
+            >
+              <RotateCcw className="h-4 w-4 mr-1" />
+              Clear
+            </Button>
+        </CardContent>
+      </Card>
 
-          {/* Sensitive Items List Card with 8VC styling */}
-          <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-            <div className="p-4 flex justify-between items-baseline">
-              <div>
-                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
-                  SENSITIVE ITEMS
-                </div>
-                <div className="text-lg font-normal text-gray-900 dark:text-white">
-                  Inventory Listing
-                </div>
-              </div>
-              
-              <Button 
-                variant="ghost" 
-                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
-                onClick={() => {}}
-              >
-                PRINT INVENTORY
-              </Button>
-            </div>
-            
-            <CardContent className="p-0">
-              <div className="divide-y divide-gray-100 dark:divide-white/5 px-4">
-                {filteredItems.length === 0 ? (
-                  <div className="py-4 text-center text-gray-500 dark:text-gray-400">No items found</div>
-                ) : (
-                  filteredItems.map((item) => {
-                    // Define icon based on category
-                    let CategoryIcon = Filter;
-                    switch (item.category) {
-                      case 'weapon': CategoryIcon = Sword; break;
-                      case 'communication': CategoryIcon = Radio; break;
-                      case 'optics': CategoryIcon = Eye; break;
-                      case 'crypto': CategoryIcon = Key; break;
-                      default: CategoryIcon = Filter;
-                    }
+      <Tabs 
+        value={assignmentTab} 
+        onValueChange={(value) => setAssignmentTab(value as 'me' | 'others' | 'unassigned')} 
+        className="w-full mb-6"
+      >
+        <TabsList className="grid w-full grid-cols-3 h-10 border rounded-none">
+          <TabsTrigger value="me" className="text-xs uppercase tracking-wider">Assigned to Me</TabsTrigger>
+          <TabsTrigger value="others" className="text-xs uppercase tracking-wider">Signed Down to Others</TabsTrigger>
+          <TabsTrigger value="unassigned" className="text-xs uppercase tracking-wider">Unassigned</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
-                    // Define status color and text
-                    let statusColor = "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
-                    let statusText = "Active";
-                    
-                    switch (item.status) {
-                      case 'pending':
-                        statusColor = "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400";
-                        statusText = "Pending";
-                        break;
-                      case 'maintenance':
-                        statusColor = "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
-                        statusText = "Maintenance";
-                        break;
-                      case 'transferred':
-                        statusColor = "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400";
-                        statusText = "Transferred";
-                        break;
-                    }
+      <TooltipProvider>
+        {isMobile ? (
+          <div className="space-y-4">
+            {filteredItems.length > 0 ? (
+              filteredItems.map((item) => {
+                 // Get date and time separately for the cell
+                 const lastVerifiedDateStr = formatMilitaryDateOnly(item.lastVerified);
+                 const lastVerifiedTimeStr = findLatestVerificationTime(item.id);
 
-                    // Define security level color
-                    let securityColor = "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
-                    switch (item.securityLevel) {
-                      case 'routine':
-                        securityColor = "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
-                        break;
-                      case 'controlled':
-                        securityColor = "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
-                        break;
-                      case 'classified':
-                        securityColor = "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400";
-                        break;
-                      case 'secret':
-                        securityColor = "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400";
-                        break;
-                      case 'top-secret':
-                        securityColor = "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400";
-                        break;
-                    }
+                 // Determine display name for the Assigned To column
+                 const displayAssignedTo = item.assignedTo === currentUserName 
+                                           ? currentUserFormattedName 
+                                           : item.assignedTo || "-";
 
-                    return (
-                      <div key={item.id} className="py-3 hover:bg-gray-50 dark:hover:bg-white/5">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          <div className="flex items-start gap-3">
-                            <div className={`h-10 w-10 rounded-none flex items-center justify-center text-white
-                              ${item.category === 'weapon' ? 'bg-red-600 dark:bg-red-700' : ''}
-                              ${item.category === 'communication' ? 'bg-blue-600 dark:bg-blue-700' : ''}
-                              ${item.category === 'optics' ? 'bg-amber-600 dark:bg-amber-700' : ''}
-                              ${item.category === 'crypto' ? 'bg-purple-600 dark:bg-purple-700' : ''}
-                              ${item.category === 'other' ? 'bg-gray-600 dark:bg-gray-700' : ''}
-                            `}>
-                              <CategoryIcon className="h-5 w-5" />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-medium text-sm">{item.name}</h4>
-                                <Badge className={`text-[10px] uppercase tracking-wider rounded-none ${statusColor}`}>
-                                  {statusText}
-                                </Badge>
-                                <Badge className={`text-[10px] uppercase tracking-wider rounded-none ${securityColor}`}>
-                                  {item.securityLevel}
-                                </Badge>
-                              </div>
-                              <div className="flex flex-col sm:flex-row sm:items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                <span className="font-mono">SN: {item.serialNumber}</span>
-                                <span className="hidden sm:inline mx-2">•</span>
-                                <span>Last verified: {item.lastVerified}</span>
-                                <span className="hidden sm:inline mx-2">•</span>
-                                <span>Next check: {item.nextVerification}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 ml-auto">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleVerifyItem(item)}
-                              className="flex items-center gap-1"
-                            >
+                return (
+                  <Card key={item.id} className="overflow-hidden border-border shadow-sm bg-card transition-colors">
+                    <CardHeader className="p-4">
+                      <CardTitle className="text-base font-medium">{item.name}</CardTitle>
+                      <CardDescription className="text-xs font-mono">{item.serialNumber}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Category</Label>
+                        <div className="mt-1"><CategoryCell category={item.category} /></div>
+                      </div>
+                       <div>
+                        <Label className="text-xs text-muted-foreground">Status</Label>
+                        <div className="mt-1"><StatusBadgeComponent status={item.status} /></div>
+                      </div>
+                       <div>
+                        <Label className="text-xs text-muted-foreground">Assigned To</Label>
+                        <div className="mt-1 truncate">{displayAssignedTo}</div>
+                      </div>
+                       <div>
+                        <Label className="text-xs text-muted-foreground">Last Verified</Label>
+                        <div className="mt-1">
+                           {lastVerifiedDateStr}{lastVerifiedTimeStr !== 'N/A' ? ` ${lastVerifiedTimeStr}` : ''}
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="p-4 pt-0 flex justify-end gap-1 bg-muted/30">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 transition-colors" onClick={() => handleViewDetails(item)}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>View Details</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 transition-colors" onClick={() => handleVerifyItem(item)}>
                               <CheckCircle className="h-4 w-4 text-green-600" />
-                              <span>Verify</span>
                             </Button>
-                            <QRCodeGenerator 
-                              itemName={item.name} 
-                              serialNumber={item.serialNumber}
-                            />
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleViewDetails(item)}
-                              className="flex items-center gap-1"
-                            >
-                              <Info className="h-4 w-4" />
-                              <span>Details</span>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </CardContent>
-            <div className="px-4 py-2 border-t border-gray-100 dark:border-white/5">
-              <div className="text-xs tracking-wide text-muted-foreground">
-                Showing {filteredItems.length} of {sensitiveItems.length} items
-              </div>
-            </div>
-          </Card>
-        </TabsContent>
-
-        {/* Categories Tab */}
-        <TabsContent value="categories" className="space-y-6">
-          <div className="mb-6">
-            <div className="text-xs uppercase tracking-wider font-medium text-muted-foreground mb-4">
-              CATEGORY OVERVIEW
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sensitiveItemCategories.map(category => (
-                <Card key={category.id} className="border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
-                        {category.name}
-                      </div>
-                      <div className={`p-2 rounded-sm ${
-                        category.riskLevel === 'critical' ? 'bg-red-50 dark:bg-red-900/20' :
-                        category.riskLevel === 'high' ? 'bg-amber-50 dark:bg-amber-900/20' :
-                        category.riskLevel === 'medium' ? 'bg-blue-50 dark:bg-blue-900/20' :
-                        'bg-green-50 dark:bg-green-900/20'
-                      }`}>
-                        <div className={`h-5 w-5 ${
-                          category.riskLevel === 'critical' ? 'text-red-600 dark:text-red-500' :
-                          category.riskLevel === 'high' ? 'text-amber-600 dark:text-amber-500' :
-                          category.riskLevel === 'medium' ? 'text-blue-600 dark:text-blue-500' :
-                          'text-green-600 dark:text-green-500'
-                        }`}>
-                          {category.icon === 'weapon' ? <Sword className="h-5 w-5" /> :
-                           category.icon === 'communication' ? <Radio className="h-5 w-5" /> :
-                           category.icon === 'optics' ? <Eye className="h-5 w-5" /> :
-                           category.icon === 'crypto' ? <Key className="h-5 w-5" /> :
-                           <Filter className="h-5 w-5" />}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-2xl font-light tracking-tight">{category.count}</div>
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-xs tracking-wide text-muted-foreground">Verification: {category.verificationFrequency}</p>
-                      <Badge className={`text-[10px] uppercase tracking-wider rounded-none ${
-                        category.riskLevel === 'critical' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
-                        category.riskLevel === 'high' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400' :
-                        category.riskLevel === 'medium' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
-                        'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                      }`}>
-                        {category.riskLevel} risk
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>Mark Verified</TooltipContent>
+                        </Tooltip>
+                        <QRCodeGenerator 
+                          itemName={item.name} 
+                          serialNumber={item.serialNumber}
+                        />
+                    </CardFooter>
+                  </Card>
+                );
+              })
+            ) : (
+              <Card className="border-border shadow-sm bg-card">
+                 <CardContent className="p-10 text-center text-muted-foreground">
+                  No sensitive items match your filters.
+                </CardContent>
+              </Card>
+            )}
           </div>
-        </TabsContent>
-
-        {/* Verification Tab */}
-        <TabsContent value="verification" className="space-y-6">
-          <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-            <div className="p-4 flex justify-between items-baseline">
-              <div>
-                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
-                  VERIFICATION SCHEDULE
-                </div>
-                <div className="text-lg font-normal text-gray-900 dark:text-white">
-                  Upcoming Checks
-                </div>
-              </div>
-              
-              <Button 
-                variant="ghost" 
-                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
-                onClick={handleStartVerification}
-              >
-                START VERIFICATION
-              </Button>
-            </div>
-            
-            <CardContent className="p-0">
-              <div className="divide-y divide-gray-100 dark:divide-white/5 px-4">
-                {verificationSchedule.map((schedule, index) => (
-                  <div key={index} className="py-3 hover:bg-gray-50 dark:hover:bg-white/5">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                      <div className="flex items-center">
-                        <div className={`mr-3 p-2 rounded-sm ${
-                          schedule.status === 'completed' ? 'bg-green-50 dark:bg-green-900/20' :
-                          schedule.status === 'in-progress' ? 'bg-blue-50 dark:bg-blue-900/20' :
-                          schedule.status === 'overdue' ? 'bg-red-50 dark:bg-red-900/20' :
-                          'bg-amber-50 dark:bg-amber-900/20'
-                        }`}>
-                          {schedule.status === 'completed' ? 
-                            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-500" /> :
-                            schedule.status === 'in-progress' ? 
-                            <Clock className="h-4 w-4 text-blue-600 dark:text-blue-500" /> :
-                            schedule.status === 'overdue' ? 
-                            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-500" /> :
-                            <Calendar className="h-4 w-4 text-amber-600 dark:text-amber-500" />
-                          }
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm">{`${schedule.itemsToVerify} items to verify`}</div>
-                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                            <Calendar className="mr-1 h-3 w-3" />
-                            <span>{schedule.date}</span>
-                            <span className="mx-2">•</span>
-                            <Clock className="mr-1 h-3 w-3" />
-                            <span>{schedule.time}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={`text-[10px] uppercase tracking-wider rounded-none ${
-                          schedule.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
-                          schedule.status === 'in-progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
-                          schedule.status === 'overdue' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
-                          'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400'
-                        }`}>
-                          {schedule.status}
-                        </Badge>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="text-xs"
-                          disabled={schedule.status === 'completed'}
-                        >
-                          {schedule.status === 'completed' ? 'Verified' : 'Start Check'}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Logs Tab */}
-        <TabsContent value="logs" className="space-y-6">
-          <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-            <div className="p-4 flex justify-between items-baseline">
-              <div>
-                <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
-                  ACTIVITY LOGS
-                </div>
-                <div className="text-lg font-normal text-gray-900 dark:text-white">
-                  Recent Verifications
-                </div>
-              </div>
-              
-              <Button 
-                variant="ghost" 
-                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
-                onClick={() => {}}
-              >
-                EXPORT LOGS
-              </Button>
-            </div>
-            
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-gray-50 dark:bg-white/5">
-                  <TableRow className="border-b border-gray-100 dark:border-white/5 hover:bg-transparent">
-                    <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium w-3/12">Item</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium w-2/12">Date / Time</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium w-2/12">Status</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium w-2/12">Verified By</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium w-3/12">Notes</TableHead>
+        ) : (
+          <div className="border rounded-lg overflow-hidden border-border bg-card">
+            <div className="relative overflow-x-auto">
+              <Table className="table-fixed w-full">
+                <TableHeader className="bg-muted/50 sticky top-0 z-10">
+                  <TableRow>
+                    <TableHead className="py-3 px-4 w-1/4 min-w-[250px] text-black dark:text-white">Item Name</TableHead>
+                    <TableHead className="py-3 px-4 w-[180px] min-w-[180px] text-black dark:text-white">Serial Number</TableHead>
+                    <TableHead className="py-3 px-4 w-[180px] min-w-[180px] text-black dark:text-white">Category</TableHead>
+                    <TableHead className="py-3 px-4 w-[200px] min-w-[200px] text-black dark:text-white">Status</TableHead>
+                    <TableHead className="py-3 px-4 w-[200px] min-w-[200px] text-black dark:text-white">Assigned To</TableHead>
+                    <TableHead className="py-3 px-4 w-[200px] min-w-[200px] text-black dark:text-white">Last Verified</TableHead>
+                    <TableHead className="text-right py-3 px-4 w-[120px] text-black dark:text-white">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {verificationLogs.slice(0, 5).map(log => {
-                    // Find the item for this log
-                    const item = sensitiveItems.find(i => i.id === log.itemId);
-                    
-                    return (
-                      <TableRow key={log.id} className="border-b border-gray-100 dark:border-white/5">
-                        <TableCell className="text-sm">
-                          {item ? (
-                            <div className="flex items-center">
-                              <div className="font-medium">{item.name}</div>
-                              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 font-mono">
-                                {item.serialNumber}
-                              </span>
+                  {filteredItems.length > 0 ? (
+                    filteredItems.map((item) => {
+                      // Get date and time separately for the cell
+                      const lastVerifiedDateStr = formatMilitaryDateOnly(item.lastVerified);
+                      const lastVerifiedTimeStr = findLatestVerificationTime(item.id);
+
+                      // Determine display name for the Assigned To column
+                      const displayAssignedTo = item.assignedTo === currentUserName 
+                                                ? currentUserFormattedName 
+                                                : item.assignedTo || "-";
+                      const tooltipAssignedTo = item.assignedTo === currentUserName
+                                                ? currentUserFormattedName
+                                                : item.assignedTo || "Unassigned";
+
+                      return (
+                        <TableRow key={item.id} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleViewDetails(item)}>
+                          <TableCell className="font-medium py-3 px-4 text-black dark:text-white">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="truncate block">{item.name}</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{item.name}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell className="py-3 px-4 font-mono text-black dark:text-white">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                 <span className="truncate block text-xs tracking-wider">{item.serialNumber}</span>
+                              </TooltipTrigger>
+                               <TooltipContent>
+                                <p>{item.serialNumber}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell className="py-3 px-4">
+                            <CategoryCell category={item.category} />
+                          </TableCell>
+                          <TableCell className="py-3 px-4">
+                            <StatusBadgeComponent status={item.status} />
+                          </TableCell>
+                          <TableCell className="py-3 px-4 text-black dark:text-white">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="truncate block">{displayAssignedTo}</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{tooltipAssignedTo}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell className="py-3 px-4 text-black dark:text-white">
+                            {/* Display Date and Time */}
+                            {lastVerifiedDateStr}{lastVerifiedTimeStr !== 'N/A' ? ` ${lastVerifiedTimeStr}` : ''}
+                          </TableCell>
+                          <TableCell className="text-right py-3 px-4">
+                            <div className="flex items-center justify-end gap-0.5">
+                               <Tooltip>
+                                 <TooltipTrigger asChild>
+                                   <Button variant="ghost" size="icon" className="h-8 w-8 transition-colors" onClick={(e) => { e.stopPropagation(); handleViewDetails(item); }}>
+                                      <Eye className="h-4 w-4" />
+                                   </Button>
+                                 </TooltipTrigger>
+                                 <TooltipContent>View Details</TooltipContent>
+                               </Tooltip>
+                               <Tooltip>
+                                 <TooltipTrigger asChild>
+                                   <Button variant="ghost" size="icon" className="h-8 w-8 transition-colors" onClick={(e) => { e.stopPropagation(); handleVerifyItem(item); }}>
+                                      <CheckCircle className="h-4 w-4 text-green-600" />
+                                   </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Mark Verified</TooltipContent>
+                               </Tooltip>
+                               <QRCodeGenerator 
+                                  itemName={item.name} 
+                                  serialNumber={item.serialNumber}
+                                />
                             </div>
-                          ) : 'Unknown Item'}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          <div className="flex flex-col">
-                            <span>{log.date}</span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">{log.time}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`text-[10px] uppercase tracking-wider rounded-none ${
-                            log.status === 'verified' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
-                            log.status === 'missing' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
-                            'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400'
-                          }`}>
-                            {log.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {log.verifiedBy}
-                        </TableCell>
-                        <TableCell className="text-sm text-gray-500 dark:text-gray-400">
-                          {log.notes || '—'}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                        No sensitive items match your filters.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
-            </CardContent>
-            <CardFooter className="flex justify-between py-2 px-4 border-t border-gray-100 dark:border-white/5">
-              <div className="text-xs tracking-wide text-muted-foreground">
-                Showing 5 of {verificationLogs.length} logs
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1"
-              >
-                VIEW ALL LOGS
-                <ArrowRight className="h-3 w-3 ml-1" />
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-      </Tabs>
-      
-      {/* Item Details Modal */}
-      {selectedItem && (
-        <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
-          <DialogContent className="sm:max-w-[550px]">
-            <DialogHeader>
-              <DialogTitle>Item Details</DialogTitle>
-              <DialogDescription>
-                View detailed information about this sensitive item.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 gap-4">
-                <div className="font-medium text-right text-sm">Name:</div>
-                <div className="col-span-3 text-sm">{selectedItem.name}</div>
-                
-                <div className="font-medium text-right text-sm">Serial Number:</div>
-                <div className="col-span-3 font-mono text-sm">{selectedItem.serialNumber}</div>
-                
-                <div className="font-medium text-right text-sm">Category:</div>
-                <div className="col-span-3 text-sm capitalize">{selectedItem.category}</div>
-                
-                <div className="font-medium text-right text-sm">Security Level:</div>
-                <div className="col-span-3 text-sm uppercase">{selectedItem.securityLevel}</div>
-                
-                <div className="font-medium text-right text-sm">Status:</div>
-                <div className="col-span-3 text-sm capitalize">{selectedItem.status}</div>
-                
-                <div className="font-medium text-right text-sm">Assigned To:</div>
-                <div className="col-span-3 text-sm">{selectedItem.assignedTo}</div>
-                
-                <div className="font-medium text-right text-sm">Location:</div>
-                <div className="col-span-3 text-sm">{selectedItem.location}</div>
-                
-                <div className="font-medium text-right text-sm">Assigned Date:</div>
-                <div className="col-span-3 text-sm">{selectedItem.assignedDate}</div>
-                
-                <div className="font-medium text-right text-sm">Last Verified:</div>
-                <div className="col-span-3 text-sm">{selectedItem.lastVerified}</div>
-                
-                <div className="font-medium text-right text-sm">Next Verification:</div>
-                <div className="col-span-3 text-sm">{selectedItem.nextVerification}</div>
-                
-                <div className="font-medium text-right text-sm">Notes:</div>
-                <div className="col-span-3 text-sm">{selectedItem.notes || "No notes available."}</div>
-              </div>
             </div>
-            <DialogFooter>
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-1 mr-2"
-                onClick={() => handleVerifyItem(selectedItem)}
-              >
-                <CheckCircle className="h-4 w-4" />
-                Verify Item
+          </div>
+        )}
+      </TooltipProvider>
+
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="sm:max-w-[600px] p-6 bg-card">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-medium">{selectedItem?.name}</DialogTitle>
+            <DialogDescription>SN: {selectedItem?.serialNumber} | Category: {selectedItem?.category}</DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+             <p><span className="font-medium">Status:</span> <StatusBadgeComponent status={selectedItem?.status ?? 'not-verified'} /></p>
+             <p><span className="font-medium">Last Verified:</span> 
+               {selectedItem?.lastVerified ? 
+                 `${formatMilitaryDateOnly(selectedItem.lastVerified)} ${findLatestVerificationTime(selectedItem.id) !== 'N/A' ? findLatestVerificationTime(selectedItem.id) : ''}`.trim() 
+                 : "N/A"}
+             </p>
+             <Separator />
+             <h4 className="font-medium text-sm text-muted-foreground">Verification History</h4>
+              {/* TODO: Display actual verification history logs here */}
+          </div>
+          <DialogFooter className="sm:justify-end gap-2">
+             <Button type="button" variant="outline" onClick={() => setDetailsModalOpen(false)} className="transition-colors">
+                Close
+             </Button>
+              <Button type="button" variant="default" onClick={() => handleVerifyItem(selectedItem!)} className="transition-colors">
+                Mark as Verified
               </Button>
-              <Button onClick={() => setDetailsModalOpen(false)}>Close</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-      
-      {/* Verification started modal would go here */}
-      
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {showVerifyDialog && (
+            <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
+              <DialogContent className="p-6 bg-card">
+                <DialogHeader>
+                  <DialogTitle>Start Verification</DialogTitle>
+                  <DialogDescription>Scan items or manually verify them below.</DialogDescription>
+                </DialogHeader>
+                 <p className="text-center py-8">Verification UI / Scanner Placeholder</p>
+                <DialogFooter className="sm:justify-end gap-2">
+                  <Button variant="outline" onClick={() => setShowVerifyDialog(false)} className="transition-colors">Cancel</Button>
+                   <Button variant="default" onClick={() => {}} className="transition-colors">Submit Verification</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+        )}
+
+         {verificationModalOpen && (
+             <Dialog open={verificationModalOpen} onOpenChange={setVerificationModalOpen}>
+               <DialogContent className="p-6 bg-card">
+                 <DialogHeader>
+                   <DialogTitle>Verification Mode Active</DialogTitle>
+                   <DialogDescription>Ready to scan or verify items.</DialogDescription>
+                 </DialogHeader>
+                  <p className="text-center py-8">Verification UI Placeholder</p>
+                 <DialogFooter className="sm:justify-end gap-2">
+                   <Button variant="outline" onClick={() => setVerificationModalOpen(false)} className="transition-colors">Close</Button>
+                 </DialogFooter>
+               </DialogContent>
+             </Dialog>
+         )}
+
     </PageWrapper>
   );
 };

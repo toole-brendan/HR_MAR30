@@ -17,20 +17,20 @@ const MyInventory: React.FC = () => {
   ).slice(0, 3); // Only show 3 items on dashboard
   
   return (
-    <Card className="overflow-hidden border border-gray-200 dark:border-white/10 mb-6 shadow-none bg-white dark:bg-black">
+    <Card className="overflow-hidden border-border shadow-none bg-card">
       <div className="p-4 flex justify-between items-baseline">
         <div>
-          <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
-            INVENTORY ALERT
+          <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
+            INVENTORY PREVIEW
           </div>
-          <div className="text-lg font-normal text-gray-900 dark:text-white">
-            Low stock items
+          <div className="text-lg font-normal">
+            Recent items
           </div>
         </div>
         
         <Button 
           variant="ghost" 
-          className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+          className="text-xs uppercase tracking-wider text-blue-600 dark:text-blue-400 hover:bg-transparent hover:text-blue-800 dark:hover:text-blue-300"
           onClick={() => navigate("/property-book")}
         >
           VIEW ALL
@@ -43,14 +43,14 @@ const MyInventory: React.FC = () => {
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="Search inventory" 
-              className="w-full pl-8 bg-white dark:bg-white/5 rounded-sm border-gray-200 dark:border-white/10 h-9"
+              className="w-full pl-8 bg-background border-border h-9 rounded-none"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
         
-        <div className="divide-y divide-gray-100 dark:divide-white/5 px-4 pb-2">
+        <div className="divide-y divide-border px-4 pb-2">
           {filteredInventory.length === 0 ? (
             <div className="p-2 text-center text-muted-foreground">
               No items found

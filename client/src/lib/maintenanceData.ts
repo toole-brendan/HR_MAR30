@@ -7,7 +7,7 @@ export interface MaintenanceItem {
   serialNumber: string;
   category: 'weapon' | 'vehicle' | 'communication' | 'optics' | 'other';
   maintenanceType: 'scheduled' | 'corrective' | 'preventive' | 'emergency';
-  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled' | 'awaiting-parts' | 'bn-level';
   priority: 'low' | 'medium' | 'high' | 'critical';
   description: string;
   reportedBy: string;
@@ -50,263 +50,278 @@ export interface MaintenanceStats {
   averageCompletionTime: string;
 }
 
-// Generate mock maintenance items
+const today = new Date();
+const CPT_NAME = "CPT Rodriguez, Michael";
+const LT_1_NAME = "LT Jenkins, Sarah";
+const SFC_SUPPLY_NAME = "SFC Bell, Marcus";
+const SGT_ARMS_ROOM_NAME = "SGT Miller, Kevin";
+const SPC_MECH_1 = "SPC Davis, Robert";
+const SPC_MECH_2 = "SPC Chen, Wei";
+const BN_MAINT_POC = "BN Maintenance WO";
+
+const formatDate = (date: Date) => format(date, 'yyyy-MM-dd');
+const formatDateTime = (date: Date) => format(date, 'yyyy-MM-dd HH:mm:ss');
+
+// Generate mock maintenance items reflecting Bravo Company
 export const maintenanceItems: MaintenanceItem[] = [
   {
     id: "m1",
-    itemId: "i1",
-    itemName: "M4A1 w/ SOPMOD II",
-    serialNumber: "M4A1-12345-AR",
+    itemId: "wpn-m4-001", // Match inventory ID if possible, adjust as needed
+    itemName: "M4A1 Carbine",
+    serialNumber: "WPN-B1234567", // Example serial
     category: "weapon",
     maintenanceType: "scheduled",
     status: "in-progress",
-    priority: "high",
-    description: "TM 9-1005-319-10 10/20 PMCS Service",
-    reportedBy: "CPT John Doe",
-    assignedTo: "SPC Johnson",
-    reportedDate: format(subDays(new Date(), 3), 'yyyy-MM-dd'),
-    scheduledDate: format(subDays(new Date(), 1), 'yyyy-MM-dd'),
+    priority: "medium",
+    description: "Annual service and gauging (Post-Deployment Reset)",
+    reportedBy: SGT_ARMS_ROOM_NAME,
+    assignedTo: "Unit Armorer",
+    reportedDate: formatDate(subDays(today, 5)),
+    scheduledDate: formatDate(subDays(today, 1)),
     estimatedCompletionTime: "4 hours",
-    notes: "NSN 1005-01-231-0973 parts replacement needed. Complete field strip and reassembly.",
-    partsRequired: [
-      {
-        id: "p1",
-        name: "Firing Pin Assembly",
-        partNumber: "5-1005-01-231-0973",
-        quantity: 1,
-        available: true
-      },
-      {
-        id: "p2",
-        name: "Extractor Spring Assembly",
-        partNumber: "5315-01-231-0974",
-        quantity: 2,
-        available: true
-      }
-    ]
+    notes: "TM 9-1005-319-23&P check. Requires full cleaning and function check for NTC.",
   },
   {
     id: "m2",
-    itemId: "i2",
-    itemName: "M1151A1 Up-Armored HMMWV",
-    serialNumber: "HMV-87654-MV",
+    itemId: "veh-hmmwv-001", // Match inventory ID
+    itemName: "M1151A1 HMMWV (B-12)", // Specific vehicle ID
+    serialNumber: "VEH-BCO12345",
     category: "vehicle",
     maintenanceType: "corrective",
-    status: "scheduled",
-    priority: "critical",
-    description: "Engine overheating IAW TM 9-2320-387-10",
-    reportedBy: "SSG Wilson",
-    assignedTo: "SPC Martinez",
-    reportedDate: format(subDays(new Date(), 5), 'yyyy-MM-dd'),
-    scheduledDate: format(addDays(new Date(), 1), 'yyyy-MM-dd'),
-    estimatedCompletionTime: "8 hours",
-    notes: "DA Form 2404 shows cooling system failure. AOAP results indicate contamination. Requires Level 2 maintenance.",
+    status: "awaiting-parts",
+    priority: "high",
+    description: "Transmission slipping under load - DA Form 5988E initiated",
+    reportedBy: LT_1_NAME, // Reported by 1st Platoon Leader
+    assignedTo: BN_MAINT_POC,
+    reportedDate: formatDate(subDays(today, 7)),
+    scheduledDate: formatDate(subDays(today, 3)), // Scheduled for BN Maintenance shop
+    estimatedCompletionTime: "2 days (post parts arrival)",
+    notes: "Requires transmission rebuild kit. Submitted to GCSS-Army. Vehicle NMC.",
     partsRequired: [
       {
         id: "p3",
-        name: "Radiator Assembly",
-        partNumber: "2930-01-461-2783",
+        name: "Transmission Rebuild Kit, HMMWV",
+        partNumber: "2520-01-555-1234",
         quantity: 1,
         available: false,
-        estimatedArrival: format(addDays(new Date(), 2), 'yyyy-MM-dd')
-      },
-      {
-        id: "p4",
-        name: "Extended Life Coolant (ELC)",
-        partNumber: "6850-01-619-2849",
-        quantity: 4,
-        available: true
+        estimatedArrival: formatDate(addDays(today, 5))
       }
     ]
   },
   {
     id: "m3",
-    itemId: "i3",
-    itemName: "AN/VRC-12 SINCGARS RT-1523 Radio",
-    serialNumber: "SINCGARS-78901-CR",
+    itemId: "com-prc152-001", // Match inventory ID
+    itemName: "AN/PRC-152 Radio",
+    serialNumber: "COM-B5678901",
     category: "communication",
     maintenanceType: "preventive",
     status: "completed",
     priority: "medium",
-    description: "Semi-annual frequency calibration",
-    reportedBy: "LT Garcia",
-    assignedTo: "SGT Davis",
-    reportedDate: format(subDays(new Date(), 10), 'yyyy-MM-dd'),
-    scheduledDate: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
-    completedDate: format(subDays(new Date(), 6), 'yyyy-MM-dd'),
-    estimatedCompletionTime: "2 hours",
-    notes: "Successfully calibrated IAW TM 11-5820-890-10-8. COMSEC updated per FRAGO 12."
+    description: "Semi-annual COMSEC/Firmware Update & Check",
+    reportedBy: "Commo SGT",
+    assignedTo: "Commo SGT",
+    reportedDate: formatDate(subDays(today, 15)),
+    scheduledDate: formatDate(subDays(today, 10)),
+    completedDate: formatDate(subDays(today, 9)),
+    estimatedCompletionTime: "1 hour per radio",
+    notes: "Firmware v5.x installed. SKL load successful. Ready for NTC.",
   },
   {
     id: "m4",
-    itemId: "i4",
-    itemName: "AN/PVS-14 Night Vision Monocular",
-    serialNumber: "PVS14-56789-OP",
+    itemId: "opt-pvs14-001", // Match inventory ID
+    itemName: "AN/PVS-14 NVG",
+    serialNumber: "NVG-B9876543",
     category: "optics",
     maintenanceType: "corrective",
-    status: "scheduled",
+    status: "bn-level", // Sent to Battalion / Higher
     priority: "high",
-    description: "Distorted image gain and AUTO-GATED function failure",
-    reportedBy: "SSG Thompson",
-    reportedDate: format(subDays(new Date(), 2), 'yyyy-MM-dd'),
-    scheduledDate: format(addDays(new Date(), 3), 'yyyy-MM-dd'),
-    estimatedCompletionTime: "3 hours",
-    notes: "Suspected tube degradation and power circuit issues. Send to DS maintenance facility."
+    description: "Black spots observed in tube during PMCS",
+    reportedBy: SGT_ARMS_ROOM_NAME,
+    assignedTo: "BN TMDE Support",
+    reportedDate: formatDate(subDays(today, 3)),
+    scheduledDate: formatDate(subDays(today, 1)), // Date sent up
+    estimatedCompletionTime: "5-7 Business Days",
+    notes: "Turned into BN S4 for higher-level maintenance eval / repair.",
   },
   {
     id: "m5",
-    itemId: "i5",
-    itemName: "M240B 7.62mm Machine Gun",
-    serialNumber: "M240B-34567-MG",
+    itemId: "wpn-m240b-001", // Match inventory ID
+    itemName: "M240B Machine Gun",
+    serialNumber: "WPN-B240B111",
     category: "weapon",
     maintenanceType: "scheduled",
     status: "scheduled",
     priority: "medium",
-    description: "Barrel replacement and headspace/timing validation",
-    reportedBy: "SSG Parker",
-    assignedTo: "SPC Chen",
-    reportedDate: format(subDays(new Date(), 4), 'yyyy-MM-dd'),
-    scheduledDate: format(addDays(new Date(), 2), 'yyyy-MM-dd'),
-    estimatedCompletionTime: "3 hours",
+    description: "Pre-NTC Headspace & Timing Check / Barrel Inspection",
+    reportedBy: SGT_ARMS_ROOM_NAME,
+    assignedTo: "Unit Armorer",
+    reportedDate: formatDate(subDays(today, 4)),
+    scheduledDate: formatDate(addDays(today, 2)),
+    estimatedCompletionTime: "2 hours per weapon",
     partsRequired: [
       {
         id: "p5",
-        name: "Barrel Assembly, 7.62mm",
+        name: "Barrel Assembly, M240",
         partNumber: "1005-01-412-3129",
-        quantity: 1,
+        quantity: 1, // Spare on hand
         available: true
       }
     ]
   },
   {
     id: "m6",
-    itemId: "i6",
-    itemName: "RQ-11B Raven sUAS",
-    serialNumber: "RAVEN-12378-DR",
-    category: "other",
-    maintenanceType: "emergency",
+    itemId: "veh-lmtv-001", // Match inventory ID
+    itemName: "M1083 LMTV (B-31)",
+    serialNumber: "VEH-BCO67890",
+    category: "vehicle",
+    maintenanceType: "preventive",
     status: "completed",
-    priority: "critical",
-    description: "Ground Control Station link failure during operation",
-    reportedBy: "CPT Miller",
-    assignedTo: "SFC Wright",
-    reportedDate: format(subDays(new Date(), 8), 'yyyy-MM-dd'),
-    scheduledDate: format(subDays(new Date(), 8), 'yyyy-MM-dd'),
-    completedDate: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
-    estimatedCompletionTime: "6 hours",
-    notes: "Firmware updated to v4.2.1 and GCS module replaced. Full mission capability restored."
+    priority: "medium",
+    description: "Quarterly PMCS (-10 Level)",
+    reportedBy: "Motor Sergeant",
+    assignedTo: SPC_MECH_1, // Assigned to a specific mechanic
+    reportedDate: formatDate(subDays(today, 20)),
+    scheduledDate: formatDate(subDays(today, 18)),
+    completedDate: formatDate(subDays(today, 17)),
+    estimatedCompletionTime: "4 hours",
+    notes: "All checks complete per TM 9-2320-365-10. Fluids topped off. Ready.",
   },
   {
     id: "m7",
-    itemId: "i7",
-    itemName: "Trijicon ACOG TA31RCO-M150CP",
-    serialNumber: "ACOG-98765-OP",
+    itemId: "opt-acog-001", // Example ACOG
+    itemName: "M150 C.O.W.S.", // Match name
+    serialNumber: "OPT-B150A123",
     category: "optics",
     maintenanceType: "corrective",
     status: "in-progress",
     priority: "low",
-    description: "Tritium illumination degradation",
-    reportedBy: "SGT Nelson",
-    assignedTo: "SPC Adams",
-    reportedDate: format(subDays(new Date(), 6), 'yyyy-MM-dd'),
-    scheduledDate: format(subDays(new Date(), 2), 'yyyy-MM-dd'),
+    description: "Zero retention issue reported after range",
+    reportedBy: LT_1_NAME,
+    assignedTo: SGT_ARMS_ROOM_NAME, // Armorer handles first look
+    reportedDate: formatDate(subDays(today, 2)),
+    scheduledDate: formatDate(subDays(today, 1)),
     estimatedCompletionTime: "1 hour",
-    notes: "Illumination verification testing in progress. May require manufacturer RMA."
+    notes: "Checking mounting screws and rail interface. May need re-zero.",
   },
   {
     id: "m8",
-    itemId: "i8",
-    itemName: "MEP-803A 10kW Tactical Quiet Generator",
-    serialNumber: "TQG-54321-PW",
+    itemId: "oth-gen-001", // Example Generator
+    itemName: "MEP-803A Generator",
+    serialNumber: "GEN-B803A005",
     category: "other",
     maintenanceType: "preventive",
-    status: "cancelled",
+    status: "scheduled", // Scheduled for upcoming week
     priority: "medium",
-    description: "250-hour service IAW TM 9-6115-642-10",
-    reportedBy: "1SG Robinson",
-    reportedDate: format(subDays(new Date(), 15), 'yyyy-MM-dd'),
-    scheduledDate: format(subDays(new Date(), 5), 'yyyy-MM-dd'),
-    notes: "PMCS cancelled due to JRTC rotation. Rescheduled for return to home station."
+    description: "100-hour Service (Post-Reset Task)",
+    reportedBy: "Motor Sergeant",
+    assignedTo: SPC_MECH_2,
+    reportedDate: formatDate(subDays(today, 10)),
+    scheduledDate: formatDate(addDays(today, 3)),
+    estimatedCompletionTime: "3 hours",
+    notes: "Oil change, filter replacement required."
   }
 ];
 
-// Generate mock maintenance logs
+// Generate mock maintenance logs aligned with items above
 export const maintenanceLogs: MaintenanceLog[] = [
+  // Logs for m1 (M4A1 Service)
   {
     id: "log1",
     maintenanceId: "m1",
-    timestamp: format(subDays(new Date(), 3), 'yyyy-MM-dd HH:mm:ss'),
+    timestamp: formatDateTime(subDays(today, 5)),
     action: "created",
-    performedBy: "CPT Rodriguez",
-    notes: "DA Form 5988E submitted for 10/20 level service maintenance"
+    performedBy: SGT_ARMS_ROOM_NAME,
+    notes: "Work order created for annual service."
   },
   {
     id: "log2",
     maintenanceId: "m1",
-    timestamp: format(subDays(new Date(), 3), 'yyyy-MM-dd HH:mm:ss'),
+    timestamp: formatDateTime(subDays(today, 1)),
     action: "status-change",
-    performedBy: "MAJ Turner",
-    notes: "Service request approved via GCSS-Army, tasked to armorer"
+    performedBy: "Unit Armorer",
+    notes: "Maintenance started. Initial inspection complete."
   },
+  // Logs for m2 (HMMWV Transmission)
   {
     id: "log3",
-    maintenanceId: "m1",
-    timestamp: format(subDays(new Date(), 2), 'yyyy-MM-dd HH:mm:ss'),
-    action: "parts-ordered",
-    performedBy: "SPC Johnson",
-    notes: "Parts requisitioned via SARSS: NSN 1005-01-231-0973, 5315-01-231-0974"
+    maintenanceId: "m2",
+    timestamp: formatDateTime(subDays(today, 7)),
+    action: "created",
+    performedBy: LT_1_NAME,
+    notes: "Reported transmission issue via 5988E."
   },
   {
     id: "log4",
-    maintenanceId: "m1",
-    timestamp: format(subDays(new Date(), 1), 'yyyy-MM-dd HH:mm:ss'),
-    action: "parts-received",
-    performedBy: "SPC Johnson",
-    notes: "Parts received via Battalion SSA, ready for installation"
-  },
-  {
-    id: "log5",
-    maintenanceId: "m1",
-    timestamp: format(subDays(new Date(), 1), 'yyyy-MM-dd HH:mm:ss'),
+    maintenanceId: "m2",
+    timestamp: formatDateTime(subDays(today, 6)),
     action: "status-change",
-    performedBy: "SPC Johnson",
-    notes: "Maintenance initiated IAW TM 9-1005-319-23&P"
+    performedBy: "Motor Sergeant",
+    notes: "Diagnosed transmission failure. Tasked to BN Maintenance."
   },
+   {
+    id: "log5",
+    maintenanceId: "m2",
+    timestamp: formatDateTime(subDays(today, 5)),
+    action: "parts-ordered",
+    performedBy: BN_MAINT_POC,
+    notes: "Transmission rebuild kit ordered via GCSS-Army. Status changed to Awaiting Parts."
+  },
+  // Logs for m3 (PRC-152 Update)
   {
     id: "log6",
     maintenanceId: "m3",
-    timestamp: format(subDays(new Date(), 10), 'yyyy-MM-dd HH:mm:ss'),
-    action: "created",
-    performedBy: "LT Garcia",
-    notes: "Scheduled semi-annual calibration IAW COMSEC accountability SOP"
+    timestamp: formatDateTime(subDays(today, 9)),
+    action: "completed",
+    performedBy: "Commo SGT",
+    notes: "Firmware updated and COMSEC loaded successfully."
   },
-  {
+  // Logs for m4 (PVS-14 Repair)
+   {
     id: "log7",
-    maintenanceId: "m3",
-    timestamp: format(subDays(new Date(), 7), 'yyyy-MM-dd HH:mm:ss'),
-    action: "status-change",
-    performedBy: "SGT Davis",
-    notes: "Maintenance initiated on RT-1523 with ANCD upload"
+    maintenanceId: "m4",
+    timestamp: formatDateTime(subDays(today, 3)),
+    action: "created",
+    performedBy: SGT_ARMS_ROOM_NAME,
+    notes: "NVG shows black spots. Initiated turn-in."
   },
   {
     id: "log8",
-    maintenanceId: "m3",
-    timestamp: format(subDays(new Date(), 6), 'yyyy-MM-dd HH:mm:ss'),
-    action: "completed",
-    performedBy: "SGT Davis",
-    notes: "Calibration and COMSEC fill completed. CIK updated and secured."
-  }
+    maintenanceId: "m4",
+    timestamp: formatDateTime(subDays(today, 1)),
+    action: "status-change",
+    performedBy: SFC_SUPPLY_NAME, // Supply handles turn-in to higher
+    notes: "Item transferred to BN S4 custody for TMDE evaluation. Status changed to BN-Level."
+  },
 ];
 
-// Generate mock maintenance statistics
+// Calculate Maintenance Stats based on the updated items
+const total = maintenanceItems.length;
+const scheduled = maintenanceItems.filter(item => item.status === 'scheduled').length;
+const inProgress = maintenanceItems.filter(item => item.status === 'in-progress').length;
+const completed = maintenanceItems.filter(item => item.status === 'completed').length;
+const cancelled = maintenanceItems.filter(item => item.status === 'cancelled').length;
+const awaitingParts = maintenanceItems.filter(item => item.status === 'awaiting-parts').length;
+const bnLevel = maintenanceItems.filter(item => item.status === 'bn-level').length;
+
+const criticalPending = maintenanceItems.filter(item => item.priority === 'critical' && item.status !== 'completed' && item.status !== 'cancelled').length;
+
+const overdue = maintenanceItems.filter(item =>
+  item.scheduledDate && item.status !== 'completed' && item.status !== 'cancelled' &&
+  new Date(item.scheduledDate) < subDays(today, 1) // Define 'overdue' as scheduled date is yesterday or earlier
+).length;
+
+const completedThisMonth = maintenanceItems.filter(item =>
+  item.completedDate && new Date(item.completedDate).getMonth() === today.getMonth() && new Date(item.completedDate).getFullYear() === today.getFullYear()
+).length;
+
 export const maintenanceStats: MaintenanceStats = {
-  total: 8,
-  scheduled: 3,
-  inProgress: 2,
-  completed: 2,
-  cancelled: 1,
-  criticalPending: 1,
-  overdue: 0,
-  completedThisMonth: 2,
-  averageCompletionTime: "5.2 hours"
+  total: total,
+  scheduled: scheduled,
+  inProgress: inProgress + awaitingParts + bnLevel, // Combine active non-completed states
+  completed: completed,
+  cancelled: cancelled,
+  criticalPending: criticalPending,
+  overdue: overdue, // Using calculated overdue count
+  completedThisMonth: completedThisMonth,
+  averageCompletionTime: "6 hours" // Keep as placeholder or calculate if needed
 };

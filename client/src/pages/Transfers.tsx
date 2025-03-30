@@ -610,9 +610,9 @@ const Transfers: React.FC<TransfersProps> = ({ id }) => {
           <div className="flex flex-wrap items-center gap-2">
             <Button 
               size="sm" 
-              variant="outline" 
+              variant="default"
               onClick={() => setShowScanner(true)}
-              className="h-9 px-3 flex items-center gap-1.5 bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-md"
+              className="h-9 px-3 flex items-center gap-1.5 rounded-md"
             >
               <ScanLine className="h-4 w-4" />
               <span className="text-xs">SCAN QR</span>
@@ -625,16 +625,16 @@ const Transfers: React.FC<TransfersProps> = ({ id }) => {
                 setShowNewTransfer(true);
                 setActiveView('outgoing');
               }}
-              className="h-9 px-3 flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 rounded-md"
+              className="h-9 px-3 flex items-center gap-1.5 rounded-md"
             >
               <Plus className="h-4 w-4" />
               <span className="text-xs">INITIATE TRANSFER</span>
             </Button>
             
             <Button 
-              variant="ghost" 
+              variant="default"
               size="sm"
-              className="h-9 px-3 text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1.5"
+              className="h-9 px-3 flex items-center gap-1.5"
               onClick={() => {
                 toast({
                   title: "Export Generated",
