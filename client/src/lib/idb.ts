@@ -244,4 +244,67 @@ export async function removeSyncAction(id: string) {
 
 // Add helpers for Notifications store if needed later (potentially replacing localStorage)
 
+// --- Optimized Inventory Store Helpers ---
+
+// Add a single item to the inventory
+export async function addInventoryItemToDB(item: InventoryItem): Promise<void> {
+  const db = await getDb();
+  await db.add('inventory', item);
+  console.log(`Inventory item ${item.id} added to DB.`);
+}
+
+// Update a single item in the inventory
+export async function updateInventoryItemInDB(item: InventoryItem): Promise<void> {
+  const db = await getDb();
+  await db.put('inventory', item);
+  console.log(`Inventory item ${item.id} updated in DB.`);
+}
+
+// Delete a single item from the inventory
+export async function deleteInventoryItemFromDB(id: string): Promise<void> {
+  const db = await getDb();
+  await db.delete('inventory', id);
+  console.log(`Inventory item ${id} deleted from DB.`);
+}
+
+// Get items by a specific category
+export async function getInventoryItemsByCategoryFromDB(category: string): Promise<InventoryItem[]> {
+  const db = await getDb();
+  const allItems = await db.getAll('inventory');
+  return allItems.filter(item => item.category === category);
+}
+
+// Search inventory items by name or serial number
+export async function searchInventoryItemsFromDB(searchTerm: string): Promise<InventoryItem[]> {
+  const db = await getDb();
+  const allItems = await db.getAll('inventory');
+  const lowerSearchTerm = searchTerm.toLowerCase();
+  
+  return allItems.filter(item => 
+    (item.name && item.name.toLowerCase().includes(lowerSearchTerm)) || 
+    (item.serialNumber && item.serialNumber.toLowerCase().includes(lowerSearchTerm))
+  );
+}
+
+// Update component data for an item
+export async function updateInventoryItemComponentsInDB(
+  itemId: string, 
+  components: any[]
+): Promise<InventoryItem | undefined> {
+  const db = await getDb();
+  const tx = db.transaction('inventory', 'readwrite');
+  const item = await tx.store.get(itemId);
+  
+  if (item) {
+    item.components = components;
+    await tx.store.put(item);
+    await tx.done;
+    console.log(`Components updated for item ${itemId}`);
+    return item;
+  }
+  
+  await tx.done;
+  return undefined;
+}
+
 console.log('IndexedDB helper module loaded.'); 

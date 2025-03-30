@@ -1,3 +1,4 @@
+// @ts-ignore
 import { 
   User, 
   InventoryItem, 
@@ -19,9 +20,9 @@ export const user: User = {
   responsibility: "Line Infantry Company",
   valueManaged: "$4.2M Equipment Value",
   upcomingEvents: [
-    { title: "BN Command & Staff", date: "12 JUL 0900" },
-    { title: "Range Density", date: "15-20 JUL" },
-    { title: "JRTC Rotation", date: "10-25 AUG" }
+    { title: "BN Command & Staff", date: "12JUL2023 0900" },
+    { title: "Range Density", date: "15-20JUL2023" },
+    { title: "JRTC Rotation", date: "10-25AUG2023" }
   ],
   equipmentSummary: {
     vehicles: 12,
@@ -38,15 +39,21 @@ export const inventory: InventoryItem[] = [
     id: "1",
     name: "ACH",
     serialNumber: "ACH-45678123",
-    assignedDate: "01/15/2023",
-    status: "active",
+    assignedDate: "15JAN2023",
+    status: "Operational",
+    description: "Advanced Combat Helmet",
+    category: "individual-equipment",
+    location: "Supply Room"
   },
   {
     id: "2",
     name: "MOLLE II Rucksack",
     serialNumber: "MOLLE-98745632",
-    assignedDate: "03/22/2023",
-    status: "active",
+    assignedDate: "22MAR2023",
+    status: "Damaged",
+    description: "MOLLE II Large Rucksack OD Green",
+    category: "individual-equipment",
+    location: "Supply Room",
     components: [
       {
         id: 'comp-ruck-1',
@@ -69,15 +76,21 @@ export const inventory: InventoryItem[] = [
     id: "3",
     name: "IFAK",
     serialNumber: "IFAK-32165487",
-    assignedDate: "02/10/2023",
-    status: "active",
+    assignedDate: "10FEB2023",
+    status: "In Repair",
+    description: "Individual First Aid Kit",
+    category: "medical",
+    location: "Supply Room"
   },
   {
     id: "4",
     name: "IOTV",
     serialNumber: "IOTV-78912345",
-    assignedDate: "04/05/2023",
-    status: "active",
+    assignedDate: "05APR2023",
+    status: "Deadline - Maintenance",
+    description: "Improved Outer Tactical Vest",
+    category: "individual-equipment",
+    location: "Maintenance Shop",
     components: [
       {
         id: 'comp-iotv-1',
@@ -92,14 +105,14 @@ export const inventory: InventoryItem[] = [
         quantity: 1,
         required: true,
         status: 'missing',
-        notes: 'Reported missing 07/10/2023'
+        notes: 'Reported missing 10JUL2023'
       },
        {
         id: 'comp-iotv-3',
         name: 'Shoulder Pads (Pair)',
         quantity: 1,
         required: true,
-        status: 'present'
+        status: 'damaged'
       }
     ]
   },
@@ -107,46 +120,78 @@ export const inventory: InventoryItem[] = [
     id: "5",
     name: "HGU-56/P Helmet",
     serialNumber: "HGU-45612378",
-    assignedDate: "01/20/2023",
-    status: "active",
+    assignedDate: "20JAN2023",
+    status: "Non-Operational",
+    description: "Aviator Helmet",
+    category: "individual-equipment",
+    location: "Supply Room"
   },
   {
     id: "6",
     name: "M11 Pistol",
     serialNumber: "M11-67812345",
-    assignedDate: "01/05/2023",
-    status: "active",
+    assignedDate: "05JAN2023",
+    status: "Lost",
+    description: "SIG Sauer P228 Pistol",
+    category: "weapons",
+    location: "Unknown - FLIPL Initiated",
+    isSensitive: true
   },
   {
     id: "7",
     name: "JLTV",
     serialNumber: "JLTV-56781234",
-    assignedDate: "02/15/2023",
-    status: "active",
+    assignedDate: "15FEB2023",
+    status: "Deadline - Maintenance",
+    description: "Joint Light Tactical Vehicle",
+    category: "vehicles",
+    location: "Motor Pool",
+    components: [
+      {
+        id: 'comp-jltv-1',
+        name: 'BII Kit',
+        quantity: 1,
+        required: true,
+        status: 'present'
+      },
+      {
+        id: 'comp-jltv-2',
+        name: 'Radio Mount',
+        quantity: 1,
+        required: true,
+        status: 'present'
+      }
+    ]
   },
   {
     id: "8",
     name: "M256 Kit",
     serialNumber: "CBRN-45123789",
-    assignedDate: "03/10/2023",
-    status: "active",
+    assignedDate: "10MAR2023",
+    status: "Operational",
+    description: "Chemical Detection Kit",
+    category: "support-equipment",
+    location: "CBRN Room"
   },
   {
     id: "9",
     name: "PEQ-15",
     serialNumber: "PEQ-78123456",
-    assignedDate: "12/22/2022",
-    status: "active",
+    assignedDate: "22DEC2022",
+    status: "Deadline - Supply",
+    description: "Tactical Light/Laser",
+    category: "optics",
+    location: "Supply Room",
     requiresCalibration: true,
     calibrationInfo: {
-      lastCalibrationDate: "2024-03-15",
-      nextCalibrationDueDate: "2025-03-15",
+      lastCalibrationDate: "15MAR2024",
+      nextCalibrationDueDate: "15MAR2025",
       calibrationIntervalDays: 365,
       status: 'current',
-      notes: "Calibrated by Unit TMDE support.",
+      notes: "Waiting for replacement battery pack.",
       history: [
-         { date: "2024-03-15", performedBy: "TMDE Lab", notes: "Annual calibration performed." },
-         { date: "2023-03-10", performedBy: "TMDE Lab", notes: "Initial calibration." },
+         { date: "15MAR2024", notes: "Annual calibration performed by TMDE Lab." },
+         { date: "10MAR2023", notes: "Initial calibration by TMDE Lab." },
       ]
     }
   },
@@ -154,23 +199,75 @@ export const inventory: InventoryItem[] = [
     id: "10",
     name: "FILBE Pack",
     serialNumber: "FILBE-56123789",
-    assignedDate: "05/18/2023",
-    status: "active",
+    assignedDate: "18MAY2023",
+    status: "Operational",
+    description: "USMC Pack System",
+    category: "individual-equipment",
+    location: "Supply Room"
   },
   {
     id: "11",
     name: "Fluke 87V Multimeter",
     serialNumber: "FLK-11223344",
-    assignedDate: "01/10/2024",
-    status: "active",
+    assignedDate: "10JAN2024",
+    status: "Deadline - Supply",
+    description: "Precision Multimeter",
+    category: "support-equipment",
+    location: "Commo Shop",
     requiresCalibration: true,
     calibrationInfo: {
-       lastCalibrationDate: "2024-01-15",
-       nextCalibrationDueDate: "2024-07-15",
+       lastCalibrationDate: "15JAN2024",
+       nextCalibrationDueDate: "15JUL2024",
        calibrationIntervalDays: 180,
        status: 'due-soon',
-       notes: "Precision measurement tool."
+       notes: "Waiting for replacement test probes."
     }
+  },
+  {
+    id: "12",
+    name: "AN/PRC-152 Radio",
+    serialNumber: "PRC152-87654321",
+    assignedDate: "10FEB2024",
+    status: "In Repair",
+    description: "Handheld Multiband Radio",
+    category: "comsec",
+    location: "Commo Cage",
+    isSensitive: true
+  },
+  {
+    id: "13",
+    name: "M4A1 Carbine",
+    serialNumber: "M4A1-12345678",
+    assignedDate: "15JAN2023",
+    status: "Deadline - Maintenance",
+    description: "5.56mm Carbine with Burst Capability",
+    category: "weapons",
+    location: "Arms Room",
+    isSensitive: true,
+    components: [
+      {
+        id: 'comp-m4-1',
+        name: 'ACOG Scope',
+        quantity: 1,
+        required: true,
+        status: 'present',
+        serialNumber: 'ACOG-87654321'
+      },
+      {
+        id: 'comp-m4-2',
+        name: 'Magazines',
+        quantity: 7,
+        required: true,
+        status: 'present'
+      },
+      {
+        id: 'comp-m4-3',
+        name: 'Cleaning Kit',
+        quantity: 1,
+        required: true,
+        status: 'present'
+      }
+    ]
   }
 ];
 
@@ -182,7 +279,7 @@ export const transfers: Transfer[] = [
     serialNumber: "M4A1-88574921",
     from: "SFC Martinez",
     to: "CPT John Doe",
-    date: "07/15/2023",
+    date: "15JUL2023",
     status: "pending",
   },
   {
@@ -191,7 +288,7 @@ export const transfers: Transfer[] = [
     serialNumber: "PVS14-74835621",
     from: "1LT Parker",
     to: "CPT John Doe",
-    date: "07/14/2023",
+    date: "14JUL2023",
     status: "pending",
   },
   {
@@ -200,7 +297,7 @@ export const transfers: Transfer[] = [
     serialNumber: "PRC152-32165498",
     from: "SSG Rodriguez",
     to: "CPT John Doe",
-    date: "07/13/2023",
+    date: "13JUL2023",
     status: "pending",
   },
   {
@@ -209,7 +306,7 @@ export const transfers: Transfer[] = [
     serialNumber: "NFG-65432198",
     from: "CPT John Doe",
     to: "PFC Williams",
-    date: "07/10/2023",
+    date: "10JUL2023",
     status: "approved",
   },
   {
@@ -218,7 +315,7 @@ export const transfers: Transfer[] = [
     serialNumber: "M9B-87654321",
     from: "CPT John Doe",
     to: "PFC Williams",
-    date: "07/09/2023",
+    date: "09JUL2023",
     status: "rejected",
   },
   {
@@ -227,7 +324,7 @@ export const transfers: Transfer[] = [
     serialNumber: "M240B-23574921",
     from: "1SG Johnson",
     to: "CPT John Doe",
-    date: "07/08/2023",
+    date: "08JUL2023",
     status: "approved",
   },
   {
@@ -236,7 +333,7 @@ export const transfers: Transfer[] = [
     serialNumber: "DAGR-56784321",
     from: "CPT John Doe",
     to: "2LT Adams",
-    date: "07/06/2023",
+    date: "06JUL2023",
     status: "approved",
   },
   {
@@ -245,7 +342,7 @@ export const transfers: Transfer[] = [
     serialNumber: "M2-87542198",
     from: "MAJ Wilson",
     to: "CPT John Doe",
-    date: "07/05/2023",
+    date: "05JUL2023",
     status: "pending",
   },
   {
@@ -254,7 +351,7 @@ export const transfers: Transfer[] = [
     serialNumber: "ASIP-12354876",
     from: "CPT John Doe",
     to: "SFC Martinez",
-    date: "07/03/2023",
+    date: "03JUL2023",
     status: "approved",
   },
   {
@@ -263,7 +360,7 @@ export const transfers: Transfer[] = [
     serialNumber: "MK19-87456213",
     from: "CPT John Doe",
     to: "SSG Brown",
-    date: "07/01/2023",
+    date: "01JUL2023",
     status: "pending",
   },
 ];
@@ -404,7 +501,7 @@ export const notifications: Notification[] = [
     id: "not-8",
     type: "system-alert",
     title: "Arms Room Alert",
-    message: "Monthly weapons maintenance scheduled for 15 JUL 0900.",
+    message: "Monthly weapons maintenance scheduled for 15JUL2023 0900.",
     timeAgo: "2 days ago",
     read: true,
   },
@@ -420,7 +517,7 @@ export const notifications: Notification[] = [
     id: "not-10",
     type: "system-alert",
     title: "Supply Alert",
-    message: "Monthly sensitive items inventory on 20 JUL 0800.",
+    message: "Monthly sensitive items inventory on 20JUL2023 0800.",
     timeAgo: "1 week ago",
     read: true,
   },

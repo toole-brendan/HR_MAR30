@@ -1,3 +1,4 @@
+// @ts-ignore
 import { LatLngExpression } from 'leaflet';
 
 // User Types
@@ -59,7 +60,7 @@ export interface InventoryItem {
   nsn?: string;
   category: string; // Weapon, Vehicle, Comms, Optics, Other
   location: string; // Building/Room or Grid Coordinates
-  status: 'Operational' | 'Non-Operational' | 'Damaged' | 'In Repair' | 'Lost';
+  status: 'Operational' | 'Deadline - Maintenance' | 'Deadline - Supply' | 'Lost' | 'Non-Operational' | 'Damaged' | 'In Repair'; // Updated to include new military-specific status options
   assignedTo?: string; // User ID or Name
   assignedDate?: string; // ISO 8601 date string
   lastInventoryDate?: string; // ISO 8601 date string
