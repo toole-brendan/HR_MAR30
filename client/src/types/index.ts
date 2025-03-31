@@ -86,8 +86,11 @@ export interface Transfer {
   serialNumber: string;
   from: string;
   to: string;
-  date: string;
+  date: string; // ISO 8601 date string for request date
   status: "pending" | "approved" | "rejected";
+  approvedDate?: string; // Optional: ISO 8601 date string for approval
+  rejectedDate?: string; // Optional: ISO 8601 date string for rejection
+  rejectionReason?: string; // Optional: Reason for rejection
 }
 
 // Activity Types

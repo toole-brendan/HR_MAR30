@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { format, subDays, addDays } from "date-fns";
+import { useState, useEffect, useReducer, useCallback } from "react";
+import { format, subDays, addDays, isValid } from "date-fns";
 import { 
   Card, 
   CardContent, 
@@ -19,8 +19,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageWrapper } from "@/components/ui/page-wrapper";
+import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { motion, AnimatePresence } from "framer-motion";
+// import { BarChart, PieChart } from "@/components/charts";
 
 import { 
   Search, 
@@ -57,164 +63,585 @@ import {
   QrCode,
   Paperclip,
   Camera as CameraIcon,
-  Upload as UploadIcon
+  Upload as UploadIcon,
+  CalendarIcon,
+  XIcon,
+  LinkIcon,
+  AlertCircle,
+  RefreshCw
 } from "lucide-react";
 
-import { maintenanceItems, maintenanceLogs, maintenanceStats, MaintenanceItem, MaintenanceLog } from "@/lib/maintenanceData";
+import { maintenanceItems, maintenanceLogs, maintenanceStats, maintenanceBulletins, MaintenanceItem, MaintenanceLog, MaintenanceBulletin } from "@/lib/maintenanceData";
+import { maintenanceReducer, initialState } from "@/lib/maintenanceReducer";
+import { 
+  getMaintenanceItemsFromDB, 
+  getMaintenanceLogsFromDB, 
+  getMaintenanceBulletinsFromDB, 
+  getMaintenanceStatsFromDB,
+  initializeMaintenanceDataIfEmpty,
+  updateMaintenanceItemStatusInDB,
+  addMaintenanceItemToDB,
+  addMaintenanceBulletinToDB,
+  getMaintenanceItemByIdFromDB,
+  getMaintenanceLogsByItemIdFromDB,
+  addMaintenanceLogToDB
+} from "@/lib/maintenanceIdb";
+import { getInventoryItemsFromDB } from "@/lib/idb";
+import { InventoryItem } from "@/types";
 import CalibrationManager from "@/components/maintenance/CalibrationManager";
-
-// Maintenance notifications/bulletins data
-interface MaintenanceBulletin {
-  id: string;
-  title: string;
-  message: string;
-  category: 'parts-shortage' | 'delay' | 'update' | 'facility' | 'general';
-  affectedItems?: string[];
-  postedBy: string;
-  postedDate: string;
-  resolvedDate?: string;
-  resolved: boolean;
-}
-
-const maintenanceBulletins: MaintenanceBulletin[] = [
-  {
-    id: "b1",
-    title: "Parts Shortage: M4 Firing Pin",
-    message: "We are currently experiencing a shortage of M4 firing pins. Maintenance requests requiring this part will be delayed by approximately 2 weeks. We've placed an emergency order and expect delivery by April 15.",
-    category: 'parts-shortage',
-    affectedItems: ["M4A1 Carbine"],
-    postedBy: "SFC Wright",
-    postedDate: format(subDays(new Date(), 2), 'yyyy-MM-dd'),
-    resolved: false
-  },
-  {
-    id: "b2",
-    title: "HMMWV Maintenance Delay",
-    message: "Due to increased operational tempo, all non-critical HMMWV maintenance is being rescheduled. Critical repairs remain prioritized. Contact the maintenance team if you believe your request should be escalated.",
-    category: 'delay',
-    affectedItems: ["HMMWV"],
-    postedBy: "CPT Miller",
-    postedDate: format(subDays(new Date(), 5), 'yyyy-MM-dd'),
-    resolved: false
-  },
-  {
-    id: "b3",
-    title: "Maintenance Bay Closure",
-    message: "Bay 3 will be closed for renovation from April 10-15. All scheduled maintenance in this bay is being rescheduled. You will receive notification of your new maintenance appointment date.",
-    category: 'facility',
-    postedBy: "1SG Robinson",
-    postedDate: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
-    resolved: false
-  },
-  {
-    id: "b4",
-    title: "NVG Repair Process Improved",
-    message: "We've received new calibration equipment for night vision devices. Repair turnaround time has been reduced from 72 hours to 24 hours for most issues.",
-    category: 'update',
-    affectedItems: ["Night Vision Goggles"],
-    postedBy: "SPC Adams",
-    postedDate: format(subDays(new Date(), 10), 'yyyy-MM-dd'),
-    resolved: true,
-    resolvedDate: format(subDays(new Date(), 1), 'yyyy-MM-dd')
-  }
-];
+import { v4 as uuidv4 } from 'uuid';
+import { Label } from "@/components/ui/label";
+import { MaintenanceStatusBadge, MaintenancePriorityBadge } from '@/components/maintenance/MaintenanceBadges';
+import { Play, Radio, Sword } from '@/components/ui/custom-icons';
+import { MaintenanceItemRow } from '@/components/maintenance/MaintenanceItemRow';
+import { MaintenanceList } from '@/components/maintenance/MaintenanceList';
+import { MaintenanceDashboard } from '@/components/maintenance/MaintenanceDashboard';
+import { MaintenanceBulletinBoard } from '@/components/maintenance/MaintenanceBulletinBoard';
+import { openDB } from 'idb';
 
 interface MaintenanceProps {
   id?: string;
 }
 
 const Maintenance: React.FC<MaintenanceProps> = ({ id }) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  // Use the maintenance reducer
+  const [state, dispatch] = useReducer(maintenanceReducer, initialState);
+  
+  // UI state not in reducer
   const [selectedItem, setSelectedItem] = useState<MaintenanceItem | null>(null);
+  const [itemLogs, setItemLogs] = useState<MaintenanceLog[]>([]);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [newRequestModalOpen, setNewRequestModalOpen] = useState(false);
   const [addBulletinModalOpen, setAddBulletinModalOpen] = useState(false);
-  const [selectedTab, setSelectedTab] = useState("my-requests");
   const [showCalibrationManager, setShowCalibrationManager] = useState(false);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItem | null>(null);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [isSavingStatus, setIsSavingStatus] = useState(false);
+  const [modalInventorySearchTerm, setModalInventorySearchTerm] = useState("");
+  
   const isMobile = useIsMobile();
   const { toast } = useToast();
 
-  // Filter maintenance items for current user
-  // In a real app, this would filter by the current user's ID
-  const myMaintenanceRequests = maintenanceItems.filter(item => 
-    item.reportedBy === "CPT Rodriguez" || 
-    item.reportedBy === "SSG Wilson"
-  );
+  // Destructure relevant state for easier access
+  const { 
+    isLoading, 
+    error, 
+    maintenanceItems, 
+    maintenanceLogs, 
+    bulletins, 
+    stats, 
+    searchTerm, 
+    filterCategory, 
+    filterStatus, 
+    filterPriority, 
+    dateRange, 
+    selectedTab,
+    isSubmitting,
+    sortConfig // Destructure sortConfig
+  } = state; 
 
-  // Get filtered maintenance requests based on search term and status
-  const filteredRequests = myMaintenanceRequests.filter(item => {
-    const matchesSearch = 
-      item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase());
+  // Add this function to force reinitialize data
+  const forceReinitializeData = async () => {
+    try {
+      console.log("Clearing and re-initializing maintenance data...");
+      
+      // Show loading toast
+      toast({
+        title: "Reinitializing Data",
+        description: "Please wait while we reload the maintenance data...",
+        variant: "default",
+      });
+      
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      // 1. Get the IndexedDB database
+      const db = await openDB('maintenance_db', 1);
+      
+      // 2. Clear all existing data
+      const tx = db.transaction(
+        ['maintenance_items', 'maintenance_logs', 'maintenance_bulletins', 'maintenance_stats'],
+        'readwrite'
+      );
+      await tx.objectStore('maintenance_items').clear();
+      await tx.objectStore('maintenance_logs').clear();
+      await tx.objectStore('maintenance_bulletins').clear();
+      await tx.objectStore('maintenance_stats').clear();
+      await tx.done;
+      
+      // 3. Re-initialize with mock data
+      await initializeMaintenanceDataIfEmpty(
+        maintenanceItems, 
+        maintenanceLogs,
+        maintenanceBulletins,
+        maintenanceStats
+      );
+      
+      // 4. Reload all data
+      const items = await getMaintenanceItemsFromDB();
+      const logs = await getMaintenanceLogsFromDB();
+      const bulletins = await getMaintenanceBulletinsFromDB();
+      const statsData = await getMaintenanceStatsFromDB();
+      
+      console.log("Loaded items:", items.length);
+      console.log("Loaded stats:", statsData);
+      
+      // 5. Update state
+      dispatch({ type: 'SET_MAINTENANCE_ITEMS', payload: items });
+      dispatch({ type: 'SET_MAINTENANCE_LOGS', payload: logs });
+      dispatch({ type: 'SET_BULLETINS', payload: bulletins });
+      dispatch({ type: 'SET_STATS', payload: statsData });
+      dispatch({ type: 'SET_LOADING', payload: false });
+      
+      // Success toast
+      toast({
+        title: "Data Reinitialized",
+        description: `Successfully loaded ${items.length} maintenance items and statistics.`,
+        variant: "default",
+      });
+    } catch (err) {
+      console.error("Failed to reinitialize data:", err);
+      dispatch({ type: 'SET_LOADING', payload: false });
+      
+      // Error toast
+      toast({
+        title: "Error",
+        description: "Failed to reinitialize data. Check console for details.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Load data from IndexedDB and initialize if needed
+  useEffect(() => {
+    const loadData = async () => {
+      console.log("[Maintenance] Starting data load..."); // Log start
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'SET_ERROR', payload: null });
+      
+      try {
+        // Initialize the database with mock data if empty
+        await initializeMaintenanceDataIfEmpty(
+          maintenanceItems,
+          maintenanceLogs,
+          maintenanceBulletins,
+          maintenanceStats
+        );
+        console.log("[Maintenance] DB initialization check complete."); // Log init check
+        
+        // Load all data
+        const items = await getMaintenanceItemsFromDB();
+        console.log("[Maintenance] Loaded items:", items); // Log loaded items
+        const logs = await getMaintenanceLogsFromDB();
+        const bulletins = await getMaintenanceBulletinsFromDB();
+        const statsData = await getMaintenanceStatsFromDB();
+        console.log("[Maintenance] Loaded stats:", statsData); // Log loaded stats
+        
+        // Load inventory items for reference
+        const inventory = await getInventoryItemsFromDB();
+        setInventoryItems(inventory);
+        
+        // Update state
+        dispatch({ type: 'SET_MAINTENANCE_ITEMS', payload: items });
+        dispatch({ type: 'SET_MAINTENANCE_LOGS', payload: logs });
+        dispatch({ type: 'SET_BULLETINS', payload: bulletins });
+        dispatch({ type: 'SET_STATS', payload: statsData }); // Use fetched stats data
+        
+        console.log(`[Maintenance] Dispatched data to reducer. Items: ${items.length}`);
+      } catch (err) {
+        console.error("[Maintenance] Failed to load maintenance data:", err);
+        dispatch({ type: 'SET_ERROR', payload: "Failed to load maintenance data" });
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+        console.log("[Maintenance] Data load finished."); // Log end
+      }
+    };
     
-    const matchesStatus = filterStatus === "all" || item.status === filterStatus;
+    loadData();
+  }, []); // Keep dependency array empty for initial load
+
+  // Watch for ID prop changes to load specific items
+  useEffect(() => {
+    if (!state.isLoading && id) {
+      const fetchItemDetails = async () => {
+        try {
+          const item = await getMaintenanceItemByIdFromDB(id);
+          if (item) {
+            setSelectedItem(item);
+            setDetailsModalOpen(true);
+            
+            // Load logs for this item
+            const logs = await getMaintenanceLogsByItemIdFromDB(id);
+            setItemLogs(logs);
+          }
+        } catch (err) {
+          console.error(`Failed to load maintenance item ${id}:`, err);
+          toast({
+            title: "Error",
+            description: `Failed to load item details for ID: ${id}`,
+            variant: "destructive",
+          });
+        }
+      };
+      
+      fetchItemDetails();
+    }
+  }, [id, state.isLoading, toast]);
+
+  // Filter AND sort maintenance items for current user
+  const getFilteredAndSortedRequests = useCallback(() => {
+    const currentUser = "CPT Rodriguez"; // Mock current user
     
-    return matchesSearch && matchesStatus;
-  });
+    // Filtering logic
+    const filtered = maintenanceItems.filter(item => {
+      // Filter by user - show all items
+      const isUserItem = true; // Show all items regardless of user assignment
+      
+      // Filter by search term
+      const matchesSearch = 
+        !searchTerm || 
+        item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Filter by category
+      const matchesCategory = filterCategory === "all" || item.category === filterCategory;
+      
+      // Filter by status
+      const matchesStatus = filterStatus === "all" || item.status === filterStatus;
+      
+      // Filter by priority
+      const matchesPriority = filterPriority === "all" || item.priority === filterPriority;
+      
+      // Filter by date range
+      let matchesDateRange = true;
+      if (dateRange.from && isValid(dateRange.from)) {
+        const reportedDate = new Date(item.reportedDate);
+        matchesDateRange = reportedDate >= dateRange.from;
+        
+        if (dateRange.to && isValid(dateRange.to)) {
+          matchesDateRange = matchesDateRange && reportedDate <= dateRange.to;
+        }
+      }
+      
+      return isUserItem && matchesSearch && matchesCategory && matchesStatus && matchesPriority && matchesDateRange;
+    });
+
+    // Sorting logic
+    const sorted = [...filtered].sort((a, b) => {
+      const field = sortConfig.field;
+      if (field === 'none') return 0;
+
+      let comparison = 0;
+      const valueA = a[field];
+      const valueB = b[field];
+
+      // Handle different data types
+      if (typeof valueA === 'string' && typeof valueB === 'string') {
+        // General string comparison (covers itemName, serialNumber, category, etc.)
+        comparison = valueA.localeCompare(valueB);
+      } else if ((field === 'reportedDate' || field === 'scheduledDate' || field === 'completedDate') && 
+                 typeof valueA === 'string' && typeof valueB === 'string' && valueA && valueB) {
+        // Specific Date comparison - Ensure they are non-empty strings before creating Date
+        try {
+            const dateA = new Date(valueA).getTime();
+            const dateB = new Date(valueB).getTime();
+            // Check if dates are valid
+            if (!isNaN(dateA) && !isNaN(dateB)) {
+                 comparison = dateA - dateB;
+            } else {
+                 // Handle invalid date strings if necessary, e.g., treat as equal or push to end
+                 comparison = 0; 
+            }
+        } catch (e) {
+             console.error("Error comparing dates:", valueA, valueB, e);
+             comparison = 0; // Fallback if Date constructor throws
+        }
+      } else if (typeof valueA === 'number' && typeof valueB === 'number') {
+        comparison = valueA - valueB;
+      } 
+      // Add other type comparisons if needed (e.g., priority levels)
+      else if (field === 'priority') {
+          const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+          const priorityA = priorityOrder[a.priority] || 0;
+          const priorityB = priorityOrder[b.priority] || 0;
+          comparison = priorityA - priorityB;
+      }
+
+      return sortConfig.order === 'asc' ? comparison : -comparison;
+    });
+
+    return sorted;
+
+  }, [
+    maintenanceItems,
+    searchTerm,
+    filterCategory,
+    filterStatus,
+    filterPriority,
+    dateRange,
+    sortConfig // Add sortConfig dependency
+  ]);
 
   // Get maintenance logs for a specific item
-  const getItemMaintenanceLogs = (maintenanceId: string): MaintenanceLog[] => {
-    return maintenanceLogs.filter(log => log.maintenanceId === maintenanceId)
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  };
+  const getItemMaintenanceLogs = useCallback(async (maintenanceId: string) => {
+    setIsLoadingLogs(true);
+    try {
+      const logs = await getMaintenanceLogsByItemIdFromDB(maintenanceId);
+      setItemLogs(logs);
+    } catch (err) {
+      console.error("Failed to load maintenance logs:", err);
+      toast({
+        title: "Error",
+        description: "Failed to load maintenance history",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingLogs(false);
+    }
+  }, [toast]);
 
   // Handler for viewing item details
-  const handleViewDetails = (item: MaintenanceItem) => {
+  const handleViewDetails = useCallback(async (item: MaintenanceItem) => {
     setSelectedItem(item);
     setDetailsModalOpen(true);
-  };
+    await getItemMaintenanceLogs(item.id);
+  }, [getItemMaintenanceLogs]);
 
   // Handler for starting maintenance
-  const handleStartMaintenance = (item: MaintenanceItem) => {
-    // In a real app, this would update the item status in the database
-    toast({
-      title: "Maintenance Started",
-      description: `Maintenance for ${item.itemName} has been started.`,
-      variant: "default",
-    });
-  };
+  const handleStartMaintenance = useCallback(async (item: MaintenanceItem) => {
+    setIsSavingStatus(true);
+    try {
+      const result = await updateMaintenanceItemStatusInDB(
+        item.id, 
+        'in-progress',
+        "CPT Rodriguez" // Mock current user
+      );
+      
+      // Update local state
+      dispatch({ 
+        type: 'UPDATE_MAINTENANCE_ITEM', 
+        payload: result.item 
+      });
+      
+      // Update stats if we have them
+      if (state.stats) {
+        dispatch({
+          type: 'SET_STATS',
+          payload: await getMaintenanceStatsFromDB()
+        });
+      }
+      
+      // Refresh logs if viewing details
+      if (selectedItem && selectedItem.id === item.id) {
+        await getItemMaintenanceLogs(item.id);
+      }
+      
+      // Show toast
+      toast({
+        title: "Maintenance Started",
+        description: `Maintenance for ${item.itemName} has been started.`,
+        variant: "default",
+      });
+    } catch (err) {
+      console.error("Failed to start maintenance:", err);
+      toast({
+        title: "Error",
+        description: "Failed to update maintenance status",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingStatus(false);
+    }
+  }, [dispatch, getItemMaintenanceLogs, selectedItem, state.stats, toast]);
 
   // Handler for completing maintenance
-  const handleCompleteMaintenance = (item: MaintenanceItem) => {
-    // In a real app, this would update the item status in the database
-    toast({
-      title: "Maintenance Completed",
-      description: `Maintenance for ${item.itemName} has been marked as complete.`,
-      variant: "default",
-    });
-  };
+  const handleCompleteMaintenance = useCallback(async (item: MaintenanceItem) => {
+    setIsSavingStatus(true);
+    try {
+      const result = await updateMaintenanceItemStatusInDB(
+        item.id, 
+        'completed',
+        "CPT Rodriguez" // Mock current user
+      );
+      
+      // Update local state
+      dispatch({ 
+        type: 'UPDATE_MAINTENANCE_ITEM', 
+        payload: result.item 
+      });
+      
+      // Update stats if we have them
+      if (state.stats) {
+        dispatch({
+          type: 'SET_STATS',
+          payload: await getMaintenanceStatsFromDB()
+        });
+      }
+      
+      // Refresh logs if viewing details
+      if (selectedItem && selectedItem.id === item.id) {
+        await getItemMaintenanceLogs(item.id);
+      }
+      
+      // Show toast
+      toast({
+        title: "Maintenance Completed",
+        description: `Maintenance for ${item.itemName} has been marked as complete.`,
+        variant: "default",
+      });
+      
+      // Close modal if open
+      setDetailsModalOpen(false);
+    } catch (err) {
+      console.error("Failed to complete maintenance:", err);
+      toast({
+        title: "Error",
+        description: "Failed to update maintenance status",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingStatus(false);
+    }
+  }, [dispatch, getItemMaintenanceLogs, selectedItem, state.stats, toast]);
 
   // Handler for opening new maintenance request modal
-  const handleNewRequestClick = () => {
+  const handleNewRequestClick = useCallback(() => {
+    setSelectedInventoryItem(null);
     setNewRequestModalOpen(true);
-  };
+  }, []);
 
   // Handler for submitting new maintenance request
-  const handleSubmitNewRequest = () => {
-    setNewRequestModalOpen(false);
-    toast({
-      title: "Request Submitted",
-      description: "Your maintenance request has been submitted successfully.",
-      variant: "default",
-    });
-  };
+  const handleSubmitNewRequest = useCallback(async (formData: any) => {
+    dispatch({ type: 'SET_SUBMITTING', payload: true });
+    
+    try {
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Create new maintenance item
+      const newItem: MaintenanceItem = {
+        id: `m_${uuidv4()}`,
+        itemId: selectedInventoryItem?.id || formData.itemId || '',
+        itemName: formData.itemName,
+        serialNumber: formData.serialNumber,
+        category: formData.category,
+        maintenanceType: formData.maintenanceType,
+        status: 'scheduled',
+        priority: formData.priority,
+        description: formData.description,
+        reportedBy: "CPT Rodriguez", // Mock current user
+        reportedDate: new Date().toISOString().split('T')[0],
+        scheduledDate: formData.scheduledDate || undefined,
+        notes: ''
+      };
+      
+      // Add to IndexedDB
+      const savedItem = await addMaintenanceItemToDB(newItem);
+      
+      // Add to local state
+      dispatch({ type: 'ADD_MAINTENANCE_ITEM', payload: savedItem });
+      
+      // Close modal
+      setNewRequestModalOpen(false);
+      
+      // Show toast
+      toast({
+        title: "Request Submitted",
+        description: "Your maintenance request has been submitted successfully.",
+        variant: "default",
+      });
+      
+      // Reset selected inventory item
+      setSelectedInventoryItem(null);
+    } catch (err) {
+      console.error("Failed to submit maintenance request:", err);
+      toast({
+        title: "Error",
+        description: "Failed to submit maintenance request",
+        variant: "destructive",
+      });
+    } finally {
+      dispatch({ type: 'SET_SUBMITTING', payload: false });
+    }
+  }, [dispatch, selectedInventoryItem, toast]);
 
   // Handler for adding a new bulletin
-  const handleAddBulletinClick = () => {
+  const handleAddBulletinClick = useCallback(() => {
     setAddBulletinModalOpen(true);
-  };
+  }, []);
 
   // Handler for submitting a new bulletin
-  const handleSubmitBulletin = () => {
-    setAddBulletinModalOpen(false);
-    toast({
-      title: "Bulletin Posted",
-      description: "Your maintenance bulletin has been posted successfully.",
-      variant: "default",
-    });
-  };
+  const handleSubmitBulletin = useCallback(async (formData: any) => {
+    dispatch({ type: 'SET_SUBMITTING', payload: true });
+    
+    try {
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Create new bulletin
+      const newBulletin: MaintenanceBulletin = {
+        id: `b_${uuidv4()}`,
+        title: formData.title,
+        message: formData.message,
+        category: formData.category,
+        postedBy: "CPT Rodriguez", // Mock current user
+        postedDate: new Date().toISOString().split('T')[0],
+        resolved: false,
+        affectedItems: formData.affectedItems ? formData.affectedItems.split(',').map((s: string) => s.trim()) : undefined
+      };
+      
+      // Add to IndexedDB
+      const savedBulletin = await addMaintenanceBulletinToDB(newBulletin);
+      
+      // Add to local state
+      dispatch({ type: 'ADD_BULLETIN', payload: savedBulletin });
+      
+      // Close modal
+      setAddBulletinModalOpen(false);
+      
+      // Show toast
+      toast({
+        title: "Bulletin Posted",
+        description: "Your maintenance bulletin has been posted successfully.",
+        variant: "default",
+      });
+    } catch (err) {
+      console.error("Failed to submit bulletin:", err);
+      toast({
+        title: "Error",
+        description: "Failed to post maintenance bulletin",
+        variant: "destructive",
+      });
+    } finally {
+      dispatch({ type: 'SET_SUBMITTING', payload: false });
+    }
+  }, [dispatch, toast]);
+
+  // Handler for resetting filters
+  const handleResetFilters = useCallback(() => {
+    dispatch({ type: 'RESET_FILTERS' });
+  }, [dispatch]);
+
+  // Handler for sorting
+  const handleSort = useCallback((field: keyof MaintenanceItem | 'none') => {
+    dispatch({ type: 'SET_SORT_CONFIG', payload: field });
+  }, [dispatch]);
+
+  // Handler for dashboard stat clicks
+  const handleStatClick = useCallback((filterType: 'status', value: string) => {
+    if (filterType === 'status') {
+      dispatch({ type: 'SET_FILTER_STATUS', payload: value });
+      dispatch({ type: 'SET_SELECTED_TAB', payload: 'my-requests' }); // Switch to the list view
+    }
+    // Add other filter types here if needed later
+  }, [dispatch]);
+
+  // Log state just before rendering
+  // console.log("[Maintenance] Rendering with state:", state);
+  // Log the items array being generated for the list
+  const itemsForList = getFilteredAndSortedRequests();
+  // console.log("[Maintenance] Items passed to MaintenanceList:", itemsForList);
 
   // Page actions
   const actions = (
@@ -222,35 +649,24 @@ const Maintenance: React.FC<MaintenanceProps> = ({ id }) => {
         <Button 
           onClick={handleNewRequestClick} 
           size="sm"
-          variant="default"
-          className="flex items-center gap-2"
+          variant="blue"
+          className="h-9 px-3 flex items-center gap-1.5"
+          disabled={state.isSubmitting}
         >
             <Plus className="h-4 w-4" />
-            New Maintenance Request
+            <span className="text-xs uppercase tracking-wider">New Maintenance Request</span>
         </Button>
         <Button 
             onClick={() => setShowCalibrationManager(!showCalibrationManager)}
-            variant="default"
+            variant="blue"
             size="sm"
-            className={`flex items-center gap-2 ${showCalibrationManager ? 'bg-secondary hover:bg-secondary/80 text-secondary-foreground' : ''}`}
+            className={`h-9 px-3 flex items-center gap-1.5 ${showCalibrationManager ? 'bg-secondary hover:bg-secondary/80 text-secondary-foreground' : ''}`}
         >
             <Calendar className="h-4 w-4" />
-            {showCalibrationManager ? "Hide Calibration" : "Show Calibration"}
+            <span className="text-xs uppercase tracking-wider">{showCalibrationManager ? "Hide Calibration" : "Show Calibration"}</span>
         </Button>
     </div>
   );
-
-  // If an ID is provided, find and show the specific maintenance record
-  useEffect(() => {
-    if (id) {
-      const record = maintenanceItems.find(item => item.id === id);
-      if (record) {
-        // Show details of the specific maintenance record
-        setSelectedItem(record);
-        setDetailsModalOpen(true);
-      }
-    }
-  }, [id]);
 
   return (
     <PageWrapper withPadding={true}>
@@ -273,33 +689,39 @@ const Maintenance: React.FC<MaintenanceProps> = ({ id }) => {
 
       {/* Conditionally render the main Tabs OR the Calibration Manager */}
       {!showCalibrationManager ? (
-          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-             <TabsList className="grid grid-cols-3 w-full rounded-none bg-gray-50 dark:bg-white/5 h-10 mb-6">
-               <TabsTrigger value="my-requests">My Requests</TabsTrigger>
-               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-               <TabsTrigger value="bulletins">Bulletins</TabsTrigger>
+          <Tabs value={state.selectedTab} onValueChange={(value: any) => dispatch({ type: 'SET_SELECTED_TAB', payload: value as 'my-requests' | 'dashboard' | 'bulletins' })} className="w-full">
+             <TabsList className="grid grid-cols-3 w-full rounded-none h-10 mb-6">
+               <TabsTrigger value="my-requests" className="text-xs uppercase tracking-wider rounded-none">My Requests</TabsTrigger>
+               <TabsTrigger value="dashboard" className="text-xs uppercase tracking-wider rounded-none">Dashboard</TabsTrigger>
+               <TabsTrigger value="bulletins" className="text-xs uppercase tracking-wider rounded-none">Bulletins</TabsTrigger>
              </TabsList>
              <TabsContent value="my-requests">
                <MaintenanceList
-                 items={filteredRequests}
+                 items={itemsForList}
                  searchTerm={searchTerm}
-                 setSearchTerm={setSearchTerm}
-                 filterCategory="all"
-                 setFilterCategory={() => {}}
+                 setSearchTerm={(term) => dispatch({ type: 'SET_SEARCH_TERM', payload: term })}
+                 filterCategory={filterCategory}
+                 setFilterCategory={(category) => dispatch({ type: 'SET_FILTER_CATEGORY', payload: category })}
                  filterStatus={filterStatus}
-                 setFilterStatus={setFilterStatus}
-                 filterPriority="all"
-                 setFilterPriority={() => {}}
+                 setFilterStatus={(status) => dispatch({ type: 'SET_FILTER_STATUS', payload: status })}
+                 filterPriority={filterPriority}
+                 setFilterPriority={(priority) => dispatch({ type: 'SET_FILTER_PRIORITY', payload: priority })}
                  onViewDetails={handleViewDetails}
                  onStartMaintenance={handleStartMaintenance}
                  onCompleteMaintenance={handleCompleteMaintenance}
+                 onResetFilters={handleResetFilters}
+                 sortConfig={sortConfig}
+                 onSort={handleSort}
                />
              </TabsContent>
              <TabsContent value="dashboard">
-               <MaintenanceDashboard stats={maintenanceStats} />
+               <MaintenanceDashboard 
+                 stats={stats}
+                 onStatClick={handleStatClick}
+               />
              </TabsContent>
              <TabsContent value="bulletins">
-               <MaintenanceBulletinBoard bulletins={maintenanceBulletins} onAddBulletin={handleAddBulletinClick} />
+               <MaintenanceBulletinBoard bulletins={state.bulletins} onAddBulletin={handleAddBulletinClick} />
              </TabsContent>
           </Tabs>
       ) : (
@@ -386,40 +808,56 @@ const Maintenance: React.FC<MaintenanceProps> = ({ id }) => {
                 </div>
               </div>
               
-              {/* Maintenance Schedule */}
-              <div className="border rounded-md p-4">
-                <h3 className="text-lg font-medium mb-3 flex items-center">
-                  <CalendarClock className="mr-2 h-4 w-4" />
-                  Maintenance Schedule
+              {/* Maintenance Schedule - Enhanced Timeline */}
+              <div className="border rounded-none p-4 shadow-none bg-card">
+                <h3 className="text-lg font-medium mb-4 flex items-center">
+                  <CalendarClock className="mr-2 h-4 w-4 text-primary" />
+                  Maintenance Timeline
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="border-l-2 border-l-blue-500 pl-3">
-                    <p className="text-sm text-muted-foreground">Reported</p>
-                    <p className="font-medium">{selectedItem.reportedDate}</p>
+                <div className="relative pl-6 space-y-6 border-l-2 border-border ml-3">
+                  {/* Step 1: Reported */}
+                  <div className="absolute -left-[13px] top-1 w-6 h-6 rounded-full bg-blue-500 border-4 border-card flex items-center justify-center">
+                     <FileText className="h-3 w-3 text-white" />
+                  </div>
+                  <div>
+                      <p className="text-sm font-medium">Request Reported</p>
+                      <p className="text-xs text-muted-foreground">On: {selectedItem.reportedDate ? format(new Date(selectedItem.reportedDate), 'PPP') : 'N/A'}</p>
                   </div>
                   
-                  <div className={`border-l-2 pl-3 ${selectedItem.scheduledDate ? 'border-l-amber-500' : 'border-l-gray-300 dark:border-l-gray-700'}`}>
-                    <p className="text-sm text-muted-foreground">Scheduled</p>
-                    <p className="font-medium">{selectedItem.scheduledDate || "Not scheduled yet"}</p>
+                  {/* Step 2: Scheduled */}
+                  <div className={`absolute -left-[13px] top-[calc(33%_+_8px)] w-6 h-6 rounded-full border-4 border-card flex items-center justify-center ${selectedItem.scheduledDate ? 'bg-amber-500' : 'bg-gray-400'}`}>
+                     <Calendar className="h-3 w-3 text-white" />
+                  </div>
+                  <div>
+                      <p className="text-sm font-medium">Maintenance Scheduled</p>
+                      <p className="text-xs text-muted-foreground">For: {selectedItem.scheduledDate ? format(new Date(selectedItem.scheduledDate), 'PPP') : 'Not scheduled yet'}</p>
                   </div>
                   
-                  <div className={`border-l-2 pl-3 ${selectedItem.completedDate ? 'border-l-green-500' : 'border-l-gray-300 dark:border-l-gray-700'}`}>
-                    <p className="text-sm text-muted-foreground">Completed</p>
-                    <p className="font-medium">{selectedItem.completedDate || "Pending"}</p>
+                   {/* Step 3: Started (Optional - Infer from logs or add explicit field later) */}
+                   {/* Add logic here if a 'startedDate' or similar exists */}
+
+                   {/* Step 4: Completed */}
+                  <div className={`absolute -left-[13px] top-[calc(66%_+_16px)] w-6 h-6 rounded-full border-4 border-card flex items-center justify-center ${selectedItem.completedDate ? 'bg-green-500' : 'bg-gray-400'}`}>
+                     <CheckCircle className="h-3 w-3 text-white" />
+                  </div>
+                  <div>
+                      <p className="text-sm font-medium">Maintenance Completed</p>
+                      <p className="text-xs text-muted-foreground">On: {selectedItem.completedDate ? format(new Date(selectedItem.completedDate), 'PPP') : 'Pending'}</p>
                   </div>
                 </div>
-                
-                <div className="mt-4">
+
+                {/* Assigned Technician and Notes remain below the timeline */}
+                <div className="mt-6 pt-4 border-t">
                   <p className="text-sm text-muted-foreground">Assigned Technician</p>
-                  <p className="font-medium">{selectedItem.assignedTo || "Not assigned yet"}</p>
+                  <p className="font-medium mb-3">{selectedItem.assignedTo || "Not assigned yet"}</p>
+                  
+                  {selectedItem.notes && (
+                    <div className="bg-muted/30 p-3 rounded-md">
+                      <p className="text-sm font-medium mb-1">Technician Notes:</p>
+                      <p className="text-sm whitespace-pre-wrap">{selectedItem.notes}</p> {/* Use whitespace-pre-wrap */}
+                    </div>
+                  )}
                 </div>
-                
-                {selectedItem.notes && (
-                  <div className="mt-4 bg-muted/30 p-3 rounded-md">
-                    <p className="text-sm font-medium mb-1">Technician Notes:</p>
-                    <p className="text-sm">{selectedItem.notes}</p>
-                  </div>
-                )}
               </div>
               
               {/* Parts Information */}
@@ -472,10 +910,10 @@ const Maintenance: React.FC<MaintenanceProps> = ({ id }) => {
                   Maintenance History
                 </h3>
                 <div className="space-y-3">
-                  {getItemMaintenanceLogs(selectedItem.id).length === 0 ? (
+                  {itemLogs.length === 0 ? (
                     <p className="text-muted-foreground text-sm">No history records available</p>
                   ) : (
-                    getItemMaintenanceLogs(selectedItem.id).map(log => (
+                    itemLogs.map(log => (
                       <div key={log.id} className="flex items-start gap-3 pb-3 border-b last:border-b-0">
                         <div className="bg-primary/10 p-2 rounded-full mt-1">
                           {log.action === 'created' && <Plus className="h-4 w-4 text-primary" />}
@@ -522,17 +960,15 @@ const Maintenance: React.FC<MaintenanceProps> = ({ id }) => {
                 {selectedItem.status === 'scheduled' && (
                   <Button 
                     size="sm"
-                    variant="default"
-                    className="w-full flex items-center justify-center"
+                    variant="blue"
+                    className="h-9 px-3 flex items-center gap-1.5"
                     onClick={() => {
                       handleStartMaintenance(selectedItem);
                       setDetailsModalOpen(false);
                     }}
                   >
-                    <div className="flex items-center justify-center w-full">
-                      <Play className="h-4 w-4 mr-2" />
-                      Start
-                    </div>
+                    <Play className="h-4 w-4 mr-2" />
+                    <span className="text-xs uppercase tracking-wider">Start</span>
                   </Button>
                 )}
                 
@@ -567,153 +1003,268 @@ const Maintenance: React.FC<MaintenanceProps> = ({ id }) => {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid gap-4 py-2">
-            {/* Equipment Selection Method */}
-            <Tabs defaultValue="manual" className="w-full">
-              <TabsList className="grid grid-cols-2 mb-4">
-                <TabsTrigger value="manual">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Manual Entry
-                </TabsTrigger>
-                <TabsTrigger value="scan">
-                  <QrCode className="h-4 w-4 mr-2" />
-                  Scan QR Code
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="manual">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Item Name</label>
-                    <Input placeholder="Enter item name" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Serial Number</label>
-                    <Input placeholder="Enter serial number" />
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="scan">
-                <Card>
-                  <CardContent className="py-4">
-                    <div className="flex flex-col items-center justify-center text-center">
-                      <div className="bg-primary/10 p-4 rounded-full mb-3">
-                        <QrCode className="h-8 w-8 text-primary" />
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const data = {
+              itemName: formData.get('itemName') as string,
+              serialNumber: formData.get('serialNumber') as string,
+              category: formData.get('category') as string,
+              maintenanceType: formData.get('maintenanceType') as string,
+              priority: formData.get('priority') as string,
+              description: formData.get('description') as string,
+              scheduledDate: formData.get('scheduledDate') as string
+            };
+            handleSubmitNewRequest(data);
+          }}>
+            <div className="grid gap-4 py-2">
+              {/* Equipment Selection Method */}
+              <Tabs defaultValue="inventory" className="w-full">
+                <TabsList className="grid grid-cols-2 mb-4">
+                  <TabsTrigger value="inventory">
+                    <LinkIcon className="h-4 w-4 mr-2" />
+                    Link Inventory Item
+                  </TabsTrigger>
+                  <TabsTrigger value="manual">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Manual Entry
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="inventory">
+                  <Card className="mb-4 border-border shadow-none rounded-none">
+                    <CardContent className="py-4">
+                      <div className="space-y-4">
+                        <Label className="text-sm font-medium">Select Equipment from Inventory</Label>
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input 
+                            placeholder="Search inventory by name or serial number..."
+                            value={modalInventorySearchTerm}
+                            onChange={(e) => setModalInventorySearchTerm(e.target.value)}
+                            className="pl-8 w-full mb-2 h-9 rounded-none"
+                          />
+                        </div>
+                        
+                        <div className="h-[200px] overflow-y-auto border rounded-none">
+                          {isLoading ? (
+                            <div className="p-4 flex flex-col gap-2">
+                              <Skeleton className="h-8 w-full" />
+                              <Skeleton className="h-8 w-full" />
+                              <Skeleton className="h-8 w-full" />
+                            </div>
+                          ) : (
+                            () => {
+                               const filteredInventory = inventoryItems.filter(item => 
+                                  !modalInventorySearchTerm ||
+                                  item.name.toLowerCase().includes(modalInventorySearchTerm.toLowerCase()) ||
+                                  item.serialNumber.toLowerCase().includes(modalInventorySearchTerm.toLowerCase())
+                               );
+                               return filteredInventory.length === 0 ? (
+                                <div className="p-4 text-center text-muted-foreground text-sm">
+                                  No inventory items found matching "{modalInventorySearchTerm}".
+                                </div>
+                               ) : (
+                                <div className="divide-y divide-border">
+                                  {filteredInventory.map((item) => (
+                                    <div 
+                                      key={item.id}
+                                      className={`p-3 hover:bg-muted/50 cursor-pointer ${selectedInventoryItem?.id === item.id ? 'bg-muted/50' : ''}`}
+                                      onClick={() => setSelectedInventoryItem(item)}
+                                    >
+                                      <div className="font-medium text-sm">{item.name}</div>
+                                      <div className="text-xs text-muted-foreground font-mono">SN: {item.serialNumber}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                               );
+                            }
+                          )()}
+                        </div>
+                        
+                        {selectedInventoryItem && (
+                          <div className="bg-muted/30 p-3 border border-border rounded-md">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h4 className="font-medium text-sm">Selected Item</h4>
+                                <p className="text-sm">{selectedInventoryItem.name}</p>
+                                <p className="text-xs text-muted-foreground font-mono">SN: {selectedInventoryItem.serialNumber}</p>
+                              </div>
+                              <Button 
+                                type="button"
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => setSelectedInventoryItem(null)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <XIcon className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <h3 className="font-medium mb-2">Scan Equipment QR Code</h3>
-                      <p className="text-sm text-muted-foreground mb-3">Scan the QR code on your equipment to automatically fill details</p>
-                      <Button>
-                        <QrCode className="h-4 w-4 mr-2" />
-                        Open Scanner
-                      </Button>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="manual">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="itemName" className="text-sm font-medium">Item Name</Label>
+                      <Input id="itemName" name="itemName" placeholder="Enter item name" />
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Category</label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="weapon">Weapon</SelectItem>
-                    <SelectItem value="vehicle">Vehicle</SelectItem>
-                    <SelectItem value="communication">Communication</SelectItem>
-                    <SelectItem value="optics">Optics</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Maintenance Type</label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                    <SelectItem value="corrective">Corrective</SelectItem>
-                    <SelectItem value="preventive">Preventive</SelectItem>
-                    <SelectItem value="emergency">Emergency</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Priority</label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="critical">Critical</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Preferred Date (if any)</label>
-                <Input type="date" />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Description of Issue</label>
-              <Textarea 
-                placeholder="Describe the maintenance needed or issue observed in detail. Include when the issue started and any troubleshooting steps already taken." 
-                className="min-h-[120px]"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center">
-                <Paperclip className="h-4 w-4 mr-2" />
-                Attachments (Optional)
-              </label>
-              <div className="border-2 border-dashed rounded-md p-4 text-center">
-                <CameraIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground mb-2">Drag & drop photos or click to browse</p>
-                <Button variant="outline" size="sm">
-                  <UploadIcon className="h-4 w-4 mr-2" />
-                  Upload Image
-                </Button>
-              </div>
-            </div>
-            
-            <Card className="bg-amber-50 text-amber-800 dark:bg-amber-900/10 dark:text-amber-400 border-amber-200 dark:border-amber-800">
-              <CardContent className="py-3 px-4 flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-medium text-amber-800 dark:text-amber-400">Important Notice</h4>
-                  <p className="text-sm mt-1">For critical equipment affecting operational readiness, please also notify your supervisor after submitting this request.</p>
+                    <div className="space-y-2">
+                      <Label htmlFor="serialNumber" className="text-sm font-medium">Serial Number</Label>
+                      <Input id="serialNumber" name="serialNumber" placeholder="Enter serial number" />
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category" className="text-sm font-medium">Category</Label>
+                  <Select name="category" defaultValue="other">
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weapon">Weapon</SelectItem>
+                      <SelectItem value="vehicle">Vehicle</SelectItem>
+                      <SelectItem value="communication">Communication</SelectItem>
+                      <SelectItem value="optics">Optics</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setNewRequestModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSubmitNewRequest}
-              className="bg-[#3B5BDB] hover:bg-[#364FC7] w-full"
-            >
-              <div className="flex items-center justify-center w-full">
-                <Send className="h-4 w-4 mr-2" />
-                Submit Request
+                <div className="space-y-2">
+                  <Label htmlFor="maintenanceType" className="text-sm font-medium">Maintenance Type</Label>
+                  <Select name="maintenanceType" defaultValue="corrective">
+                    <SelectTrigger id="maintenanceType">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                      <SelectItem value="corrective">Corrective</SelectItem>
+                      <SelectItem value="preventive">Preventive</SelectItem>
+                      <SelectItem value="emergency">Emergency</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </Button>
-          </DialogFooter>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="priority" className="text-sm font-medium">Priority</Label>
+                  <Select name="priority" defaultValue="medium">
+                    <SelectTrigger id="priority">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="scheduledDate" className="text-sm font-medium">Preferred Date (if any)</Label>
+                  <div className="relative">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          <span>Pick a date</span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <CalendarComponent
+                          mode="single"
+                          initialFocus
+                          onSelect={(date) => {
+                            if (date) {
+                              const input = document.getElementById('scheduledDate') as HTMLInputElement;
+                              if (input) {
+                                input.value = date.toISOString().split('T')[0];
+                              }
+                            }
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <Input 
+                      id="scheduledDate" 
+                      name="scheduledDate" 
+                      type="hidden"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-sm font-medium">Description of Issue</Label>
+                <Textarea 
+                  id="description"
+                  name="description"
+                  placeholder="Describe the maintenance needed or issue observed in detail. Include when the issue started and any troubleshooting steps already taken." 
+                  className="min-h-[120px]"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center">
+                  <Paperclip className="h-4 w-4 mr-2" />
+                  Attachments (Optional)
+                </Label>
+                <div className="border-2 border-dashed rounded-md p-4 text-center">
+                  <CameraIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground mb-2">Drag & drop photos or click to browse</p>
+                  <Button variant="outline" size="sm" type="button">
+                    <UploadIcon className="h-4 w-4 mr-2" />
+                    Upload Image
+                  </Button>
+                </div>
+              </div>
+              
+              <Card className="bg-amber-50 text-amber-800 dark:bg-amber-900/10 dark:text-amber-400 border-amber-200 dark:border-amber-800">
+                <CardContent className="py-3 px-4 flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-medium text-amber-800 dark:text-amber-400">Important Notice</h4>
+                    <p className="text-sm mt-1">For critical equipment affecting operational readiness, please also notify your supervisor after submitting this request.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <DialogFooter className="gap-2 mt-4">
+              <Button variant="outline" type="button" onClick={() => setNewRequestModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                type="submit"
+                variant="blue"
+                className="h-9 px-3 flex items-center gap-1.5"
+                disabled={state.isSubmitting}
+              >
+                {state.isSubmitting ? (
+                  <>
+                    <span className="h-4 w-4 border-t-2 border-b-2 border-white rounded-full animate-spin mr-2" />
+                    <span className="text-xs uppercase tracking-wider">Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    <span className="text-xs uppercase tracking-wider">Submit Request</span>
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
       
@@ -805,656 +1356,6 @@ const Maintenance: React.FC<MaintenanceProps> = ({ id }) => {
         </DialogContent>
       </Dialog>
     </PageWrapper>
-  );
-};
-
-// Maintenance list component
-interface MaintenanceListProps {
-  items: MaintenanceItem[];
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
-  filterCategory: string;
-  setFilterCategory: (category: string) => void;
-  filterStatus: string;
-  setFilterStatus: (status: string) => void;
-  filterPriority: string;
-  setFilterPriority: (priority: string) => void;
-  onViewDetails: (item: MaintenanceItem) => void;
-  onStartMaintenance: (item: MaintenanceItem) => void;
-  onCompleteMaintenance: (item: MaintenanceItem) => void;
-}
-
-const MaintenanceList: React.FC<MaintenanceListProps> = ({
-  items,
-  searchTerm,
-  setSearchTerm,
-  filterCategory,
-  setFilterCategory,
-  filterStatus,
-  setFilterStatus,
-  filterPriority,
-  setFilterPriority,
-  onViewDetails,
-  onStartMaintenance,
-  onCompleteMaintenance
-}) => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Maintenance Requests</CardTitle>
-        <CardDescription>
-          View and manage equipment maintenance requests
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-6 flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Input
-              placeholder="Search by name, serial number, or description"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="w-full md:w-40">
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="weapon">Weapons</SelectItem>
-                <SelectItem value="vehicle">Vehicles</SelectItem>
-                <SelectItem value="communication">Communications</SelectItem>
-                <SelectItem value="optics">Optics</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-full md:w-40">
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-full md:w-40">
-            <Select value={filterPriority} onValueChange={setFilterPriority}>
-              <SelectTrigger>
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priorities</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="rounded-md border">
-          <div className="grid grid-cols-1 divide-y">
-            {items.length === 0 ? (
-              <div className="py-6 text-center text-gray-500 dark:text-gray-400">
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <Wrench className="h-8 w-8 opacity-30" />
-                  <p>No maintenance requests found</p>
-                  <p className="text-sm">Try adjusting your filters or search terms</p>
-                </div>
-              </div>
-            ) : (
-              items.map((item) => (
-                <MaintenanceItemRow 
-                  key={item.id} 
-                  item={item} 
-                  onViewDetails={onViewDetails}
-                  onStartMaintenance={onStartMaintenance}
-                  onCompleteMaintenance={onCompleteMaintenance}
-                />
-              ))
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// Maintenance item row component
-interface MaintenanceItemRowProps {
-  item: MaintenanceItem;
-  onViewDetails: (item: MaintenanceItem) => void;
-  onStartMaintenance: (item: MaintenanceItem) => void;
-  onCompleteMaintenance: (item: MaintenanceItem) => void;
-}
-
-const MaintenanceItemRow: React.FC<MaintenanceItemRowProps> = ({
-  item,
-  onViewDetails,
-  onStartMaintenance,
-  onCompleteMaintenance
-}) => {
-  // Define category icon type safely
-  const getIconByCategory = (category: string) => {
-    switch (category) {
-      case 'weapon': return <Sword className="h-5 w-5" />;
-      case 'vehicle': return <Truck className="h-5 w-5" />;
-      case 'communication': return <Radio className="h-5 w-5" />;
-      case 'optics': return <Search className="h-5 w-5" />;
-      default: return <Hammer className="h-5 w-5" />;
-    }
-  };
-
-  return (
-    <div className="p-4">
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white
-            ${item.category === 'weapon' ? 'bg-red-700 dark:bg-red-800' : ''}
-            ${item.category === 'vehicle' ? 'bg-amber-700 dark:bg-amber-800' : ''}
-            ${item.category === 'communication' ? 'bg-blue-700 dark:bg-blue-800' : ''}
-            ${item.category === 'optics' ? 'bg-purple-700 dark:bg-purple-800' : ''}
-            ${item.category === 'other' ? 'bg-gray-700 dark:bg-gray-800' : ''}
-          `}>
-            {getIconByCategory(item.category)}
-          </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h4 className="font-medium">{item.itemName}</h4>
-              <MaintenanceStatusBadge status={item.status} />
-              <MaintenancePriorityBadge priority={item.priority} />
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center text-sm text-gray-500 dark:text-gray-400 gap-2 mt-1">
-              <span className="flex items-center">
-                <Tag className="h-3 w-3 mr-1" /> {item.serialNumber}
-              </span>
-              <span className="hidden sm:inline">•</span>
-              <span className="flex items-center">
-                <Calendar className="h-3 w-3 mr-1" /> {item.scheduledDate || "Not scheduled"}
-              </span>
-              <span className="hidden sm:inline">•</span>
-              <span className="flex items-center">
-                <User className="h-3 w-3 mr-1" /> {item.assignedTo || "Unassigned"}
-              </span>
-            </div>
-            <p className="text-sm mt-2">{item.description}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 mt-2 md:mt-0">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => onViewDetails(item)}
-          >
-            Details
-          </Button>
-          
-          {item.status === 'scheduled' && (
-            <Button 
-              size="sm"
-              variant="default"
-              className="w-full flex items-center justify-center"
-              onClick={() => onStartMaintenance(item)}
-            >
-              <div className="flex items-center justify-center w-full">
-                <Play className="h-4 w-4 mr-2" />
-                Start
-              </div>
-            </Button>
-          )}
-          
-          {item.status === 'in-progress' && (
-            <Button 
-              size="sm"
-              className="bg-[#3B5BDB] hover:bg-[#364FC7] w-full"
-              onClick={() => onCompleteMaintenance(item)}
-            >
-              <div className="flex items-center justify-center w-full">
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Complete
-              </div>
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Status badge component
-interface MaintenanceStatusBadgeProps {
-  status: string;
-  size?: 'default' | 'sm' | 'lg';
-}
-
-const MaintenanceStatusBadge: React.FC<MaintenanceStatusBadgeProps> = ({ status, size = 'default' }) => {
-  let badgeClass = "";
-  let statusLabel = "";
-  
-  switch (status) {
-    case 'scheduled':
-      badgeClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400";
-      statusLabel = "Scheduled";
-      break;
-    case 'in-progress':
-      badgeClass = "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
-      statusLabel = "In Progress";
-      break;
-    case 'completed':
-      badgeClass = "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
-      statusLabel = "Completed";
-      break;
-    case 'cancelled':
-      badgeClass = "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
-      statusLabel = "Cancelled";
-      break;
-    default:
-      badgeClass = "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
-      statusLabel = status;
-  }
-  
-  // Add size-specific classes
-  if (size === 'lg') {
-    badgeClass += " text-sm py-1 px-3";
-  } else if (size === 'sm') {
-    badgeClass += " text-xs py-0 px-2";
-  }
-  
-  return <Badge className={badgeClass}>{statusLabel}</Badge>;
-};
-
-// Priority badge component
-interface MaintenancePriorityBadgeProps {
-  priority: string;
-  size?: 'default' | 'sm' | 'lg';
-}
-
-const MaintenancePriorityBadge: React.FC<MaintenancePriorityBadgeProps> = ({ priority, size = 'default' }) => {
-  let badgeClass = "";
-  let priorityLabel = "";
-  
-  switch (priority) {
-    case 'low':
-      badgeClass = "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-800";
-      priorityLabel = "Low Priority";
-      break;
-    case 'medium':
-      badgeClass = "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800";
-      priorityLabel = "Medium Priority";
-      break;
-    case 'high':
-      badgeClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-800";
-      priorityLabel = "High Priority";
-      break;
-    case 'critical':
-      badgeClass = "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800";
-      priorityLabel = "Critical Priority";
-      break;
-    default:
-      badgeClass = "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-800";
-      priorityLabel = priority;
-  }
-  
-  // Add size-specific classes
-  if (size === 'lg') {
-    badgeClass += " text-sm py-1 px-3";
-    priorityLabel = priority.charAt(0).toUpperCase() + priority.slice(1);
-  } else if (size === 'sm') {
-    badgeClass += " text-xs py-0 px-2";
-    priorityLabel = priority.charAt(0).toUpperCase() + priority.slice(1);
-  }
-  
-  return <Badge className={badgeClass} variant="outline">{priorityLabel}</Badge>;
-};
-
-// Special Play icon component
-const Play: React.FC<{ className?: string }> = ({ className }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-  </svg>
-);
-
-// Special Radio icon component for the missing Lucide icon
-const Radio: React.FC<{ className?: string }> = ({ className }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"></path>
-    <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"></path>
-    <circle cx="12" cy="12" r="2"></circle>
-    <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"></path>
-    <path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"></path>
-  </svg>
-);
-
-// Special Sword icon component for the missing Lucide icon
-const Sword: React.FC<{ className?: string }> = ({ className }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"></polyline>
-    <line x1="13" y1="19" x2="19" y2="13"></line>
-    <line x1="16" y1="16" x2="20" y2="20"></line>
-    <line x1="19" y1="21" x2="21" y2="19"></line>
-  </svg>
-);
-
-// Dashboard component
-interface MaintenanceDashboardProps {
-  stats: any;
-}
-
-const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({ stats }) => {
-  // Create defaults for any potentially undefined properties
-  const safeStats = {
-    openRequests: stats?.openRequests || 0,
-    openRequestsChange: stats?.openRequestsChange || 0,
-    inProgressRequests: stats?.inProgressRequests || 0,
-    inProgressChange: stats?.inProgressChange || 0,
-    completedRequests: stats?.completedRequests || 0,
-    completedChange: stats?.completedChange || 0,
-    averageTime: stats?.averageTime || 0,
-    averageTimeChange: stats?.averageTimeChange || 0,
-    categoryBreakdown: {
-      weapons: stats?.categoryBreakdown?.weapons || 0,
-      vehicles: stats?.categoryBreakdown?.vehicles || 0,
-      communications: stats?.categoryBreakdown?.communications || 0,
-      optics: stats?.categoryBreakdown?.optics || 0,
-      other: stats?.categoryBreakdown?.other || 0
-    },
-    upcomingMaintenance: stats?.upcomingMaintenance || []
-  };
-
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Maintenance Overview</CardTitle>
-          <CardDescription>
-            Summary of maintenance activities and status
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-muted/30">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Open Requests</p>
-                    <h3 className="text-2xl font-bold mt-1">{safeStats.openRequests}</h3>
-                  </div>
-                  <div className="bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 p-3 rounded-full">
-                    <ClipboardList className="h-5 w-5" />
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {safeStats.openRequestsChange > 0 ? "+" : ""}{safeStats.openRequestsChange}% from last month
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-muted/30">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">In Progress</p>
-                    <h3 className="text-2xl font-bold mt-1">{safeStats.inProgressRequests}</h3>
-                  </div>
-                  <div className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 p-3 rounded-full">
-                    <Activity className="h-5 w-5" />
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {safeStats.inProgressChange > 0 ? "+" : ""}{safeStats.inProgressChange}% from last month
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-muted/30">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                    <h3 className="text-2xl font-bold mt-1">{safeStats.completedRequests}</h3>
-                  </div>
-                  <div className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 p-3 rounded-full">
-                    <CheckCircle className="h-5 w-5" />
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {safeStats.completedChange > 0 ? "+" : ""}{safeStats.completedChange}% from last month
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-muted/30">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Average Time</p>
-                    <h3 className="text-2xl font-bold mt-1">{safeStats.averageTime} days</h3>
-                  </div>
-                  <div className="bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400 p-3 rounded-full">
-                    <Clock className="h-5 w-5" />
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {safeStats.averageTimeChange > 0 ? "+" : ""}{safeStats.averageTimeChange}% from last month
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Maintenance by Category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Weapons</p>
-                  <Progress value={safeStats.categoryBreakdown.weapons} className="h-2 w-full" />
-                </div>
-                <span className="text-sm font-medium">{safeStats.categoryBreakdown.weapons}%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Vehicles</p>
-                  <Progress value={safeStats.categoryBreakdown.vehicles} className="h-2 w-full" />
-                </div>
-                <span className="text-sm font-medium">{safeStats.categoryBreakdown.vehicles}%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Communications</p>
-                  <Progress value={safeStats.categoryBreakdown.communications} className="h-2 w-full" />
-                </div>
-                <span className="text-sm font-medium">{safeStats.categoryBreakdown.communications}%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Optics</p>
-                  <Progress value={safeStats.categoryBreakdown.optics} className="h-2 w-full" />
-                </div>
-                <span className="text-sm font-medium">{safeStats.categoryBreakdown.optics}%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Other</p>
-                  <Progress value={safeStats.categoryBreakdown.other} className="h-2 w-full" />
-                </div>
-                <span className="text-sm font-medium">{safeStats.categoryBreakdown.other}%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Scheduled Maintenance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {safeStats.upcomingMaintenance.length === 0 ? (
-                <p className="text-muted-foreground text-center py-6">No upcoming maintenance scheduled</p>
-              ) : (
-                safeStats.upcomingMaintenance.map((item: any, index: number) => (
-                  <div key={index} className="flex items-start gap-3 pb-3 border-b last:border-b-0">
-                    <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white
-                      ${item.category === 'weapon' ? 'bg-red-700 dark:bg-red-800' : ''}
-                      ${item.category === 'vehicle' ? 'bg-amber-700 dark:bg-amber-800' : ''}
-                      ${item.category === 'communication' ? 'bg-blue-700 dark:bg-blue-800' : ''}
-                      ${item.category === 'optics' ? 'bg-purple-700 dark:bg-purple-800' : ''}
-                      ${item.category === 'other' ? 'bg-gray-700 dark:bg-gray-800' : ''}
-                    `}>
-                      {item.category === 'weapon' && <Sword className="h-4 w-4" />}
-                      {item.category === 'vehicle' && <Truck className="h-4 w-4" />}
-                      {item.category === 'communication' && <Radio className="h-4 w-4" />}
-                      {item.category === 'optics' && <Search className="h-4 w-4" />}
-                      {item.category === 'other' && <Hammer className="h-4 w-4" />}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex flex-wrap justify-between gap-2">
-                        <p className="font-medium text-sm">{item.itemName}</p>
-                        <MaintenancePriorityBadge priority={item.priority || 'low'} size="sm" />
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1 flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {item.scheduledDate || 'No date set'}
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1 flex items-center">
-                        <User className="h-3 w-3 mr-1" />
-                        {item.assignedTo || "Unassigned"}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-};
-
-// Bulletin board component
-interface MaintenanceBulletinBoardProps {
-  bulletins: MaintenanceBulletin[];
-  onAddBulletin: () => void;
-}
-
-const MaintenanceBulletinBoard: React.FC<MaintenanceBulletinBoardProps> = ({ bulletins, onAddBulletin }) => {
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-medium">Maintenance Bulletins</h2>
-        <Button onClick={onAddBulletin} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Post New Bulletin
-        </Button>
-      </div>
-      
-      <div className="grid grid-cols-1 gap-4">
-        {bulletins.map(bulletin => (
-          <Card key={bulletin.id} className={`
-            ${bulletin.category === 'parts-shortage' ? 'border-l-4 border-l-amber-500' : ''}
-            ${bulletin.category === 'delay' ? 'border-l-4 border-l-blue-500' : ''}
-            ${bulletin.category === 'update' ? 'border-l-4 border-l-green-500' : ''}
-            ${bulletin.category === 'facility' ? 'border-l-4 border-l-purple-500' : ''}
-            ${bulletin.category === 'general' ? 'border-l-4 border-l-gray-500' : ''}
-            ${bulletin.resolved ? 'bg-muted/20' : ''}
-          `}>
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="flex items-center text-base md:text-lg">
-                    {bulletin.category === 'parts-shortage' && <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" />}
-                    {bulletin.category === 'delay' && <Clock className="h-4 w-4 mr-2 text-blue-500" />}
-                    {bulletin.category === 'update' && <FileText className="h-4 w-4 mr-2 text-green-500" />}
-                    {bulletin.category === 'facility' && <Settings className="h-4 w-4 mr-2 text-purple-500" />}
-                    {bulletin.category === 'general' && <Info className="h-4 w-4 mr-2 text-gray-500" />}
-                    {bulletin.title}
-                  </CardTitle>
-                  <CardDescription className="mt-1">
-                    Posted by {bulletin.postedBy} on {bulletin.postedDate}
-                  </CardDescription>
-                </div>
-                <div>
-                  {bulletin.resolved ? (
-                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                      Resolved
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
-                      Active
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm mb-3">{bulletin.message}</p>
-              
-              {bulletin.affectedItems && bulletin.affectedItems.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <p className="text-xs text-muted-foreground">Affected equipment:</p>
-                  {bulletin.affectedItems.map(item => (
-                    <Badge key={item} variant="outline" className="text-xs">
-                      {item}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              
-              {bulletin.resolved && bulletin.resolvedDate && (
-                <div className="text-xs text-muted-foreground mt-3 flex items-center">
-                  <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
-                  Resolved on {bulletin.resolvedDate}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
   );
 };
 

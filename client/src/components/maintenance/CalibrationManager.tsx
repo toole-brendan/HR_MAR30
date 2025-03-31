@@ -1,516 +1,270 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { getInventoryItemsFromDB, saveInventoryItemsToDB } from '@/lib/idb';
-import { InventoryItem, CalibrationInfo } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { useToast } from "@/hooks/use-toast";
-import { Calendar, Edit, History, Check, X, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
-import { parseISO, format, differenceInDays, isValid, addDays } from 'date-fns';
-
-// Helper to calculate calibration status based on due date
-const getCalibrationStatus = (dueDateStr?: string): CalibrationInfo['status'] => {
-    if (!dueDateStr) return undefined; // Or 'unknown'?
-    try {
-        const dueDate = parseISO(dueDateStr);
-        if (!isValid(dueDate)) return undefined;
-        const today = new Date();
-        const daysUntilDue = differenceInDays(dueDate, today);
-
-        if (daysUntilDue < 0) return 'overdue';
-        if (daysUntilDue <= 30) return 'due-soon'; // Example: due within 30 days
-        return 'current';
-    } catch (e) {
-        console.error("Error parsing due date for status:", dueDateStr, e);
-        return undefined;
-    }
-};
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Search, CheckCircle, Clock, Wrench, AlertTriangle, Calendar, Clipboard, FileText } from 'lucide-react';
 
 const CalibrationManager: React.FC = () => {
-  const [allItems, setAllItems] = useState<InventoryItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
-  const [editFormData, setEditFormData] = useState<Partial<CalibrationInfo>>({});
-  const [historyItem, setHistoryItem] = useState<InventoryItem | null>(null);
-  const [performCalItem, setPerformCalItem] = useState<InventoryItem | null>(null);
+  const [activeTab, setActiveTab] = useState("upcoming");
+  const [logDialogOpen, setLogDialogOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [calibrationDate, setCalibrationDate] = useState("");
   const [calibrationNotes, setCalibrationNotes] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load data
+  // Set today's date as default when dialog opens
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const items = await getInventoryItemsFromDB();
-        setAllItems(items);
-      } catch (err) {
-        console.error("Failed to load inventory for calibration:", err);
-        setError("Failed to load inventory data.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
-  }, []);
-
-  // Filter for calibration items and update status dynamically
-  const calibrationItems = useMemo(() => {
-    return allItems
-      .filter(item => item.requiresCalibration)
-      .map(item => ({
-        ...item,
-        calibrationInfo: {
-          ...item.calibrationInfo,
-          // Recalculate status based on current date
-          status: getCalibrationStatus(item.calibrationInfo?.nextCalibrationDueDate)
-        }
-      }));
-  }, [allItems]);
-
-  // Edit Modal Handlers
-  const handleStartEdit = (item: InventoryItem) => {
-    setEditingItem(item);
-    setEditFormData(item.calibrationInfo || {});
-  };
-
-  const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setEditFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingItem) return;
-
-    // Ensure calibrationInfo exists before updating
-    const baseCalibrationInfo = editingItem.calibrationInfo || {}; 
-    const history = baseCalibrationInfo.history || [];
-
-    const updatedItem: InventoryItem = {
-      ...editingItem,
-      calibrationInfo: {
-        ...baseCalibrationInfo,
-        ...editFormData,
-         history: [
-            ...history,
-            { date: new Date().toISOString(), notes: 'Calibration info updated via UI.' }
-        ]
-      },
-    };
-    
-    // Ensure calibrationInfo exists before accessing properties
-    if (updatedItem.calibrationInfo) {
-        // Recalculate status based on potentially updated due date
-        updatedItem.calibrationInfo.status = getCalibrationStatus(updatedItem.calibrationInfo.nextCalibrationDueDate);
-    } else {
-        // Should not happen based on logic above, but good practice
-        console.warn("Calibration info was unexpectedly null during save.");
+    if (logDialogOpen) {
+      setCalibrationDate(new Date().toISOString().split('T')[0]);
     }
+  }, [logDialogOpen]);
 
-    try {
-      // Update the item in the main list state
-      setAllItems(prevItems => prevItems.map(item => item.id === updatedItem.id ? updatedItem : item));
-      // Persist the change to IndexedDB
-      const currentItemsInDB = await getInventoryItemsFromDB();
-      const updatedItemsForDB = currentItemsInDB.map(item => item.id === updatedItem.id ? updatedItem : item);
-      await saveInventoryItemsToDB(updatedItemsForDB);
-      
-      toast({ title: "Success", description: `Calibration info for ${updatedItem.name} saved.` });
-      setEditingItem(null); // Close modal
-    } catch (err) {
-      console.error("Failed to save calibration changes:", err);
-      toast({ title: "Error", description: "Failed to save changes to database.", variant: "destructive" });
+  // Mock data for demonstration
+  const mockData = [
+    { id: "cal1", name: "AN/PRC-152 Radio", serialNumber: "R2D2C3PO1", status: "upcoming", dueDate: "2023-07-15", lastCalibrated: "2023-01-15" },
+    { id: "cal2", name: "M150 RCO ACOG", serialNumber: "AC90122", status: "overdue", dueDate: "2023-04-30", lastCalibrated: "2022-10-30" },
+    { id: "cal3", name: "AN/PVS-14 NVGs", serialNumber: "NVG34287", status: "due", dueDate: "2023-05-05", lastCalibrated: "2023-02-05" },
+    { id: "cal4", name: "Lensatic Compass", serialNumber: "C298371", status: "completed", dueDate: "2023-06-01", lastCalibrated: "2023-05-01" }
+  ];
+
+  // Filter data based on active tab
+  const filteredData = mockData.filter(item => {
+    if (activeTab === "upcoming") return item.status === "upcoming";
+    if (activeTab === "overdue") return item.status === "overdue";
+    if (activeTab === "due") return item.status === "due";
+    return true; // "all" tab
+  });
+
+  // Component for displaying status badge
+  const StatusBadge = ({ status }: { status: string }) => {
+    switch (status) {
+      case "upcoming":
+        return <Badge className="uppercase bg-blue-100/70 dark:bg-transparent text-blue-700 dark:text-blue-400 border border-blue-600 dark:border-blue-500 text-[10px] tracking-wider px-2 rounded-none">UPCOMING</Badge>;
+      case "overdue":
+        return <Badge className="uppercase bg-red-100/70 dark:bg-transparent text-red-700 dark:text-red-400 border border-red-600 dark:border-red-500 text-[10px] tracking-wider px-2 rounded-none">OVERDUE</Badge>;
+      case "due":
+        return <Badge className="uppercase bg-amber-100/70 dark:bg-transparent text-amber-700 dark:text-amber-400 border border-amber-600 dark:border-amber-500 text-[10px] tracking-wider px-2 rounded-none">DUE NOW</Badge>;
+      case "completed":
+        return <Badge className="uppercase bg-green-100/70 dark:bg-transparent text-green-700 dark:text-green-400 border border-green-600 dark:border-green-500 text-[10px] tracking-wider px-2 rounded-none">COMPLETED</Badge>;
+      default:
+        return <Badge className="uppercase bg-gray-100/70 dark:bg-transparent text-gray-700 dark:text-gray-400 border border-gray-600 dark:border-gray-500 text-[10px] tracking-wider px-2 rounded-none">{status.toUpperCase()}</Badge>;
     }
   };
 
-  // History Modal Handlers
-  const handleShowHistory = (item: InventoryItem) => {
-    setHistoryItem(item);
+  // Handle the calibration log button click
+  const handleLogCalibrationClick = (item: any) => {
+    setSelectedItem(item);
+    setLogDialogOpen(true);
   };
 
-  // New function to perform a calibration
-  const handlePerformCalibration = (item: InventoryItem) => {
-    setPerformCalItem(item);
-    setCalibrationNotes("");
+  // Handle the calibration log submission
+  const handleSubmitCalibration = () => {
+    if (!selectedItem || !calibrationDate) return;
+    
+    setIsSubmitting(true);
+    
+    // Simulate a network request
+    setTimeout(() => {
+      // In a real application, you would:
+      // 1. Save the calibration record to your database
+      // 2. Update the item's lastCalibrated date
+      // 3. Calculate a new dueDate
+      // 4. Update the status from overdue/due to "upcoming" or "completed"
+      
+      // For this mock implementation, let's just close the dialog
+      setIsSubmitting(false);
+      setLogDialogOpen(false);
+      
+      // Reset form
+      setCalibrationDate("");
+      setCalibrationNotes("");
+      setSelectedItem(null);
+      
+      // Show success message - in a real app you would use a toast notification
+      alert(`Successfully logged calibration for ${selectedItem.name}`);
+    }, 1000);
   };
-
-  // Save the calibration
-  const handleSaveCalibration = async () => {
-    if (!performCalItem) return;
-
-    const today = format(new Date(), 'yyyy-MM-dd');
-    
-    // Determine next due date based on interval or default to 1 year
-    const intervalDays = performCalItem.calibrationInfo?.calibrationIntervalDays || 365;
-    const nextDueDate = format(addDays(new Date(), intervalDays), 'yyyy-MM-dd');
-    
-    // Ensure calibrationInfo exists before updating
-    const baseCalibrationInfo = performCalItem.calibrationInfo || {}; 
-    const history = baseCalibrationInfo.history || [];
-
-    const updatedItem: InventoryItem = {
-      ...performCalItem,
-      calibrationInfo: {
-        ...baseCalibrationInfo,
-        lastCalibrationDate: today,
-        nextCalibrationDueDate: nextDueDate,
-        notes: calibrationNotes || baseCalibrationInfo.notes,
-        history: [
-          ...history,
-          { 
-            date: new Date().toISOString(), 
-            notes: `Calibration performed. ${calibrationNotes ? `Notes: ${calibrationNotes}` : ''}` 
-          }
-        ],
-        status: 'current' // It's current right after calibration
-      },
-    };
-
-    try {
-      // Update the item in the main list state
-      setAllItems(prevItems => prevItems.map(item => item.id === updatedItem.id ? updatedItem : item));
-      
-      // Persist the change to IndexedDB
-      const currentItemsInDB = await getInventoryItemsFromDB();
-      const updatedItemsForDB = currentItemsInDB.map(item => item.id === updatedItem.id ? updatedItem : item);
-      await saveInventoryItemsToDB(updatedItemsForDB);
-      
-      toast({ 
-        title: "Calibration Completed", 
-        description: `${updatedItem.name} has been calibrated and is due again on ${nextDueDate}.` 
-      });
-      
-      setPerformCalItem(null); // Close modal
-    } catch (err) {
-      console.error("Failed to save calibration:", err);
-      toast({ 
-        title: "Error", 
-        description: "Failed to record calibration.", 
-        variant: "destructive" 
-      });
-    }
-  };
-
-  // Filter items based on search term
-  const filteredCalibrationItems = useMemo(() => {
-    if (!searchTerm.trim()) return calibrationItems;
-    
-    const searchLower = searchTerm.toLowerCase();
-    return calibrationItems.filter(item => 
-      item.name.toLowerCase().includes(searchLower) ||
-      item.serialNumber.toLowerCase().includes(searchLower)
-    );
-  }, [calibrationItems, searchTerm]);
-
-  // Calculate notification stats
-  const notificationStats = useMemo(() => {
-    const overdueCount = calibrationItems.filter(
-      item => item.calibrationInfo?.status === 'overdue'
-    ).length;
-    
-    const dueSoonCount = calibrationItems.filter(
-      item => item.calibrationInfo?.status === 'due-soon'
-    ).length;
-    
-    return { overdueCount, dueSoonCount };
-  }, [calibrationItems]);
-
-  // --- Render Logic ---
-  if (isLoading) {
-    return <Skeleton className="h-40 w-full" />;
-  }
-  if (error) {
-    return <div className="p-4 text-center text-red-600">Error: {error}</div>;
-  }
 
   return (
-    <Card>
+    <Card className="border-border shadow-none bg-card">
       <CardHeader>
-        <CardTitle>Calibration Management</CardTitle>
-        <CardDescription>Track and manage items requiring calibration.</CardDescription>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <CardTitle>Equipment Calibration</CardTitle>
+            <CardDescription>Track and schedule equipment calibration</CardDescription>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="flex items-center gap-1.5 h-9"
+          >
+            <Calendar className="h-4 w-4 mr-1" />
+            <span className="text-xs uppercase tracking-wider">Export Schedule</span>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        {/* Notifications Section */}
-        {(notificationStats.overdueCount > 0 || notificationStats.dueSoonCount > 0) && (
-          <div className="mb-6 space-y-4">
-            {notificationStats.overdueCount > 0 && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Overdue Calibration</AlertTitle>
-                <AlertDescription>
-                  {notificationStats.overdueCount} {notificationStats.overdueCount === 1 ? 'item needs' : 'items need'} immediate calibration.
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {notificationStats.dueSoonCount > 0 && (
-              <Alert variant="default" className="bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/10 dark:border-amber-800 dark:text-amber-400">
-                <Clock className="h-4 w-4" />
-                <AlertTitle>Upcoming Calibration</AlertTitle>
-                <AlertDescription>
-                  {notificationStats.dueSoonCount} {notificationStats.dueSoonCount === 1 ? 'item is' : 'items are'} due for calibration within 30 days.
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-        )}
-        
-        {/* Search and Controls */}
-        <div className="flex items-center mb-4 gap-4">
-          <div className="relative flex-1">
-            <Input 
-              placeholder="Search by name or serial number" 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-4 w-full rounded-none h-10 mb-6">
+            <TabsTrigger value="upcoming" className="text-xs uppercase tracking-wider rounded-none">Upcoming</TabsTrigger>
+            <TabsTrigger value="overdue" className="text-xs uppercase tracking-wider rounded-none">Overdue</TabsTrigger>
+            <TabsTrigger value="due" className="text-xs uppercase tracking-wider rounded-none">Due Now</TabsTrigger>
+            <TabsTrigger value="all" className="text-xs uppercase tracking-wider rounded-none">All Equipment</TabsTrigger>
+          </TabsList>
+          
+          {activeTab === "overdue" && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+              <div className="flex items-start">
+                <AlertTriangle className="h-5 w-5 text-red-600 mr-2 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-red-800">Overdue Calibrations</h3>
+                  <p className="text-sm text-red-700 mt-1">
+                    {filteredData.length} items need immediate calibration.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
-        {calibrationItems.length === 0 ? (
-          <p className="text-muted-foreground">No items marked as requiring calibration.</p>
-        ) : filteredCalibrationItems.length === 0 ? (
-          <p className="text-muted-foreground">No matching calibration items found.</p>
-        ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Item Name</TableHead>
+                <TableHead>Equipment</TableHead>
                 <TableHead>Serial Number</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Last Calibrated</TableHead>
-                <TableHead>Next Due</TableHead>
+                <TableHead>Due Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredCalibrationItems.map(item => {
-                 // Determine Badge variant and class based on status
-                 let badgeVariant: "destructive" | "secondary" | "default" = "secondary";
-                 let badgeClass = "";
-                 const status = item.calibrationInfo?.status;
-                 if (status === 'overdue') {
-                    badgeVariant = "destructive";
-                 } else if (status === 'due-soon') {
-                    badgeVariant = "secondary"; // Use secondary as base for warning
-                    badgeClass = "text-amber-600 border-amber-400 dark:text-amber-400 dark:border-amber-600"; // Add warning colors
-                 } else if (status === 'current') {
-                     badgeVariant = "default"; // Use default for current/success
-                     badgeClass = "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700"; // Add success colors
-                 }
-                  
-                return (
-                   <TableRow key={item.id}>
-                     <TableCell className="font-medium">{item.name}</TableCell>
-                     <TableCell className="font-mono text-xs">{item.serialNumber}</TableCell>
-                     <TableCell>
-                       {status ? (
-                         <Badge variant={badgeVariant} className={badgeClass}>
-                           {status === 'overdue' && 'Overdue'}
-                           {status === 'due-soon' && 'Due Soon'}
-                           {status === 'current' && 'Current'}
-                           {!['overdue', 'due-soon', 'current'].includes(status) && status}
-                         </Badge>
-                       ) : (
-                         <Badge variant="secondary">Unknown</Badge>
-                       )}
-                     </TableCell>
-                     <TableCell>{item.calibrationInfo?.lastCalibrationDate || '-'}</TableCell>
-                     <TableCell>{item.calibrationInfo?.nextCalibrationDueDate || '-'}</TableCell>
-                     <TableCell className="text-right space-x-1">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          title="View History" 
-                          onClick={() => handleShowHistory(item)} 
-                          disabled={!item.calibrationInfo?.history?.length}
-                        >
-                          <History className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          title="Edit Calibration Info" 
-                          onClick={() => handleStartEdit(item)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant={status === 'overdue' || status === 'due-soon' ? "destructive" : "ghost"}
-                          size="icon" 
-                          title="Perform Calibration" 
-                          onClick={() => handlePerformCalibration(item)}
-                        >
-                          <CheckCircle className="h-4 w-4" />
-                        </Button>
-                     </TableCell>
-                   </TableRow>
-                );
-              })}
+              {filteredData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    No calibration items found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredData.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell className="font-mono text-xs">{item.serialNumber}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={item.status} />
+                    </TableCell>
+                    <TableCell>{item.lastCalibrated}</TableCell>
+                    <TableCell>{item.dueDate}</TableCell>
+                    <TableCell className="text-right">
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleLogCalibrationClick(item)}
+                      >
+                        <Wrench className="h-3.5 w-3.5 mr-1.5" />
+                        Log Calibration
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
-        )}
+        </Tabs>
       </CardContent>
-      <CardFooter className="bg-muted/20 justify-between py-2">
-        <div className="text-sm text-muted-foreground">
-          Total: {calibrationItems.length} items
-        </div>
-        <div className="text-sm">
-          {notificationStats.overdueCount > 0 && (
-            <Badge variant="destructive" className="mr-2">
-              {notificationStats.overdueCount} Overdue
-            </Badge>
-          )}
-          {notificationStats.dueSoonCount > 0 && (
-            <Badge variant="outline" className="text-amber-600 border-amber-400 dark:text-amber-400 dark:border-amber-600">
-              {notificationStats.dueSoonCount} Due Soon
-            </Badge>
-          )}
-        </div>
-      </CardFooter>
-      
-      {/* Edit Dialog */}
-      {editingItem && (
-        <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Calibration Info: {editingItem.name}</DialogTitle>
-              <DialogDescription>SN: {editingItem.serialNumber}</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                 <label htmlFor="lastCalDate" className="text-right">Last Cal Date</label>
-                 <Input id="lastCalDate" name="lastCalibrationDate" type="date" value={editFormData.lastCalibrationDate || ''} onChange={handleEditFormChange} className="col-span-3" />
-              </div>
-               <div className="grid grid-cols-4 items-center gap-4">
-                 <label htmlFor="nextDueDate" className="text-right">Next Due Date</label>
-                 <Input id="nextDueDate" name="nextCalibrationDueDate" type="date" value={editFormData.nextCalibrationDueDate || ''} onChange={handleEditFormChange} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                 <label htmlFor="interval" className="text-right">Interval (Days)</label>
-                 <Input id="interval" name="calibrationIntervalDays" type="number" value={editFormData.calibrationIntervalDays || ''} onChange={handleEditFormChange} className="col-span-3" />
-              </div>
-               <div className="grid grid-cols-4 items-center gap-4">
-                 <label htmlFor="notes" className="text-right">Notes</label>
-                 <Textarea id="notes" name="notes" value={editFormData.notes || ''} onChange={handleEditFormChange} className="col-span-3" rows={3} />
+
+      {/* Calibration Log Dialog */}
+      <Dialog open={logDialogOpen} onOpenChange={setLogDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Clipboard className="h-5 w-5 mr-2 text-primary" />
+              Log Calibration
+            </DialogTitle>
+            <DialogDescription>
+              Record calibration details for {selectedItem?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-1">
+              <div className="bg-muted p-3 rounded-md mb-4">
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Equipment:</span>
+                    <span className="text-sm">{selectedItem?.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Serial Number:</span>
+                    <span className="text-sm font-mono">{selectedItem?.serialNumber}</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <DialogFooter>
-               <Button variant="outline" onClick={() => setEditingItem(null)}>Cancel</Button>
-               <Button onClick={handleSaveEdit}>Save Changes</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-      
-      {/* History Dialog */}
-      {historyItem && (
-         <Dialog open={!!historyItem} onOpenChange={(open) => !open && setHistoryItem(null)}>
-            <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Calibration History: {historyItem.name}</DialogTitle>
-                  <DialogDescription>SN: {historyItem.serialNumber}</DialogDescription>
-                </DialogHeader>
-                <div className="max-h-[60vh] overflow-y-auto pr-2 mt-4">
-                    {historyItem.calibrationInfo?.history && historyItem.calibrationInfo.history.length > 0 ? (
-                        <ul className="space-y-3">
-                            {[...historyItem.calibrationInfo.history].reverse().map((entry, index) => ( // Show newest first
-                                <li key={index} className="text-sm border-b pb-2 last:border-b-0">
-                                    <p><strong>Date:</strong> {format(parseISO(entry.date), 'yyyy-MM-dd HH:mm')}</p>
-                                    {entry.performedBy && <p><strong>Performed By:</strong> {entry.performedBy}</p>}
-                                    {entry.notes && <p className="mt-1 text-muted-foreground">{entry.notes}</p>}
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-muted-foreground text-center py-4">No history recorded.</p>
-                    )}
-                </div>
-                <DialogFooter className="mt-4">
-                   <Button variant="outline" onClick={() => setHistoryItem(null)}>Close</Button>
-                </DialogFooter>
-            </DialogContent>
-         </Dialog>
-      )}
-      
-      {/* Perform Calibration Dialog */}
-      {performCalItem && (
-        <Dialog open={!!performCalItem} onOpenChange={(open) => !open && setPerformCalItem(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Perform Calibration: {performCalItem.name}</DialogTitle>
-              <DialogDescription>SN: {performCalItem.serialNumber}</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="bg-muted/30 p-3 rounded-md">
-                <div className="text-sm mb-2">
-                  <span className="font-medium">Last Calibration:</span> {performCalItem.calibrationInfo?.lastCalibrationDate || 'Never'}
-                </div>
-                <div className="text-sm">
-                  <span className="font-medium">Current Status:</span> 
-                  <Badge variant={
-                    performCalItem.calibrationInfo?.status === 'overdue' ? 'destructive' : 
-                    performCalItem.calibrationInfo?.status === 'due-soon' ? 'secondary' : 'default'
-                  } className="ml-2">
-                    {performCalItem.calibrationInfo?.status === 'overdue' && 'Overdue'}
-                    {performCalItem.calibrationInfo?.status === 'due-soon' && 'Due Soon'}
-                    {performCalItem.calibrationInfo?.status === 'current' && 'Current'}
-                    {!performCalItem.calibrationInfo?.status && 'Unknown'}
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Calibration Notes</label>
-                <Textarea 
-                  placeholder="Enter notes about this calibration..." 
-                  value={calibrationNotes}
-                  onChange={(e) => setCalibrationNotes(e.target.value)}
-                  rows={4}
-                />
-              </div>
-              
-              <div className="bg-green-50 text-green-800 dark:bg-green-900/10 dark:text-green-400 p-3 rounded-md">
-                <p className="text-sm">
-                  <CheckCircle className="inline h-4 w-4 mr-1" />
-                  Recording this calibration will:
-                </p>
-                <ul className="text-sm list-disc pl-6 mt-2">
-                  <li>Mark today as the last calibration date</li>
-                  <li>Set next due date based on calibration interval ({performCalItem.calibrationInfo?.calibrationIntervalDays || 365} days)</li>
-                  <li>Add this event to the calibration history</li>
-                </ul>
+            
+            <div className="space-y-2">
+              <Label htmlFor="calibration-date">Calibration Date</Label>
+              <Input 
+                id="calibration-date" 
+                type="date" 
+                value={calibrationDate}
+                onChange={(e) => setCalibrationDate(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="calibration-notes">Notes (Optional)</Label>
+              <Textarea 
+                id="calibration-notes" 
+                placeholder="Enter any calibration notes or observations"
+                value={calibrationNotes}
+                onChange={(e) => setCalibrationNotes(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+            
+            <div className="rounded-md border p-3 flex items-start gap-3">
+              <FileText className="h-5 w-5 text-blue-500 mt-0.5" />
+              <div className="text-sm space-y-1">
+                <p className="font-medium">Next Calibration</p>
+                <p className="text-muted-foreground">This item will need to be calibrated again in 180 days.</p>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setPerformCalItem(null)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSaveCalibration} variant="default">
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Complete Calibration
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setLogDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmitCalibration}
+              disabled={isSubmitting || !calibrationDate}
+              className="flex items-center gap-1.5"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="h-4 w-4 border-t-2 border-b-2 border-white rounded-full animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-1.5" />
+                  Log Calibration
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

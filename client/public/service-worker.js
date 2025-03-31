@@ -33,8 +33,8 @@ if (self.workbox) {
        console.warn('Workbox precaching manifest is empty. App shell might not be cached effectively.');
        // Fallback: Cache the main entry points if manifest is missing (less efficient)
        self.workbox.precaching.precacheAndRoute([
-         { url: '/index.html', revision: null }, // Or use the base path: '/defense/index.html'?
-         { url: '/src/main.tsx', revision: null }, // Or '/defense/src/main.tsx'?
+         { url: '/defense/index.html', revision: null },
+         { url: '/defense/src/main.tsx', revision: null },
          // Add other essential files manually if needed
        ]);
     }
@@ -66,6 +66,17 @@ if (self.workbox) {
         })
     );
 
+    // Special route for node_modules filesystem access
+    self.workbox.routing.registerRoute(
+        ({ url }) => url.pathname.includes('/@fs/') && url.pathname.includes('/node_modules/'),
+        new self.workbox.strategies.NetworkFirst({
+            cacheName: 'node-modules',
+            plugins: [
+                new self.workbox.expiration.ExpirationPlugin({ maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 }), // Cache for a day
+            ],
+        })
+    );
+
     // Cache CSS and JavaScript files (App Shell handled by precaching)
     // Use StaleWhileRevalidate for potentially dynamic JS/CSS chunks not in precache
     self.workbox.routing.registerRoute(
@@ -77,10 +88,9 @@ if (self.workbox) {
 
     // --- Navigation Fallback --- 
     // Optional: If you want SPA routing to work offline, serve index.html for navigation requests
-    // This requires careful handling, especially with the base path
-    // const handler = self.workbox.precaching.createHandlerBoundToURL('/defense/index.html'); // Adjust path with base!
-    // const navigationRoute = new self.workbox.routing.NavigationRoute(handler);
-    // self.workbox.routing.registerRoute(navigationRoute);
+    const handler = self.workbox.precaching.createHandlerBoundToURL('/defense/index.html');
+    const navigationRoute = new self.workbox.routing.NavigationRoute(handler);
+    self.workbox.routing.registerRoute(navigationRoute);
 
 
     // --- Offline Google Analytics (Optional) ---

@@ -1,24 +1,37 @@
-import { useState, useEffect } from "react";
-import { transfers } from "@/lib/mockData";
+import { useState, useEffect, useReducer, useCallback, useMemo } from "react";
+// import { useParams } from 'react-router-dom'; // Removed import as it's not installed/used
+import { transfers as initialTransfers, user as mockUser } from "@/lib/mockData";
 import { Transfer } from "@/types";
 import { useAuth } from "@/context/AuthContext";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
   CardFooter
 } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -38,26 +51,29 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import StatusBadge from "@/components/common/StatusBadge";
-import QRScannerModal from "@/components/shared/QRScannerModal";
+import StatusBadge from "@/components/common/StatusBadge"; // Ensure this path is correct
+import QRScannerModal from "@/components/shared/QRScannerModal"; // Ensure this path is correct
 import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/ui/page-wrapper";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { 
-  Filter, 
-  CheckCircle, 
-  XCircle, 
-  ScanLine, 
-  Clock, 
-  FileText, 
-  Send, 
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Filter,
+  CheckCircle,
+  XCircle,
+  ScanLine,
+  Clock,
+  FileText,
+  Send,
   Search,
   Plus,
   ChevronDown,
   RefreshCw,
   Calendar,
   ArrowUpDown,
+  ArrowUp, // Added for sort indicator
+  ArrowDown, // Added for sort indicator
   AlignLeft,
   Fingerprint,
   Share2,
@@ -68,502 +84,477 @@ import {
   AlertCircle,
   CornerDownLeft,
   Award,
-  Printer
+  Printer,
+  Loader2, // For loading state
+  BookOpen // For Property Book link
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import QRCodeGenerator from "@/components/common/QRCodeGenerator";
 
-// Define sorting options
+// --- State Management with useReducer ---
+
 type SortField = 'date' | 'name' | 'from' | 'to';
 type SortOrder = 'asc' | 'desc';
 type TransferView = 'incoming' | 'outgoing' | 'history';
+type TransferStatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
 
 interface SortConfig {
   field: SortField;
   order: SortOrder;
 }
 
-interface TransfersProps {
-  id?: string;
+interface TransfersState {
+  transfers: Transfer[];
+  searchTerm: string;
+  filterStatus: TransferStatusFilter;
+  activeView: TransferView;
+  sortConfig: SortConfig;
+  showScanner: boolean;
+  showNewTransfer: boolean;
+  showTransferDetails: Transfer | null;
+  transferToConfirm: { id: string; action: 'approve' | 'reject' } | null;
+  loadingStates: { [key: string]: boolean }; // To track loading for approve/reject actions
 }
 
-const Transfers: React.FC<TransfersProps> = ({ id }) => {
+type TransfersAction =
+  | { type: 'SET_TRANSFERS'; payload: Transfer[] }
+  | { type: 'SET_SEARCH_TERM'; payload: string }
+  | { type: 'SET_FILTER_STATUS'; payload: TransferStatusFilter }
+  | { type: 'SET_ACTIVE_VIEW'; payload: TransferView }
+  | { type: 'SET_SORT_CONFIG'; payload: SortField }
+  | { type: 'TOGGLE_SCANNER'; payload: boolean }
+  | { type: 'TOGGLE_NEW_TRANSFER'; payload: boolean }
+  | { type: 'SHOW_DETAILS'; payload: Transfer | null }
+  | { type: 'CONFIRM_ACTION'; payload: { id: string; action: 'approve' | 'reject' } | null }
+  | { type: 'START_LOADING'; payload: string } // Transfer ID
+  | { type: 'STOP_LOADING'; payload: string } // Transfer ID
+  | { type: 'UPDATE_TRANSFER'; payload: Transfer } // Update a single transfer
+  | { type: 'ADD_TRANSFER'; payload: Transfer } // Add a new transfer
+  | { type: 'RESET_FILTERS' };
+
+const initialState: TransfersState = {
+  transfers: initialTransfers, // Load initial data
+  searchTerm: "",
+  filterStatus: "all",
+  activeView: 'incoming',
+  sortConfig: { field: 'date', order: 'desc' },
+  showScanner: false,
+  showNewTransfer: false,
+  showTransferDetails: null,
+  transferToConfirm: null,
+  loadingStates: {},
+};
+
+function transfersReducer(state: TransfersState, action: TransfersAction): TransfersState {
+  switch (action.type) {
+    case 'SET_TRANSFERS':
+      return { ...state, transfers: action.payload };
+    case 'SET_SEARCH_TERM':
+      return { ...state, searchTerm: action.payload };
+    case 'SET_FILTER_STATUS':
+      return { ...state, filterStatus: action.payload };
+    case 'SET_ACTIVE_VIEW':
+      // Reset search/filter when changing views?
+      return { ...state, activeView: action.payload, searchTerm: '', filterStatus: 'all' };
+    case 'SET_SORT_CONFIG':
+      const newOrder = state.sortConfig.field === action.payload && state.sortConfig.order === 'asc' ? 'desc' : 'asc';
+      return { ...state, sortConfig: { field: action.payload, order: newOrder } };
+    case 'TOGGLE_SCANNER':
+      return { ...state, showScanner: action.payload };
+    case 'TOGGLE_NEW_TRANSFER':
+      return { ...state, showNewTransfer: action.payload };
+    case 'SHOW_DETAILS':
+      return { ...state, showTransferDetails: action.payload };
+    case 'CONFIRM_ACTION':
+      return { ...state, transferToConfirm: action.payload };
+    case 'START_LOADING':
+      return { ...state, loadingStates: { ...state.loadingStates, [action.payload]: true } };
+    case 'STOP_LOADING':
+      const { [action.payload]: _, ...restLoading } = state.loadingStates;
+      return { ...state, loadingStates: restLoading };
+    case 'UPDATE_TRANSFER':
+      return {
+        ...state,
+        transfers: state.transfers.map(t =>
+          t.id === action.payload.id ? action.payload : t
+        ),
+      };
+    case 'ADD_TRANSFER':
+      return {
+        ...state,
+        transfers: [action.payload, ...state.transfers],
+      };
+    case 'RESET_FILTERS':
+      return {
+        ...state,
+        searchTerm: "",
+        filterStatus: "all",
+        sortConfig: { field: 'date', order: 'desc' },
+      };
+    default:
+      return state;
+  }
+}
+
+// --- Component Definition ---
+
+interface TransfersProps {
+  // id?: string; // If using path param like /transfers/:id
+}
+
+const Transfers: React.FC<TransfersProps> = () => {
+  // Use route params if needed
+  // const { id: routeParamId } = useParams<{ id?: string }>(); // Removed usage
   const { user } = useAuth();
-  const [transferList, setTransferList] = useState(transfers);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showScanner, setShowScanner] = useState(false);
-  const [showNewTransfer, setShowNewTransfer] = useState(false);
-  const [showTransferDetails, setShowTransferDetails] = useState<Transfer | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [activeView, setActiveView] = useState<TransferView>('incoming');
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'date', order: 'desc' });
   const { toast } = useToast();
 
-  // Simulate current user (in a real app, this would come from auth context)
-  const currentUser = user?.name || "John Doe";
+  const [state, dispatch] = useReducer(transfersReducer, initialState);
+  const { transfers, searchTerm, filterStatus, activeView, sortConfig, showScanner, showNewTransfer, showTransferDetails, transferToConfirm, loadingStates } = state;
 
-  // If an ID is provided, find and show the specific transfer
+  // Use the mock user directly for the demo
+  const currentUser = mockUser.name; // "CPT Rodriguez, Michael"
+
+  // Effect to show specific transfer details if ID is in route param (Keep this logic general for future use, but it won't trigger without router)
+  /* // Commented out as useParams is removed
   useEffect(() => {
-    if (id) {
-      const transfer = transfers.find(t => t.id === id);
+    if (routeParamId) {
+      const transfer = transfers.find(t => t.id === routeParamId);
       if (transfer) {
-        // Show details of the specific transfer
-        setShowTransferDetails(transfer);
+        dispatch({ type: 'SHOW_DETAILS', payload: transfer });
       }
     }
-  }, [id]);
+  }, [routeParamId, transfers]);
+  */
 
-  // Handle approving a transfer request
-  const handleApprove = (id: string) => {
-    setTransferList(
-      transferList.map(transfer => 
-        transfer.id === id 
-          ? { ...transfer, status: "approved" } 
-          : transfer
-      )
-    );
-    
+  // Simulate Async Operation
+  const simulateAsyncOperation = (duration = 500) => {
+    return new Promise(resolve => setTimeout(resolve, duration));
+  };
+
+  // --- Transfer Actions with Async Simulation ---
+  const handleApprove = async (id: string) => {
+    dispatch({ type: 'START_LOADING', payload: id });
+    await simulateAsyncOperation();
+
+    const updatedTransfer: Transfer = {
+      ...transfers.find(t => t.id === id)!,
+      status: "approved",
+      approvedDate: new Date().toISOString(),
+    };
+
+    // TODO: In a real app, update backend/IndexedDB here
+    dispatch({ type: 'UPDATE_TRANSFER', payload: updatedTransfer });
+    dispatch({ type: 'STOP_LOADING', payload: id });
+    dispatch({ type: 'CONFIRM_ACTION', payload: null }); // Close confirmation dialog
+
     toast({
       title: "Transfer Approved",
-      description: "You have approved the transfer request. The item is now assigned to the recipient.",
-      variant: "default",
+      description: `Transfer of ${updatedTransfer.name} approved.`, // More specific
+      variant: "default", // Changed from 'success'
     });
   };
 
-  // Handle rejecting a transfer request
-  const handleReject = (id: string) => {
-    setTransferList(
-      transferList.map(transfer => 
-        transfer.id === id 
-          ? { ...transfer, status: "rejected" } 
-          : transfer
-      )
-    );
-    
+  const handleReject = async (id: string, reason: string = "Rejected by recipient") => {
+    dispatch({ type: 'START_LOADING', payload: id });
+    await simulateAsyncOperation();
+
+    const updatedTransfer: Transfer = {
+      ...transfers.find(t => t.id === id)!,
+      status: "rejected",
+      rejectedDate: new Date().toISOString(),
+      rejectionReason: reason,
+    };
+
+    // TODO: Update backend/IndexedDB
+    dispatch({ type: 'UPDATE_TRANSFER', payload: updatedTransfer });
+    dispatch({ type: 'STOP_LOADING', payload: id });
+    dispatch({ type: 'CONFIRM_ACTION', payload: null }); // Close confirmation dialog
+
     toast({
       title: "Transfer Rejected",
-      description: "You have rejected the transfer request. The item remains assigned to you.",
+      description: `Transfer of ${updatedTransfer.name} rejected.`, // More specific
       variant: "destructive",
     });
   };
 
-  // QR Scanner callback
-  const handleScanComplete = (result: string) => {
-    try {
-      // Parse the QR code data (expected format: serialNumber|name)
-      const [serialNumber, name] = result.split('|');
-      
-      if (!serialNumber) {
-        toast({
-          title: "Invalid QR Code",
-          description: "The scanned QR code is not valid for transfers",
-          variant: "destructive",
-        });
-        return;
-      }
+  const handleCreateTransfer = async (data: { itemName: string; serialNumber: string; to: string }) => {
+    dispatch({ type: 'START_LOADING', payload: 'new-transfer' }); // Use a unique key for loading
+    await simulateAsyncOperation();
 
-      // Find if item exists in inventory
-      const existingTransfer = transferList.find(item => item.serialNumber === serialNumber);
-      
-      if (existingTransfer) {
-        // Show details of existing transfer
-        setShowTransferDetails(existingTransfer);
-        toast({
-          title: "Item Found",
-          description: `Found transfer for ${existingTransfer.name}`,
-        });
-      } else {
-        // Prepare to create a new transfer
-        setShowNewTransfer(true);
-        toast({
-          title: "New Transfer",
-          description: `Ready to create transfer for SN: ${serialNumber}`,
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error Processing QR Code",
-        description: "Unable to process the scanned QR code",
-        variant: "destructive",
-      });
-    } finally {
-      setShowScanner(false);
-    }
-  };
-
-  // Filter transfers based on active view, search term and status filter
-  const filteredTransfers = transferList.filter(transfer => {
-    // Filter by view (incoming, outgoing, history)
-    const matchesView = 
-      (activeView === 'incoming' && transfer.to === currentUser) ||
-      (activeView === 'outgoing' && transfer.from === currentUser) ||
-      (activeView === 'history' && (transfer.to === currentUser || transfer.from === currentUser));
-    
-    // Filter by search term
-    const matchesSearch = 
-      transfer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transfer.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transfer.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transfer.to.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Filter by status
-    const matchesStatus = 
-      filterStatus === "all" || 
-      transfer.status === filterStatus;
-    
-    return matchesView && matchesSearch && matchesStatus;
-  });
-
-  // Sort the filtered transfers
-  const sortedTransfers = [...filteredTransfers].sort((a, b) => {
-    let comparison = 0;
-    
-    switch (sortConfig.field) {
-      case 'date':
-        comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
-        break;
-      case 'name':
-        comparison = a.name.localeCompare(b.name);
-        break;
-      case 'from':
-        comparison = a.from.localeCompare(b.from);
-        break;
-      case 'to':
-        comparison = a.to.localeCompare(b.to);
-        break;
-      default:
-        break;
-    }
-    
-    return sortConfig.order === 'asc' ? comparison : -comparison;
-  });
-
-  // Get transfers by status
-  const pendingTransfers = sortedTransfers.filter(transfer => transfer.status === "pending");
-  const approvedTransfers = sortedTransfers.filter(transfer => transfer.status === "approved");
-  const rejectedTransfers = sortedTransfers.filter(transfer => transfer.status === "rejected");
-
-  // Get incoming pending transfers count
-  const incomingPendingCount = transferList.filter(
-    transfer => transfer.to === currentUser && transfer.status === "pending"
-  ).length;
-
-  // Handle sorting
-  const handleSort = (field: SortField) => {
-    setSortConfig(prevConfig => ({
-      field,
-      order: prevConfig.field === field && prevConfig.order === 'asc' ? 'desc' : 'asc'
-    }));
-  };
-
-  // Create a new transfer (mock implementation)
-  const handleCreateTransfer = (data: any) => {
     const newTransfer: Transfer = {
-      id: `TR${Math.floor(Math.random() * 10000)}`,
+      id: `TR${Math.floor(Math.random() * 90000) + 10000}`, // 5 digit random ID
       name: data.itemName,
       serialNumber: data.serialNumber,
       from: currentUser,
       to: data.to,
-      date: format(new Date(), 'yyyy-MM-dd'),
+      date: new Date().toISOString(),
       status: "pending"
     };
-    
-    setTransferList([newTransfer, ...transferList]);
-    setShowNewTransfer(false);
-    
+
+    // TODO: Update backend/IndexedDB
+    dispatch({ type: 'ADD_TRANSFER', payload: newTransfer });
+    dispatch({ type: 'TOGGLE_NEW_TRANSFER', payload: false });
+    dispatch({ type: 'STOP_LOADING', payload: 'new-transfer' });
+
     toast({
       title: "Transfer Created",
-      description: `Transfer request for ${data.itemName} has been sent to ${data.to}`,
+      description: `Transfer request for ${data.itemName} has been sent to ${data.to}`, // Use backticks
     });
   };
 
-  // Export transfer as PDF (mock function)
-  const handleExportTransfer = (id: string) => {
-    toast({
-      title: "Exporting Transfer",
-      description: "Preparing PDF document...",
+  // --- QR Scanner Callback ---
+  const handleScanComplete = (result: string) => {
+    try {
+      const [serialNumber, name] = result.split('|');
+      if (!serialNumber) throw new Error("Invalid QR Code format");
+
+      const existingTransfer = transfers.find(item => item.serialNumber === serialNumber);
+
+      if (existingTransfer) {
+        dispatch({ type: 'SHOW_DETAILS', payload: existingTransfer });
+        toast({ title: "Transfer Found", description: `Showing details for ${existingTransfer.name}` });
+      } else {
+        // Pre-fill new transfer form? (Optional enhancement)
+        dispatch({ type: 'TOGGLE_NEW_TRANSFER', payload: true });
+        toast({ title: "New Transfer Initiated", description: `Ready to create transfer for SN: ${serialNumber}` });
+      }
+    } catch (error) {
+      toast({ title: "QR Scan Error", description: error instanceof Error ? error.message : "Unknown error", variant: "destructive" });
+    } finally {
+      dispatch({ type: 'TOGGLE_SCANNER', payload: false });
+    }
+  };
+
+  // --- Filtering and Sorting Logic (Memoized) ---
+  const filteredTransfers = useMemo(() => {
+    return transfers.filter(transfer => {
+      const matchesView =
+        (activeView === 'incoming' && transfer.to === currentUser) ||
+        (activeView === 'outgoing' && transfer.from === currentUser) ||
+        (activeView === 'history' && (transfer.to === currentUser || transfer.from === currentUser));
+
+      const matchesSearch =
+        !searchTerm || // Return true if searchTerm is empty
+        transfer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transfer.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transfer.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transfer.to.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesStatus =
+        filterStatus === "all" ||
+        transfer.status === filterStatus;
+
+      return matchesView && matchesSearch && matchesStatus;
     });
-    
-    // Simulate PDF generation delay
+  }, [transfers, activeView, currentUser, searchTerm, filterStatus]);
+
+  const sortedTransfers = useMemo(() => {
+    return [...filteredTransfers].sort((a, b) => {
+      let comparison = 0;
+      const fieldA = a[sortConfig.field];
+      const fieldB = b[sortConfig.field];
+
+      if (sortConfig.field === 'date') {
+        // Compare ISO date strings directly
+        comparison = (fieldA && fieldB) ? fieldA.localeCompare(fieldB) : 0;
+      } else if (typeof fieldA === 'string' && typeof fieldB === 'string') {
+        comparison = fieldA.localeCompare(fieldB);
+      }
+      // Add more specific comparisons if needed (e.g., numbers)
+
+      return sortConfig.order === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredTransfers, sortConfig]);
+
+  // --- Derived State ---
+  const incomingPendingCount = useMemo(() => {
+    return transfers.filter(
+      transfer => transfer.to === currentUser && transfer.status === "pending"
+    ).length;
+  }, [transfers, currentUser]);
+
+  // --- Event Handlers ---
+  const handleSort = (field: SortField) => {
+    dispatch({ type: 'SET_SORT_CONFIG', payload: field });
+  };
+
+  const handleResetFilters = () => {
+    dispatch({ type: 'RESET_FILTERS' });
+  };
+
+  const handleExportTransfer = (id: string) => {
+    const transfer = transfers.find(t => t.id === id);
+    toast({ title: "Exporting Transfer", description: `Preparing PDF for ${transfer?.name || 'item'}...` });
     setTimeout(() => {
-      toast({
-        title: "Export Complete",
-        description: "Transfer document has been exported",
-      });
+      toast({ title: "Export Complete (Demo)", description: `Transfer document for ${transfer?.name || 'item'} exported.` });
     }, 1500);
   };
 
-  // Reset filters
-  const handleResetFilters = () => {
-    setSearchTerm("");
-    setFilterStatus("all");
-    setSortConfig({ field: 'date', order: 'desc' });
-  };
-
-  // Automatically show notification when page loads with pending transfers
+  // --- Initial Notification Effect ---
   useEffect(() => {
     if (incomingPendingCount > 0) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         toast({
-          title: `${incomingPendingCount} Pending Transfer${incomingPendingCount > 1 ? 's' : ''}`,
-          description: `You have ${incomingPendingCount} pending transfer request${incomingPendingCount > 1 ? 's' : ''} waiting for your approval.`,
+          title: `${incomingPendingCount} Pending Incoming Transfer${incomingPendingCount > 1 ? 's' : ''}`,
+          description: `You have ${incomingPendingCount} transfer request${incomingPendingCount > 1 ? 's' : ''} waiting for review.`,
           variant: "default",
         });
       }, 1000);
+      return () => clearTimeout(timer);
     }
-  }, []);
+  }, [incomingPendingCount, toast]); // Dependency on toast ensures it's stable
 
-  // No longer needed since we've integrated actions directly in the header
+  // --- UI Helper Functions ---
+  const getPageDescription = useCallback(() => {
+    switch (activeView) {
+      case 'incoming': return "Review and manage transfer requests sent to you";
+      case 'outgoing': return "Track transfer requests you've initiated";
+      case 'history': return "View your complete transfer history (incoming and outgoing)";
+      default: return "Manage equipment transfer requests and assignments";
+    }
+  }, [activeView]);
 
-  // Table header component
-  const TableHeader = () => (
-    <div className="px-4 py-3 mb-2 flex items-center justify-between bg-muted/40 rounded-md">
-      <div className="flex flex-1 items-center gap-2 min-w-0">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="hidden md:flex"
-          onClick={() => handleSort('name')}
+  const getPageTitle = () => "Transfers"; // Title is constant
+
+  // --- Internal Components ---
+
+  // Enhanced Table Header with Sort Indicators
+  const TransferListHeader = () => (
+    <div className="grid grid-cols-[100px_1.5fr_1fr_1fr_120px_140px] gap-4 border-b px-4 py-3 bg-muted/50 sticky top-0 z-10 text-xs uppercase tracking-wider text-muted-foreground font-medium">
+      {(['date', 'name', 'from', 'to'] as SortField[]).map((field) => (
+        <div
+          key={field}
+          className="flex items-center cursor-pointer hover:text-foreground transition-colors group"
+          onClick={() => handleSort(field)}
         >
-          <span>Item</span>
-          <ArrowUpDown className="ml-2 h-3.5 w-3.5 text-muted-foreground/70" />
-        </Button>
-        
-        <div className="md:hidden text-sm font-medium">Item / Details</div>
-      </div>
-      
-      <div className="hidden md:flex items-center space-x-4">
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => handleSort('from')}
-        >
-          <span>{activeView === 'incoming' ? 'From' : 'Sender'}</span>
-          <ArrowUpDown className="ml-2 h-3.5 w-3.5 text-muted-foreground/70" />
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => handleSort('to')}
-        >
-          <span>{activeView === 'outgoing' ? 'To' : 'Recipient'}</span>
-          <ArrowUpDown className="ml-2 h-3.5 w-3.5 text-muted-foreground/70" />
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => handleSort('date')}
-        >
-          <span>Date</span>
-          <ArrowUpDown className="ml-2 h-3.5 w-3.5 text-muted-foreground/70" />
-        </Button>
-        
-        <div className="w-24 text-right text-sm">Status</div>
-        <div className="w-16"></div>
-      </div>
+          <span>{field === 'name' ? 'Item / SN' : field.charAt(0).toUpperCase() + field.slice(1)}</span>
+          {sortConfig.field === field ? (
+            sortConfig.order === 'asc' ? (
+              <ArrowUp className="h-3 w-3 ml-1 text-foreground" />
+            ) : (
+              <ArrowDown className="h-3 w-3 ml-1 text-foreground" />
+            )
+          ) : (
+            <ArrowUpDown className="h-3 w-3 ml-1 text-muted-foreground group-hover:text-foreground transition-colors" />
+          )}
+        </div>
+      ))}
+      <div>Status</div>
+      <div className="text-right">Actions</div>
     </div>
   );
 
-  // Transfer item row component
+  // Extracted Transfer Row Component
   const TransferRow = ({ transfer }: { transfer: Transfer }) => {
-    const formattedDate = new Date(transfer.date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-    
-    // Determine if the current user is the recipient (to handle approve/reject)
     const isRecipient = transfer.to === currentUser;
     const isSender = transfer.from === currentUser;
-    
-    // For pending transfers, show action buttons only to the recipient
-    const showActions = transfer.status === "pending" && isRecipient;
-    
-    // For history view, highlight the user's role
-    const userRole = isRecipient ? "recipient" : (isSender ? "sender" : "");
-    
+    const isPendingIncoming = activeView === 'incoming' && transfer.status === 'pending' && isRecipient;
+    const isLoading = loadingStates[transfer.id]; // Check loading state
+
     return (
-      <div className={`px-4 py-3 flex flex-col md:flex-row md:items-center justify-between border-b last:border-0 ${
-        transfer.status === "pending" && isRecipient ? "bg-amber-50/40 dark:bg-amber-900/10" : ""
-      }`}>
-        <div className="flex items-center gap-3 mb-2 md:mb-0 flex-1 min-w-0">
-          <div className="h-10 w-10 flex-shrink-0 bg-[#4B5320] dark:bg-[#5A6433] rounded-full flex items-center justify-center text-white">
-            <Fingerprint className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <div className="font-medium truncate">{transfer.name}</div>
-            <div className="text-sm text-muted-foreground font-mono">SN: {transfer.serialNumber}</div>
-            
-            {/* Mobile view only */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 md:hidden">
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                <Share2 className="h-3 w-3" />
-                <span>{isRecipient ? 'From: ' : 'Sender: '}{transfer.from}</span>
-              </div>
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                <Send className="h-3 w-3" />
-                <span>{isSender ? 'To: ' : 'Recipient: '}{transfer.to}</span>
-              </div>
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                <span>{formattedDate}</span>
-              </div>
-              
-              {/* Show user's role indicator in history view */}
-              {activeView === 'history' && userRole && (
-                <div className="text-xs bg-muted px-2 py-0.5 rounded-full">
-                  {userRole === "recipient" ? "To You" : "From You"}
-                </div>
-              )}
-            </div>
-          </div>
+      <div className="grid grid-cols-[100px_1.5fr_1fr_1fr_120px_140px] gap-4 border-b px-4 py-4 hover:bg-muted/50 transition-colors text-sm items-center">
+        {/* Date */}
+        <div>
+          <div className="font-medium">{format(parseISO(transfer.date), 'ddMMMyyyy').toUpperCase()}</div>
+          <div className="text-xs text-muted-foreground">{format(parseISO(transfer.date), 'HH:mm')}</div>
         </div>
-        
-        {/* Desktop view only */}
-        <div className="hidden md:flex items-center space-x-4">
-          <div className="w-24 truncate">
-            {transfer.from}
-            {/* Show pill if user is sender in history view */}
-            {activeView === 'history' && isSender && (
-              <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">You</span>
-            )}
-          </div>
-          <div className="w-24 truncate">
-            {transfer.to}
-            {/* Show pill if user is recipient in history view */}
-            {activeView === 'history' && isRecipient && (
-              <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">You</span>
-            )}
-          </div>
-          <div className="w-24 text-sm">{formattedDate}</div>
-          <div className="w-24 text-right">
-            <StatusBadge status={transfer.status} />
-          </div>
-          <div className="w-16 flex justify-end">
-            {showActions ? (
-              <div className="flex space-x-1">
-                <Button 
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
-                  onClick={() => handleApprove(transfer.id)}
-                  title="Approve"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                </Button>
-                <Button 
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                  onClick={() => handleReject(transfer.id)}
-                  title="Reject"
-                >
-                  <XCircle className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setShowTransferDetails(transfer)}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    View Details
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportTransfer(transfer.id)}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Export PDF
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
+
+        {/* Item */}
+        <div>
+          <div className="font-medium truncate" title={transfer.name}>{transfer.name}</div>
+          <div className="text-xs text-muted-foreground font-mono tracking-wider">SN: {transfer.serialNumber}</div>
         </div>
-        
-        {/* Mobile view actions */}
-        <div className="flex md:hidden justify-between items-center">
+
+        {/* From */}
+        <div className={`truncate ${isSender && activeView === 'history' ? 'font-semibold' : ''}`} title={transfer.from}>{transfer.from}</div>
+
+        {/* To */}
+        <div className={`truncate ${isRecipient && activeView === 'history' ? 'font-semibold' : ''}`} title={transfer.to}>{transfer.to}</div>
+
+        {/* Status */}
+        <div>
           <StatusBadge status={transfer.status} />
-          
-          <div className="flex">
-            {showActions ? (
-              <div className="flex space-x-1">
-                <Button 
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
-                  onClick={() => handleApprove(transfer.id)}
-                >
-                  <CheckCircle className="h-4 w-4" />
-                </Button>
-                <Button 
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                  onClick={() => handleReject(transfer.id)}
-                >
-                  <XCircle className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <Button 
-                variant="ghost" 
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center justify-end space-x-2">
+          {isPendingIncoming ? (
+            <>
+              <Button
+                variant="outline"
                 size="sm"
-                onClick={() => setShowTransferDetails(transfer)}
+                className="h-7 px-2 bg-transparent border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 uppercase text-[10px] tracking-wider rounded-none font-semibold"
+                onClick={() => dispatch({ type: 'CONFIRM_ACTION', payload: { id: transfer.id, action: 'approve' } })}
+                disabled={isLoading}
               >
-                Details
+                {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Accept'}
               </Button>
-            )}
-          </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-2 bg-transparent border-destructive/80 text-destructive hover:bg-destructive/10 uppercase text-[10px] tracking-wider rounded-none font-semibold"
+                onClick={() => dispatch({ type: 'CONFIRM_ACTION', payload: { id: transfer.id, action: 'reject' } })}
+                disabled={isLoading}
+              >
+                {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Decline'}
+              </Button>
+            </>
+          ) : (
+            // Show details button for other cases
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-muted-foreground hover:text-foreground"
+              onClick={() => dispatch({ type: 'SHOW_DETAILS', payload: transfer })}
+            >
+              <MoreVertical className="h-4 w-4" />
+              <span className="sr-only">Details</span>
+            </Button>
+          )}
         </div>
       </div>
     );
   };
 
-  // Empty state component
-  const EmptyState = ({ view, status }: { view: TransferView, status?: string }) => {
+  // Extracted Empty State Component
+  const EmptyState = () => {
     let title = '';
     let description = '';
-    let icon = <History className="h-6 w-6 text-muted-foreground" />;
-    
-    if (view === 'incoming') {
-      if (status === 'pending') {
-        title = 'No Incoming Transfers';
-        description = 'You have no pending transfer requests to review.';
-        icon = <Inbox className="h-6 w-6 text-muted-foreground" />;
-      } else {
-        title = 'No Incoming Transfers';
-        description = 'You have no incoming transfers with this status.';
-      }
-    } else if (view === 'outgoing') {
+    let icon: React.ReactNode = <History className="h-8 w-8 text-muted-foreground" />;
+    let showInitiateButton = false;
+
+    const baseDesc = searchTerm || filterStatus !== 'all'
+      ? "Try adjusting your search or filter criteria."
+      : "";
+
+    if (activeView === 'incoming') {
+      title = 'No Incoming Transfers';
+      description = `You have no ${filterStatus !== 'all' ? filterStatus + ' ' : ''}incoming transfers${searchTerm ? ' matching your search' : ''}. ${baseDesc}`.trim();
+      icon = <Inbox className="h-8 w-8 text-muted-foreground" />;
+    } else if (activeView === 'outgoing') {
       title = 'No Outgoing Transfers';
-      description = 'You have not initiated any transfer requests.';
-      icon = <ExternalLink className="h-6 w-6 text-muted-foreground" />;
-    } else {
+      description = `You have no ${filterStatus !== 'all' ? filterStatus + ' ' : ''}outgoing transfers${searchTerm ? ' matching your search' : ''}. ${baseDesc}`.trim();
+      icon = <ExternalLink className="h-8 w-8 text-muted-foreground" />;
+      showInitiateButton = !searchTerm && filterStatus === 'all'; // Show button only if no filters active
+    } else { // history
       title = 'No Transfer History';
-      description = 'You have no transfer history to display.';
+      description = `No transfer history found${searchTerm ? ' matching your search' : ''}${filterStatus !== 'all' ? ' with status ' + filterStatus : ''}. ${baseDesc}`.trim();
     }
-    
+
     return (
-      <div className="py-8 text-center">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
+      <div className="py-16 text-center flex flex-col items-center justify-center min-h-[300px]">
+        <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
           {icon}
         </div>
-        <h3 className="text-lg font-medium">{title}</h3>
-        <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
+        <h3 className="text-lg font-semibold mb-2">{title}</h3>
+        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
           {description}
         </p>
-        {view === 'outgoing' && (
-          <Button 
-            variant="outline" 
-            className="mt-4 bg-[#3B5BDB] hover:bg-[#364FC7] text-white border-[#3B5BDB]"
-            onClick={() => setShowNewTransfer(true)}
+        {showInitiateButton && (
+          <Button
+            variant="blue" // Use blue variant as per style guide
+            className="mt-6"
+            onClick={() => dispatch({ type: 'TOGGLE_NEW_TRANSFER', payload: true })}
           >
             <Plus className="h-4 w-4 mr-2" />
             Initiate New Transfer
@@ -573,555 +564,405 @@ const Transfers: React.FC<TransfersProps> = ({ id }) => {
     );
   };
 
-  // Get page description based on active view
-  const getPageDescription = () => {
-    switch (activeView) {
-      case 'incoming':
-        return "Review and manage transfer requests sent to you";
-      case 'outgoing':
-        return "Track transfer requests you've initiated";
-      case 'history':
-        return "View your complete transfer history";
-      default:
-        return "Manage equipment transfer requests and assignments";
-    }
-  };
-
-  // Get page title based on active view
-  const getPageTitle = () => {
-    return "Transfers";
-  };
-
+  // --- Render Logic ---
   return (
     <PageWrapper withPadding={true}>
-      {/* Header section matching Inventory Management styling */}
       <div className="pt-16 pb-10">
-        {/* Category label - Small all-caps category label */}
-        <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1 font-medium">
-          TRANSFERS
+        {/* Page Header */}
+        <div className="text-xs uppercase tracking-wider font-medium mb-1 text-muted-foreground">
+          EQUIPMENT
         </div>
-        
-        {/* Main title - following Inventory Management typography */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-light tracking-tight mb-1">Transfer Management</h1>
-            <p className="text-sm text-muted-foreground">{getPageDescription()}</p>
+            <h1 className="text-3xl font-light tracking-tight mb-1">{getPageTitle()}</h1>
+            <p className="text-sm text-muted-foreground max-w-xl">
+              {getPageDescription()}
+            </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button 
-              size="sm" 
-              variant="default"
-              onClick={() => setShowScanner(true)}
-              className="h-9 px-3 flex items-center gap-1.5 rounded-md"
-            >
-              <ScanLine className="h-4 w-4" />
-              <span className="text-xs">SCAN QR</span>
-            </Button>
-            
-            <Button 
-              size="sm" 
-              variant="default" 
-              onClick={() => {
-                setShowNewTransfer(true);
-                setActiveView('outgoing');
-              }}
-              className="h-9 px-3 flex items-center gap-1.5 rounded-md"
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              size="sm"
+              variant="blue"
+              onClick={() => dispatch({ type: 'TOGGLE_NEW_TRANSFER', payload: true })}
+              className="h-9 px-3 flex items-center gap-1.5"
             >
               <Plus className="h-4 w-4" />
-              <span className="text-xs">INITIATE TRANSFER</span>
+              <span className="text-xs uppercase tracking-wider">New Transfer</span>
             </Button>
-            
-            <Button 
-              variant="default"
+            <Button
               size="sm"
+              variant="blue"
+              onClick={() => dispatch({ type: 'TOGGLE_SCANNER', payload: true })}
               className="h-9 px-3 flex items-center gap-1.5"
-              onClick={() => {
-                toast({
-                  title: "Export Generated",
-                  description: "Transfer report has been exported"
-                });
-              }}
             >
-              <FileText className="h-4 w-4" />
-              <span className="text-xs">EXPORT REPORT</span>
+              <ScanLine className="h-4 w-4" />
+              <span className="text-xs uppercase tracking-wider">Scan QR</span>
             </Button>
+            {/* QR Code Generator might be less relevant here than in QRManagement */}
+            {/* <QRCodeGenerator ... /> */}
           </div>
         </div>
       </div>
-      
-      {/* View Selection Tabs with 8VC design */}
-      <div className="mb-6">
-        <div className="text-xs uppercase tracking-wider font-medium text-muted-foreground mb-4">
-          VIEW
-        </div>
-        <Tabs 
-          defaultValue="incoming" 
-          value={activeView}
-          onValueChange={(value) => setActiveView(value as TransferView)}
-          className="w-full"
-        >
-          <TabsList className="grid grid-cols-3 rounded-none bg-gray-50 dark:bg-white/5 h-12 p-0">
-            <TabsTrigger 
-              value="incoming" 
-              className="uppercase tracking-wider text-xs font-medium rounded-none flex items-center"
+
+      {/* Tabs - Styling updated to match guide */}
+      <Tabs
+        value={activeView}
+        onValueChange={(value) => dispatch({ type: 'SET_ACTIVE_VIEW', payload: value as TransferView })}
+        className="w-full mb-6"
+      >
+        <TabsList className="grid grid-cols-3 w-full h-10 border rounded-none bg-card">
+          {(['incoming', 'outgoing', 'history'] as TransferView[]).map((view) => (
+            <TabsTrigger
+              key={view}
+              value={view}
+              className="text-xs uppercase tracking-wider rounded-none data-[state=active]:bg-muted data-[state=active]:shadow-none data-[state=active]:font-semibold data-[state=active]:text-foreground"
             >
-              <Inbox className="h-4 w-4 mr-2" />
-              Incoming
-              {incomingPendingCount > 0 && (
-                <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 uppercase text-[10px] tracking-wider font-medium rounded-none">
+              {view.charAt(0).toUpperCase() + view.slice(1)}
+              {view === 'incoming' && incomingPendingCount > 0 && (
+                <Badge
+                  className="ml-2 px-1.5 py-0.5 h-5 min-w-[1.25rem] bg-destructive text-destructive-foreground rounded-full text-[10px] flex items-center justify-center"
+                >
                   {incomingPendingCount}
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger 
-              value="outgoing" 
-              className="uppercase tracking-wider text-xs font-medium rounded-none flex items-center"
-            >
-              <Send className="h-4 w-4 mr-2" />
-              Outgoing
-            </TabsTrigger>
-            <TabsTrigger 
-              value="history" 
-              className="uppercase tracking-wider text-xs font-medium rounded-none flex items-center"
-            >
-              <History className="h-4 w-4 mr-2" />
-              History
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-      
-      {/* Filters Section with 8VC styling */}
-      <div className="mb-6">
-        <div className="text-xs uppercase tracking-wider font-medium text-muted-foreground mb-4">
-          SEARCH & FILTERS
-        </div>
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Input
-              placeholder="Search by name, serial number or personnel"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none h-10"
-            />
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          ))}
+        </TabsList>
+      </Tabs>
+
+      {/* Filter Bar Card - Styling updated */}
+      <Card className="mb-6 border-border shadow-none bg-card rounded-none">
+        <CardContent className="p-4 flex flex-col md:flex-row items-center gap-3">
+          <div className="flex-grow w-full md:w-auto">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={`Search ${activeView} transfers... (name, SN, user)`}
+                value={searchTerm}
+                onChange={(e) => dispatch({ type: 'SET_SEARCH_TERM', payload: e.target.value })}
+                className="pl-8 w-full rounded-none h-9"
+              />
+            </div>
           </div>
-          <div className="w-full md:w-64">
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none h-10">
+          <div className="w-full md:w-[180px]">
+            <Select
+              value={filterStatus}
+              onValueChange={(value) => dispatch({ type: 'SET_FILTER_STATUS', payload: value as TransferStatusFilter })}
+            >
+              <SelectTrigger className="w-full rounded-none h-9 text-xs">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
+              <SelectContent className="rounded-none">
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
             onClick={handleResetFilters}
-            className="h-10 bg-white dark:bg-black border-gray-200 dark:border-white/10 rounded-none flex items-center gap-2"
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground h-9 px-3 rounded-none hover:bg-muted"
           >
-            <RefreshCw className="h-4 w-4" />
-            Reset Filters
+            <RefreshCw className="h-4 w-4 mr-1" />
+            <span className="text-xs uppercase tracking-wider">Reset</span>
           </Button>
-        </div>
-      </div>
-
-      {/* Main Content Card with 8VC styling */}
-      <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black rounded-none">
-        {/* Card Header in 8VC style */}
-        <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
-          <div>
-            <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
-              EQUIPMENT TRANSFERS
-            </div>
-            <div className="text-lg font-normal text-gray-900 dark:text-white">
-              {activeView === 'incoming' 
-                ? "Items Being Transferred To You"
-                : activeView === 'outgoing'
-                ? "Items You're Transferring To Others"
-                : "History of Your Transfers"
-              }
-            </div>
-          </div>
-          
-          <Button 
-            variant="ghost" 
-            className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
-            onClick={() => {
-              toast({
-                title: "Export Generated",
-                description: "Transfer list has been printed"
-              });
-            }}
-          >
-            <Printer className="h-4 w-4 mr-2" />
-            PRINT LIST
-          </Button>
-        </div>
-        {/* Transfer Status Tabs in 8VC style - Only for incoming view */}
-        {activeView === 'incoming' && (
-          <Tabs defaultValue="pending" className="p-4">
-            <TabsList className="rounded-none mb-6 p-0 h-10 bg-gray-50 dark:bg-white/5 grid grid-cols-4">
-              <TabsTrigger value="pending" className="rounded-none uppercase text-xs tracking-wider">
-                Pending 
-                {pendingTransfers.length > 0 && (
-                  <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 uppercase text-[10px] tracking-wider font-medium rounded-none">
-                    {pendingTransfers.length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="approved" className="rounded-none uppercase text-xs tracking-wider">Approved</TabsTrigger>
-              <TabsTrigger value="rejected" className="rounded-none uppercase text-xs tracking-wider">Rejected</TabsTrigger>
-              <TabsTrigger value="all" className="rounded-none uppercase text-xs tracking-wider">All</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="pending">
-              {TableHeader()}
-              <div className="divide-y divide-gray-100 dark:divide-white/5 border-0">
-                {pendingTransfers.length === 0 ? (
-                  <EmptyState view={activeView} status="pending" />
-                ) : (
-                  pendingTransfers.map((transfer) => (
-                    <TransferRow key={transfer.id} transfer={transfer} />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="approved">
-              {TableHeader()}
-              <div className="divide-y divide-gray-100 dark:divide-white/5 border-0">
-                {approvedTransfers.length === 0 ? (
-                  <EmptyState view={activeView} status="approved" />
-                ) : (
-                  approvedTransfers.map((transfer) => (
-                    <TransferRow key={transfer.id} transfer={transfer} />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="rejected">
-              {TableHeader()}
-              <div className="divide-y divide-gray-100 dark:divide-white/5 border-0">
-                {rejectedTransfers.length === 0 ? (
-                  <EmptyState view={activeView} status="rejected" />
-                ) : (
-                  rejectedTransfers.map((transfer) => (
-                    <TransferRow key={transfer.id} transfer={transfer} />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="all">
-              {TableHeader()}
-              <div className="divide-y divide-gray-100 dark:divide-white/5 border-0">
-                {sortedTransfers.length === 0 ? (
-                  <EmptyState view={activeView} />
-                ) : (
-                  sortedTransfers.map((transfer) => (
-                    <TransferRow key={transfer.id} transfer={transfer} />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
-        )}
-        
-        {/* For outgoing and history in 8VC style */}
-        {(activeView === 'outgoing' || activeView === 'history') && (
-          <div className="p-4">
-            {TableHeader()}
-            <div className="divide-y divide-gray-100 dark:divide-white/5 border-0">
-              {sortedTransfers.length === 0 ? (
-                <EmptyState view={activeView} />
-              ) : (
-                sortedTransfers.map((transfer) => (
-                  <TransferRow key={transfer.id} transfer={transfer} />
-                ))
-              )}
-            </div>
-          </div>
-        )}
-        
-        {/* Helpful hints section with 8VC styling */}
-        {activeView === 'incoming' && pendingTransfers.length > 0 && (
-          <div className="mx-4 mb-4 border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5 p-4">
-            <div className="flex items-start">
-              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 mr-3 flex-shrink-0" />
-              <div>
-                <h4 className="text-sm font-medium uppercase tracking-wider">Pending Approval Required</h4>
-                <p className="text-xs text-muted-foreground mt-1">
-                  You have pending transfer requests that require your action. Review and approve or reject these requests to update your equipment inventory.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {activeView === 'outgoing' && (
-          <div className="mx-4 mb-4 border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5 p-4">
-            <div className="flex items-start">
-              <Share2 className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
-              <div>
-                <h4 className="text-sm font-medium uppercase tracking-wider">Outgoing Transfers</h4>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Track the status of transfer requests you've initiated. Recipients will need to approve transfers before the equipment is reassigned.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Footer with 8VC styling */}
-        <div className="px-4 py-2 border-t border-gray-100 dark:border-white/5">
-          <div className="flex w-full justify-between text-xs tracking-wide text-muted-foreground">
-            <div>
-              Showing {sortedTransfers.length} of {transfers.length} transfers
-            </div>
-            <div>
-              Last updated: {format(new Date(), 'MMM d, yyyy')}
-            </div>
-          </div>
-        </div>
+        </CardContent>
       </Card>
+
+      {/* Main Content Card - Transfer List */}
+      <Card className="overflow-hidden border-border shadow-none bg-card rounded-none">
+        <CardContent className="p-0">
+          {sortedTransfers.length > 0 ? (
+            <>
+              <TransferListHeader />
+              <ScrollArea className="h-[calc(100vh-450px)]"> {/* Adjust height as needed */}
+                {sortedTransfers.map((transfer) => (
+                  <TransferRow key={transfer.id} transfer={transfer} />
+                ))}
+              </ScrollArea>
+            </>
+          ) : (
+            <EmptyState />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* --- Modals and Dialogs --- */}
 
       {/* QR Scanner Modal */}
       {showScanner && (
         <QRScannerModal
           isOpen={showScanner}
-          onClose={() => setShowScanner(false)}
+          onClose={() => dispatch({ type: 'TOGGLE_SCANNER', payload: false })}
           onScan={handleScanComplete}
         />
       )}
 
-      {/* New Transfer Dialog */}
-      <Dialog open={showNewTransfer} onOpenChange={setShowNewTransfer}>
-        <DialogContent className="sm:max-w-md">
+      {/* New Transfer Dialog - Simplified */}
+      <Dialog open={showNewTransfer} onOpenChange={(open) => dispatch({ type: 'TOGGLE_NEW_TRANSFER', payload: open })}>
+        <DialogContent className="sm:max-w-md bg-card rounded-none">
           <DialogHeader>
             <DialogTitle>Initiate Equipment Transfer</DialogTitle>
             <DialogDescription>
-              Create a new transfer request to reassign equipment to another person
+              Create a new transfer request to reassign equipment.
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="item-name">Item Name</Label>
-              <Input id="item-name" placeholder="Enter item name" />
+          <form id="new-transfer-form" onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            handleCreateTransfer({
+              itemName: formData.get('item-name') as string || 'Unknown Item',
+              serialNumber: formData.get('serial-number') as string || 'N/A',
+              to: formData.get('to') as string || 'Unknown Recipient',
+            });
+          }}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="item-name">Item Name</Label>
+                <Input id="item-name" name="item-name" placeholder="e.g., M4A1 Carbine" className="rounded-none" required />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="serial-number">Serial Number</Label>
+                <Input id="serial-number" name="serial-number" placeholder="e.g., W123456" className="rounded-none" required />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="from">From (Current Holder)</Label>
+                <Input id="from" value={currentUser} disabled className="bg-muted/50 rounded-none" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="to">To (Recipient)</Label>
+                <Input id="to" name="to" placeholder="e.g., SFC Smith, Anna" className="rounded-none" required />
+              </div>
             </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="serial-number">Serial Number</Label>
-              <Input id="serial-number" placeholder="Enter serial number" />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="from">From (Current Holder)</Label>
-              <Input id="from" value={currentUser} disabled className="bg-muted/50" />
-              <p className="text-xs text-muted-foreground">You are transferring this item from your inventory</p>
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="to">To (New Holder)</Label>
-              <Input id="to" placeholder="Enter recipient's name" />
-            </div>
-          </div>
-          
-          <div className="flex justify-end gap-3 mt-4">
-            <Button variant="outline" onClick={() => setShowNewTransfer(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => handleCreateTransfer({
-              itemName: (document.getElementById('item-name') as HTMLInputElement)?.value || 'Unknown Item',
-              serialNumber: (document.getElementById('serial-number') as HTMLInputElement)?.value || 'NA',
-              from: currentUser,
-              to: (document.getElementById('to') as HTMLInputElement)?.value || 'Unknown',
-            })}>
-              <Send className="h-4 w-4 mr-2" />
-              Send Transfer Request
-            </Button>
-          </div>
+            <DialogFooter className="mt-4">
+              <Button type="button" variant="outline" className="rounded-none" onClick={() => dispatch({ type: 'TOGGLE_NEW_TRANSFER', payload: false })}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="blue" className="rounded-none" disabled={loadingStates['new-transfer']}>
+                {loadingStates['new-transfer'] ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                Send Transfer Request
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
-      {/* Transfer Details Dialog */}
-      <Dialog open={!!showTransferDetails} onOpenChange={(open) => !open && setShowTransferDetails(null)}>
-        <DialogContent className="sm:max-w-lg">
+      {/* Transfer Details Dialog - Enhanced */}
+      <Dialog open={!!showTransferDetails} onOpenChange={(open) => !open && dispatch({ type: 'SHOW_DETAILS', payload: null })}>
+        <DialogContent className="sm:max-w-lg bg-card rounded-none">
           <DialogHeader>
             <DialogTitle>Transfer Details</DialogTitle>
             <DialogDescription>
-              Detailed information about this transfer request
+              Detailed information for Transfer ID: {showTransferDetails?.id}
             </DialogDescription>
           </DialogHeader>
-          
           {showTransferDetails && (
-            <div className="mt-4 space-y-6">
-              {/* Basic Information */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-semibold">{showTransferDetails.name}</h3>
-                    <p className="text-sm text-muted-foreground font-mono">SN: {showTransferDetails.serialNumber}</p>
-                  </div>
-                  <StatusBadge status={showTransferDetails.status} />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">From</p>
-                    <p className="font-medium flex items-center">
-                      {showTransferDetails.from}
-                      {showTransferDetails.from === currentUser && (
-                        <Badge variant="outline" className="ml-2 text-xs">You</Badge>
-                      )}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">To</p>
-                    <p className="font-medium flex items-center">
-                      {showTransferDetails.to}
-                      {showTransferDetails.to === currentUser && (
-                        <Badge variant="outline" className="ml-2 text-xs">You</Badge>
-                      )}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Request Date</p>
-                    <p className="font-medium">{new Date(showTransferDetails.date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Transfer ID</p>
-                    <p className="font-mono">{showTransferDetails.id}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              {/* QR Code */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Item QR Code</h4>
-                <div className="flex justify-center p-4 bg-white rounded-lg">
-                  <QRCodeGenerator 
-                    itemName={showTransferDetails.name}
-                    serialNumber={showTransferDetails.serialNumber}
-                  />
-                </div>
-                <p className="text-xs text-center text-muted-foreground">
-                  Scan this QR code to quickly access this item in the system
-                </p>
-              </div>
-              
-              {/* Timeline (mock) */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Transfer Timeline</h4>
-                <div className="space-y-3 mt-2">
-                  <div className="flex gap-3">
-                    <div className="flex flex-col items-center">
-                      <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                      <div className="w-px h-full bg-gray-200 dark:bg-gray-700"></div>
-                    </div>
+            <ScrollArea className="max-h-[60vh] pr-4">
+              <div className="mt-4 space-y-6">
+                {/* Basic Info */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm font-medium">Transfer Requested</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(showTransferDetails.date).toLocaleString()}
+                      <h3 className="text-lg font-semibold leading-tight">{showTransferDetails.name}</h3>
+                      <p className="text-sm text-muted-foreground font-mono tracking-wider">SN: {showTransferDetails.serialNumber}</p>
+                    </div>
+                    <StatusBadge status={showTransferDetails.status} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">From</p>
+                      <p className="font-medium flex items-center">
+                        {showTransferDetails.from}
+                        {showTransferDetails.from === currentUser && <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0 h-4 rounded-sm border-current">You</Badge>}
                       </p>
                     </div>
-                  </div>
-                  
-                  {showTransferDetails.status !== "pending" && (
-                    <div className="flex gap-3">
-                      <div className="flex flex-col items-center">
-                        <div className={`w-2.5 h-2.5 rounded-full ${
-                          showTransferDetails.status === "approved" 
-                            ? "bg-green-500" 
-                            : "bg-red-500"
-                        }`}></div>
-                        <div className="w-px h-full bg-transparent"></div>
-                      </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">To</p>
+                      <p className="font-medium flex items-center">
+                        {showTransferDetails.to}
+                        {showTransferDetails.to === currentUser && <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0 h-4 rounded-sm border-current">You</Badge>}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Request Date</p>
+                      <p className="font-medium">{format(parseISO(showTransferDetails.date), 'ddMMMyyyy').toUpperCase()}, {format(parseISO(showTransferDetails.date), 'HH:mm')}</p>
+                    </div>
+                    {showTransferDetails.status === 'approved' && showTransferDetails.approvedDate && (
                       <div>
-                        <p className="text-sm font-medium">
-                          {showTransferDetails.status === "approved" 
-                            ? "Transfer Approved" 
-                            : "Transfer Rejected"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date().toLocaleString()}
-                        </p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">Approved Date</p>
+                        <p className="font-medium">{format(parseISO(showTransferDetails.approvedDate), 'ddMMMyyyy').toUpperCase()}, {format(parseISO(showTransferDetails.approvedDate), 'HH:mm')}</p>
                       </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Chain of custody */}
-              {showTransferDetails.status === 'approved' && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Chain of Custody Record</h4>
-                  <div className="rounded-md border p-3 text-sm">
-                    <p className="text-muted-foreground mb-2">This transfer is part of the permanent, tamper-proof chain of custody record for this item.</p>
-                    <div className="flex items-center gap-2">
-                      <Award className="h-4 w-4 text-blue-500" />
-                      <span>Blockchain verified on {format(new Date(), 'MMM d, yyyy')}</span>
-                    </div>
+                    )}
+                    {showTransferDetails.status === 'rejected' && showTransferDetails.rejectedDate && (
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">Rejected Date</p>
+                        <p className="font-medium">{format(parseISO(showTransferDetails.rejectedDate), 'ddMMMyyyy').toUpperCase()}, {format(parseISO(showTransferDetails.rejectedDate), 'HH:mm')}</p>
+                      </div>
+                    )}
+                    {showTransferDetails.status === 'rejected' && showTransferDetails.rejectionReason && (
+                       <div className="col-span-2">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">Rejection Reason</p>
+                        <p className="font-medium text-destructive">{showTransferDetails.rejectionReason}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
+
+                <Separator className="bg-border" />
+
+                {/* Timeline - Enhanced */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Transfer Timeline</h4>
+                  <div className="relative pl-6 space-y-4 border-l border-border ml-1.5">
+                    {/* Requested */}
+                    <div className="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-card"></div>
+                    <div>
+                      <p className="text-sm font-medium">Transfer Requested</p>
+                      <p className="text-xs text-muted-foreground">By {showTransferDetails.from} on {format(parseISO(showTransferDetails.date), 'ddMMMyyyy').toUpperCase()}, {format(parseISO(showTransferDetails.date), 'HH:mm')}</p>
+                    </div>
+
+                    {/* Approved/Rejected */}
+                    {(showTransferDetails.status === 'approved' || showTransferDetails.status === 'rejected') && (
+                      <>
+                        <div className={`absolute -left-[7px] top-[calc(50%)] w-3 h-3 rounded-full border-2 border-card ${showTransferDetails.status === 'approved' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                        <div>
+                          <p className="text-sm font-medium">Transfer {showTransferDetails.status.charAt(0).toUpperCase() + showTransferDetails.status.slice(1)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            By {showTransferDetails.to === currentUser ? 'You' : showTransferDetails.to} on
+                            {' '}
+                            {showTransferDetails.approvedDate && `${format(parseISO(showTransferDetails.approvedDate), 'ddMMMyyyy').toUpperCase()}, ${format(parseISO(showTransferDetails.approvedDate), 'HH:mm')}`}
+                            {showTransferDetails.rejectedDate && `${format(parseISO(showTransferDetails.rejectedDate), 'ddMMMyyyy').toUpperCase()}, ${format(parseISO(showTransferDetails.rejectedDate), 'HH:mm')}`}
+                          </p>
+                          {showTransferDetails.rejectionReason && <p className="text-xs text-destructive mt-1">Reason: {showTransferDetails.rejectionReason}</p>}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <Separator className="bg-border" />
+
+                {/* Item Actions */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium">Item Actions</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {/* Simulate Link to Property Book */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-none"
+                      onClick={() => toast({ title: "Navigate (Demo)", description: `Opening Property Book for SN: ${showTransferDetails.serialNumber}` })}
+                    >
+                      <BookOpen className="h-3.5 w-3.5 mr-1.5" /> View in Property Book
+                    </Button>
+
+                    {/* Export Action */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-none"
+                      onClick={() => handleExportTransfer(showTransferDetails.id)}
+                    >
+                      <FileText className="h-3.5 w-3.5 mr-1.5" /> Export PDF
+                    </Button>
+                  </div>
+                </div>
+
+                 {/* QR Code (Optional) */}
+                 {/*
+                 <Separator className="bg-border" />
+                 <div className="space-y-2">
+                    <h4 className="text-sm font-medium">Item QR Code</h4>
+                    <div className="flex justify-center p-4 bg-white rounded-lg w-fit mx-auto">
+                      <QRCodeGenerator
+                        itemName={showTransferDetails.name}
+                        serialNumber={showTransferDetails.serialNumber}
+                      />
+                    </div>
+                  </div>
+                  */}
+
+              </div>
+            </ScrollArea>
           )}
-          
-          <div className="flex justify-between mt-6">
-            <Button variant="outline" onClick={() => setShowTransferDetails(null)}>
+          <DialogFooter className="mt-6 flex justify-between sm:justify-between">
+             <Button variant="outline" className="rounded-none" onClick={() => dispatch({ type: 'SHOW_DETAILS', payload: null })}>
               Close
             </Button>
-            
-            <div className="flex gap-2">
-              {showTransferDetails?.status === "pending" && showTransferDetails.to === currentUser && (
-                <>
-                  <Button 
-                    variant="outline" 
-                    className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
-                    onClick={() => {
-                      handleReject(showTransferDetails.id);
-                      setShowTransferDetails(null);
-                    }}
-                  >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Reject
-                  </Button>
-                  <Button 
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => {
-                      handleApprove(showTransferDetails.id);
-                      setShowTransferDetails(null);
-                    }}
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Approve
-                  </Button>
-                </>
-              )}
-              
-              {(showTransferDetails?.status !== "pending" || showTransferDetails?.to !== currentUser) && (
-                <Button onClick={() => handleExportTransfer(showTransferDetails?.id || "")}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Export PDF
+
+            {/* Contextual Actions (Approve/Reject in Details) */}
+            {showTransferDetails?.status === "pending" && showTransferDetails.to === currentUser && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-3 rounded-none border-destructive text-destructive hover:bg-destructive/10"
+                  onClick={() => dispatch({ type: 'CONFIRM_ACTION', payload: { id: showTransferDetails.id, action: 'reject' } })}
+                  disabled={loadingStates[showTransferDetails.id]}
+                >
+                  {loadingStates[showTransferDetails.id] ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4 mr-2" />}
+                  Decline
                 </Button>
-              )}
-            </div>
-          </div>
+                <Button
+                  variant="default" // Use default (likely blue based on theme) or a specific green variant if defined
+                  size="sm"
+                  className="h-9 px-3 rounded-none bg-green-600 hover:bg-green-700 text-white" // Explicit green for accept
+                  onClick={() => dispatch({ type: 'CONFIRM_ACTION', payload: { id: showTransferDetails.id, action: 'approve' } })}
+                  disabled={loadingStates[showTransferDetails.id]}
+                >
+                  {loadingStates[showTransferDetails.id] ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                  Accept
+                </Button>
+              </div>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={transferToConfirm ? true : undefined} onOpenChange={(open) => !open && dispatch({ type: 'CONFIRM_ACTION', payload: null })}>
+        <AlertDialogContent className="bg-card rounded-none">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Action</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to {transferToConfirm?.action} this transfer request for item '{transfers.find(t => t.id === transferToConfirm?.id)?.name}'?
+              {transferToConfirm?.action === 'reject' && ' This action cannot be undone.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-none" onClick={() => dispatch({ type: 'CONFIRM_ACTION', payload: null })}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className={`rounded-none ${transferToConfirm?.action === 'approve' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'}`}
+              onClick={() => {
+                if (transferToConfirm?.action === 'approve') {
+                  handleApprove(transferToConfirm.id);
+                } else if (transferToConfirm?.action === 'reject') {
+                  // Maybe add a reason input here in future?
+                  handleReject(transferToConfirm.id);
+                }
+              }}
+              disabled={!!(transferToConfirm && loadingStates[transferToConfirm.id])}
+            >
+              {transferToConfirm && loadingStates[transferToConfirm.id] ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                   transferToConfirm?.action === 'approve' ? <CheckCircle className="h-4 w-4 mr-2" /> : <XCircle className="h-4 w-4 mr-2" />
+              )}
+              Confirm {transferToConfirm?.action?.charAt(0).toUpperCase()}{transferToConfirm?.action?.slice(1)}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </PageWrapper>
   );
 };

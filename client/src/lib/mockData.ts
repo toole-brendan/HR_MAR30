@@ -9,27 +9,27 @@ import {
 
 // Mock User
 export const user: User = {
-  id: "8675309",
-  username: "john.doe",
-  name: "CPT John Doe",
+  id: "RODMC01",
+  username: "michael.rodriguez",
+  name: "CPT Rodriguez, Michael",
   rank: "Captain",
   position: "Company Commander",
-  unit: "Alpha Company, 1-509th Infantry Regiment",
-  yearsOfService: 8,
-  commandTime: "11 months",
-  responsibility: "Line Infantry Company",
+  unit: "Bravo Company, 2-87 Infantry Battalion",
+  yearsOfService: 6,
+  commandTime: "3 months",
+  responsibility: "Primary Hand Receipt Holder for company-level property",
   valueManaged: "$4.2M Equipment Value",
   upcomingEvents: [
-    { title: "BN Command & Staff", date: "12JUL2023 0900" },
-    { title: "Range Density", date: "15-20JUL2023" },
-    { title: "JRTC Rotation", date: "10-25AUG2023" }
+    { title: "NTC Rotation Prep", date: "Ongoing" },
+    { title: "Equipment Reset", date: "In Progress" },
+    { title: "Command Maintenance", date: "Next Week" }
   ],
   equipmentSummary: {
-    vehicles: 12,
-    weapons: 134,
-    communications: 28,
-    opticalSystems: 45,
-    sensitiveItems: 75
+    vehicles: 72,
+    weapons: 143,
+    communications: 95,
+    opticalSystems: 63,
+    sensitiveItems: 210
   }
 };
 
@@ -271,97 +271,114 @@ export const inventory: InventoryItem[] = [
   }
 ];
 
-// Mock Transfer Requests
+// Mock Transfers (Updated for CPT Rodriguez)
 export const transfers: Transfer[] = [
   {
-    id: "1",
-    name: "M4A1 w/ ACOG",
-    serialNumber: "M4A1-88574921",
-    from: "SFC Martinez",
-    to: "CPT John Doe",
-    date: "15JUL2023",
-    status: "pending",
+    id: "TR73921",
+    name: "AN/PVS-14 Monocular NVG",
+    serialNumber: "NVG789123",
+    from: "SFC Smith, Anna",
+    to: "CPT Rodriguez, Michael",
+    date: "2024-07-28T10:30:00Z",
+    status: "pending"
   },
   {
-    id: "2",
-    name: "PVS-14",
-    serialNumber: "PVS14-74835621",
-    from: "1LT Parker",
-    to: "CPT John Doe",
-    date: "14JUL2023",
-    status: "pending",
+    id: "TR11235",
+    name: "SINCGARS Radio Set",
+    serialNumber: "RT1523-100987",
+    from: "Supply Depot Alpha",
+    to: "CPT Rodriguez, Michael",
+    date: "2024-07-27T14:00:00Z",
+    status: "pending"
   },
   {
-    id: "3",
-    name: "PRC-152",
-    serialNumber: "PRC152-32165498",
-    from: "SSG Rodriguez",
-    to: "CPT John Doe",
-    date: "13JUL2023",
-    status: "pending",
+    id: "TR55891",
+    name: "M4A1 Carbine",
+    serialNumber: "W123456",
+    from: "1LT Jones, David",
+    to: "CPT Rodriguez, Michael",
+    date: "2024-07-29T09:15:00Z",
+    status: "pending"
   },
   {
-    id: "4",
-    name: "Nomex Gloves",
-    serialNumber: "NFG-65432198",
-    from: "CPT John Doe",
-    to: "PFC Williams",
-    date: "10JUL2023",
+    id: "TR84055",
+    name: "M17 Pistol",
+    serialNumber: "PIS456789",
+    from: "CPT Rodriguez, Michael",
+    to: "SSG Miller, Ben",
+    date: "2024-07-29T15:00:00Z",
+    status: "pending"
+  },
+  {
+    id: "TR91007",
+    name: "Toughbook Laptop",
+    serialNumber: "CF31-MK5-12345",
+    from: "CPT Rodriguez, Michael",
+    to: "PFC Davis, Sarah",
+    date: "2024-07-26T11:00:00Z",
+    status: "pending"
+  },
+  {
+    id: "TR61102",
+    name: "Rifle Combat Optic (RCO)",
+    serialNumber: "RCO998877",
+    from: "Supply Depot Alpha",
+    to: "CPT Rodriguez, Michael",
+    date: "2024-07-15T09:00:00Z",
     status: "approved",
+    approvedDate: "2024-07-16T10:00:00Z"
   },
   {
-    id: "5",
-    name: "M9 Bayonet",
-    serialNumber: "M9B-87654321",
-    from: "CPT John Doe",
-    to: "PFC Williams",
-    date: "09JUL2023",
+    id: "TR33456",
+    name: "Medical Aid Bag (Complete)",
+    serialNumber: "MED-BAG-00123",
+    from: "CPT Rodriguez, Michael",
+    to: "SGT Chung, Wei",
+    date: "2024-06-20T13:30:00Z",
+    status: "approved",
+    approvedDate: "2024-06-21T08:45:00Z"
+  },
+  {
+    id: "TR44789",
+    name: "Tool Set, General Mechanic",
+    serialNumber: "GMTK-556677",
+    from: "Maintenance Platoon",
+    to: "CPT Rodriguez, Michael",
+    date: "2024-07-01T16:00:00Z",
+    status: "approved",
+    approvedDate: "2024-07-02T11:20:00Z"
+  },
+  {
+    id: "TR22901",
+    name: "ACH Helmet (Damaged)",
+    serialNumber: "ACH-DMG-001",
+    from: "PFC Williams, James",
+    to: "CPT Rodriguez, Michael",
+    date: "2024-07-10T08:00:00Z",
     status: "rejected",
+    rejectedDate: "2024-07-10T14:15:00Z",
+    rejectionReason: "Item received damaged, requires turn-in."
   },
   {
-    id: "6",
-    name: "M240B",
-    serialNumber: "M240B-23574921",
-    from: "1SG Johnson",
-    to: "CPT John Doe",
-    date: "08JUL2023",
+    id: "TR50014",
+    name: "AN/PRC-117G Radio",
+    serialNumber: "PRC117G-WRONG-SN",
+    from: "CPT Rodriguez, Michael",
+    to: "Commo Section",
+    date: "2024-06-25T10:00:00Z",
+    status: "rejected",
+    rejectedDate: "2024-06-26T09:30:00Z",
+    rejectionReason: "Incorrect radio type requested by Commo."
+  },
+  {
+    id: "TR10050",
+    name: "Binoculars M22",
+    serialNumber: "M22-BINOC-111",
+    from: "CPT Rodriguez, Michael",
+    to: "1LT Jones, David",
+    date: "2024-05-15T11:00:00Z",
     status: "approved",
-  },
-  {
-    id: "7",
-    name: "DAGR",
-    serialNumber: "DAGR-56784321",
-    from: "CPT John Doe",
-    to: "2LT Adams",
-    date: "06JUL2023",
-    status: "approved",
-  },
-  {
-    id: "8",
-    name: "M2 .50 Cal",
-    serialNumber: "M2-87542198",
-    from: "MAJ Wilson",
-    to: "CPT John Doe",
-    date: "05JUL2023",
-    status: "pending",
-  },
-  {
-    id: "9",
-    name: "ASIP Radio",
-    serialNumber: "ASIP-12354876",
-    from: "CPT John Doe",
-    to: "SFC Martinez",
-    date: "03JUL2023",
-    status: "approved",
-  },
-  {
-    id: "10",
-    name: "MK19",
-    serialNumber: "MK19-87456213",
-    from: "CPT John Doe",
-    to: "SSG Brown",
-    date: "01JUL2023",
-    status: "pending",
+    approvedDate: "2024-05-16T08:00:00Z"
   },
 ];
 

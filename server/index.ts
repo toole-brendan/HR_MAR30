@@ -121,6 +121,10 @@ function findAvailablePort(startPort: number, maxAttempts: number = 10): Promise
       host: "localhost",
     }, () => {
       log(`Server running at http://localhost:${port}`);
+      
+      // Store the port in a global that client code can access
+      // @ts-ignore - Add SERVER_PORT to the global window object
+      if (typeof global !== 'undefined') global.SERVER_PORT = port;
     });
   } catch (error) {
     log(`Failed to start server: ${error}`);

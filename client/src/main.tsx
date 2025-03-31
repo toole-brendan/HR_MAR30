@@ -17,6 +17,15 @@ seedDatabase().then(() => {
   console.error('Database seeding failed:', error);
 });
 
+// Create a valid DOM element to mount the app
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  const newRoot = document.createElement('div');
+  newRoot.id = 'root';
+  document.body.appendChild(newRoot);
+}
+
+// Ensure we have a valid root before creating the React root
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
@@ -25,9 +34,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 // --- Service Worker Registration ---
 if ('serviceWorker' in navigator) {
-  // Use Workbox window library for registration
-  const wb = new Workbox('/service-worker.js', { scope: '/' }); // Register with root scope
-  // const wb = new Workbox('/defense/service-worker.js', { scope: '/defense/' }); // Alternative if using base path strictly
+  // Get the current origin and path for correct registration
+  const basePath = '/defense/';
+  
+  // Use Workbox window library for registration with correct base path
+  const wb = new Workbox(`${basePath}service-worker.js`, { scope: basePath });
 
   // Use the specific type for the 'waiting' listener
   wb.addEventListener('waiting', (event: WorkboxLifecycleWaitingEvent) => {

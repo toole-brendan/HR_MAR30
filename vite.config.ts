@@ -40,5 +40,8 @@ export default defineConfig({
       strict: true,
     },
     origin: '*',
+    hmr: {
+      path: '/defense',
+    },
   },
 });
