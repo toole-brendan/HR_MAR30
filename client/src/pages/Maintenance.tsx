@@ -690,7 +690,7 @@ const Maintenance: React.FC<MaintenanceProps> = ({ id }) => {
       {/* Conditionally render the main Tabs OR the Calibration Manager */}
       {!showCalibrationManager ? (
           <Tabs value={state.selectedTab} onValueChange={(value: any) => dispatch({ type: 'SET_SELECTED_TAB', payload: value as 'my-requests' | 'dashboard' | 'bulletins' })} className="w-full">
-             <TabsList className="grid grid-cols-3 w-full rounded-none h-10 mb-6">
+             <TabsList className="grid grid-cols-3 w-full rounded-none h-10 mb-6 border border-border">
                <TabsTrigger value="my-requests" className="text-xs uppercase tracking-wider rounded-none">My Requests</TabsTrigger>
                <TabsTrigger value="dashboard" className="text-xs uppercase tracking-wider rounded-none">Dashboard</TabsTrigger>
                <TabsTrigger value="bulletins" className="text-xs uppercase tracking-wider rounded-none">Bulletins</TabsTrigger>
