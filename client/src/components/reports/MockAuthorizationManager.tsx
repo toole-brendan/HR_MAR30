@@ -105,7 +105,14 @@ const MockAuthorizationManager: React.FC = () => {
              placeholder="Enter or paste AuthorizationData JSON here..."
            />
          </div>
-         <Button onClick={handleSaveChanges}>Save Changes</Button>
+         <Button 
+           variant="blue"
+           size="sm"
+           className="h-9 px-3 flex items-center gap-1.5 text-xs uppercase tracking-wider"
+           onClick={handleSaveChanges}
+         >
+           SAVE CHANGES
+         </Button>
       </CardContent>
     </Card>
   );

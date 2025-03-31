@@ -193,14 +193,14 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
 
   return (
     <PageWrapper withPadding={true}>
-      {/* Header section with 8VC style formatting */}
+      {/* Header section with styling formatting */}
       <div className="pt-16 pb-10">
         {/* Category label - Small all-caps category label */}
         <div className="text-xs uppercase tracking-wider font-medium mb-1 text-muted-foreground">
           ANALYTICS
         </div>
         
-        {/* Main title - following 8VC typography */}
+        {/* Main title - following typography */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
           <div>
             <h1 className="text-3xl font-light tracking-tight mb-1">Reports & Analytics</h1>
@@ -208,18 +208,18 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
           </div>
           <div className="flex items-center gap-2">
             <Button 
-              variant="default"
+              variant="blue"
               size="sm"
-              className="text-xs uppercase tracking-wider flex items-center gap-1.5"
+              className="h-9 px-3 flex items-center gap-1.5 text-xs uppercase tracking-wider"
               onClick={() => handlePrintReport()}
             >
               <Printer className="h-4 w-4" />
               PRINT
             </Button>
             <Button 
-              variant="default"
+              variant="blue"
               size="sm"
-              className="text-xs uppercase tracking-wider flex items-center gap-1.5"
+              className="h-9 px-3 flex items-center gap-1.5 text-xs uppercase tracking-wider"
               onClick={() => handleGenerateReport("Custom")}
             >
               <FileText className="h-4 w-4" />
@@ -233,7 +233,7 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
             <div className="text-xs uppercase tracking-wider font-medium mb-4 text-muted-foreground">
               REPORT CATEGORIES
             </div>
-            <TabsList className="grid grid-cols-7 w-full rounded-none bg-gray-50 dark:bg-white/5 h-10">
+            <TabsList className="grid grid-cols-7 w-full rounded-none h-10 border">
               <TabsTrigger value="dashboard" className="uppercase tracking-wider text-xs font-medium rounded-none">DASHBOARD</TabsTrigger>
               <TabsTrigger value="inventory" className="uppercase tracking-wider text-xs font-medium rounded-none">INVENTORY</TabsTrigger>
               <TabsTrigger value="transfers" className="uppercase tracking-wider text-xs font-medium rounded-none">TRANSFERS</TabsTrigger>
@@ -247,41 +247,41 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
           {/* Report Dashboard */}
           <TabsContent value="dashboard">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-                <div className="p-3 border-b border-gray-100 dark:border-white/5">
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+              <Card className="overflow-hidden border-border shadow-none bg-card">
+                <div className="p-3 border-b border-border">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
                     INVENTORY
                   </div>
                 </div>
                 <CardContent className="p-4">
                   <div className="flex flex-col">
-                    <div className="text-3xl font-light tracking-tight text-gray-900 dark:text-white">{inventory.length}</div>
+                    <div className="text-3xl font-light tracking-tight">{inventory.length}</div>
                     <div className="text-xs tracking-wide text-muted-foreground mt-1">Total inventory items</div>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-                <div className="p-3 border-b border-gray-100 dark:border-white/5">
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+              <Card className="overflow-hidden border-border shadow-none bg-card">
+                <div className="p-3 border-b border-border">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
                     TRANSFERS
                   </div>
                 </div>
                 <CardContent className="p-4">
                   <div className="flex flex-col">
-                    <div className="text-3xl font-light tracking-tight text-gray-900 dark:text-white">{transfers.filter(t => t.status === "pending").length}</div>
+                    <div className="text-3xl font-light tracking-tight">{transfers.filter(t => t.status === "pending").length}</div>
                     <div className="text-xs tracking-wide text-muted-foreground mt-1">Pending transfers</div>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-                <div className="p-3 border-b border-gray-100 dark:border-white/5">
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+              <Card className="overflow-hidden border-border shadow-none bg-card">
+                <div className="p-3 border-b border-border">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
                     SENSITIVE ITEMS
                   </div>
                 </div>
                 <CardContent className="p-4">
                   <div className="flex flex-col">
-                    <div className="text-3xl font-light tracking-tight text-gray-900 dark:text-white">{sensitiveItems.length}</div>
+                    <div className="text-3xl font-light tracking-tight">{sensitiveItems.length}</div>
                     <div className="text-xs tracking-wide text-muted-foreground mt-1">Tracked sensitive items</div>
                   </div>
                 </CardContent>
@@ -289,13 +289,13 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+              <Card className="overflow-hidden border-border shadow-none bg-card">
+                <div className="p-4 flex justify-between items-baseline border-b border-border">
                   <div>
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
                       EQUIPMENT DISTRIBUTION
                     </div>
-                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                    <div className="text-lg font-normal">
                       Inventory by Category
                     </div>
                   </div>
@@ -326,13 +326,13 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                 </CardContent>
               </Card>
 
-              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+              <Card className="overflow-hidden border-border shadow-none bg-card">
+                <div className="p-4 flex justify-between items-baseline border-b border-border">
                   <div>
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
                       ACTIVITY METRICS
                     </div>
-                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                    <div className="text-lg font-normal">
                       Transfer Trends
                     </div>
                   </div>
@@ -357,13 +357,13 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
             </div>
 
             <div className="mb-6">
-              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+              <Card className="overflow-hidden border-border shadow-none bg-card">
+                <div className="p-4 flex justify-between items-baseline border-b border-border">
                   <div>
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
                       ONE-CLICK REPORTING
                     </div>
-                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                    <div className="text-lg font-normal">
                       Quick Report Generation
                     </div>
                   </div>
@@ -374,7 +374,7 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                       <Button
                         key={report.id}
                         variant="outline"
-                        className="justify-start h-auto py-3 text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-primary dark:hover:text-primary-400"
+                        className="justify-start h-auto py-3 text-xs uppercase tracking-wider border-border hover:bg-muted/50"
                         onClick={() => handleGenerateReport(report.name)}
                       >
                         {report.icon}
@@ -387,13 +387,13 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
             </div>
 
             <div className="mb-6">
-              <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-                <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+              <Card className="overflow-hidden border-border shadow-none bg-card">
+                <div className="p-4 flex justify-between items-baseline border-b border-border">
                   <div>
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
                       PROPERTY BOOK
                     </div>
-                    <div className="text-lg font-normal text-gray-900 dark:text-white">
+                    <div className="text-lg font-normal">
                       Current Status Summary
                     </div>
                   </div>
@@ -401,7 +401,7 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                 <CardContent className="p-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                      <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-4">
                         STATUS SUMMARY
                       </div>
                       <div className="space-y-4 border-l-4 border-primary/30 pl-4">
@@ -428,7 +428,7 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                       </div>
                     </div>
                     <div>
-                      <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                      <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-4">
                         ITEMS BY CATEGORY
                       </div>
                       <div className="space-y-4 border-l-4 border-primary/30 pl-4">
@@ -456,10 +456,10 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                     </div>
                   </div>
                 </CardContent>
-                <div className="px-4 py-2 border-t border-gray-100 dark:border-white/5 flex justify-end">
+                <div className="px-4 py-2 border-t border-border flex justify-end">
                   <Button 
                     variant="ghost" 
-                    className="text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-transparent hover:text-purple-800 dark:hover:text-purple-300"
+                    className="text-xs uppercase tracking-wider text-blue-600 dark:text-blue-400 hover:bg-transparent hover:text-blue-800 dark:hover:text-blue-300"
                     onClick={() => navigate("/property-book")}
                   >
                     VIEW FULL PROPERTY BOOK
@@ -472,13 +472,13 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
 
           {/* Inventory Reports */}
           <TabsContent value="inventory">
-            <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black mb-6">
-              <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+            <Card className="overflow-hidden border-border shadow-none bg-card mb-6">
+              <div className="p-4 flex justify-between items-baseline border-b border-border">
                 <div>
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
                     INVENTORY OVERVIEW
                   </div>
-                  <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  <div className="text-lg font-normal">
                     Current Inventory Status
                   </div>
                 </div>
@@ -486,7 +486,7 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
               <CardContent className="p-4">
                 <div className="flex flex-col md:flex-row gap-6 mb-6">
                   <div className="md:w-1/2">
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-4">
                       STATUS DISTRIBUTION
                     </div>
                     <div className="h-[300px]">
@@ -513,7 +513,7 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                     </div>
                   </div>
                   <div className="md:w-1/2">
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-4">
                       CATEGORY DISTRIBUTION
                     </div>
                     <div className="h-[300px]">
@@ -539,7 +539,7 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                 </div>
 
                 <div className="mb-6">
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-4">
                     ACTION ITEMS
                   </div>
                   <Alert className="border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-500 rounded-none">
@@ -550,11 +550,11 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                   </Alert>
                 </div>
 
-                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <div className="pt-4 border-t border-border">
                   <div className="flex justify-between">
                     <Button
                       variant="outline"
-                      className="text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+                      className="text-xs uppercase tracking-wider border-border hover:bg-muted/50"
                       onClick={() => handleExportReport('pdf')}
                     >
                       <Download className="h-4 w-4 mr-2" />
@@ -562,7 +562,7 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                     </Button>
                     <Button
                       variant="outline"
-                      className="text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+                      className="text-xs uppercase tracking-wider border-border hover:bg-muted/50"
                       onClick={() => handleExportReport('csv')}
                     >
                       <Download className="h-4 w-4 mr-2" />
@@ -576,20 +576,20 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
 
           {/* Transfers Reports */}
           <TabsContent value="transfers">
-            <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black mb-6">
-              <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+            <Card className="overflow-hidden border-border shadow-none bg-card mb-6">
+              <div className="p-4 flex justify-between items-baseline border-b border-border">
                 <div>
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
                     TRANSFER METRICS
                   </div>
-                  <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  <div className="text-lg font-normal">
                     Transfer Analytics
                   </div>
                 </div>
               </div>
               <CardContent className="p-4">
                 <div className="mb-6">
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-4">
                     HISTORICAL TRENDS
                   </div>
                   <div className="h-[300px]">
@@ -628,26 +628,26 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                 </div>
 
                 <div className="mb-6">
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-4">
                     TRANSFER STATUS SUMMARY
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
-                      <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">APPROVED</div>
+                    <div className="p-3 border border-border bg-muted/30">
+                      <div className="uppercase text-[10px] tracking-wider font-medium text-muted-foreground mb-1">APPROVED</div>
                       <div className="text-2xl font-light tracking-tight text-green-500">
                         {transfers.filter(t => t.status === "approved").length}
                       </div>
                       <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Total approved transfers</p>
                     </div>
-                    <div className="p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
-                      <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">PENDING</div>
+                    <div className="p-3 border border-border bg-muted/30">
+                      <div className="uppercase text-[10px] tracking-wider font-medium text-muted-foreground mb-1">PENDING</div>
                       <div className="text-2xl font-light tracking-tight text-amber-500">
                         {transfers.filter(t => t.status === "pending").length}
                       </div>
                       <p className="text-xs tracking-wide text-muted-foreground mt-0.5">Awaiting approval</p>
                     </div>
-                    <div className="p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
-                      <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">REJECTED</div>
+                    <div className="p-3 border border-border bg-muted/30">
+                      <div className="uppercase text-[10px] tracking-wider font-medium text-muted-foreground mb-1">REJECTED</div>
                       <div className="text-2xl font-light tracking-tight text-red-500">
                         {transfers.filter(t => t.status === "rejected").length}
                       </div>
@@ -657,21 +657,21 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                 </div>
 
                 <div className="mb-6">
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-4">
                     PROCESSING METRICS
                   </div>
-                  <div className="p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
-                    <div className="uppercase text-[10px] tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">AVERAGE APPROVAL TIME</div>
+                  <div className="p-3 border border-border bg-muted/30">
+                    <div className="uppercase text-[10px] tracking-wider font-medium text-muted-foreground mb-1">AVERAGE APPROVAL TIME</div>
                     <div className="text-2xl font-light tracking-tight">2.4 days</div>
                     <p className="text-xs tracking-wide text-muted-foreground mt-0.5">From request to approval</p>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <div className="pt-4 border-t border-border">
                   <div className="flex justify-between">
                     <Button
                       variant="outline"
-                      className="text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+                      className="text-xs uppercase tracking-wider border-border hover:bg-muted/50"
                       onClick={() => handleExportReport('pdf')}
                     >
                       <Download className="h-4 w-4 mr-2" />
@@ -679,7 +679,7 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                     </Button>
                     <Button
                       variant="outline"
-                      className="text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+                      className="text-xs uppercase tracking-wider border-border hover:bg-muted/50"
                       onClick={() => handleExportReport('csv')}
                     >
                       <Download className="h-4 w-4 mr-2" />
@@ -698,13 +698,13 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
 
           {/* Sensitive Items Reports */}
           <TabsContent value="sensitive">
-            <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black mb-6">
-              <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+            <Card className="overflow-hidden border-border shadow-none bg-card mb-6">
+              <div className="p-4 flex justify-between items-baseline border-b border-border">
                 <div>
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
                     SENSITIVE ITEMS
                   </div>
-                  <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  <div className="text-lg font-normal">
                     Verification Status Report
                   </div>
                 </div>
@@ -712,7 +712,7 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
               <CardContent className="p-4">
                 <div className="flex flex-col md:flex-row gap-6 mb-6">
                   <div className="md:w-1/2">
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-4">
                       VERIFICATION STATUS
                     </div>
                     <div className="h-[300px]">
@@ -739,32 +739,32 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                     </div>
                   </div>
                   <div className="md:w-1/2">
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-4">
                       VERIFICATION SCHEDULE
                     </div>
                     <div className="space-y-4 border-l-4 border-primary/30 pl-4">
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Daily Verification</span>
-                        <Badge className="bg-primary hover:bg-primary-600 rounded-sm">5 items</Badge>
+                        <Badge className="bg-primary hover:bg-primary-600 rounded-none">5 items</Badge>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Weekly Verification</span>
-                        <Badge className="bg-primary hover:bg-primary-600 rounded-sm">12 items</Badge>
+                        <Badge className="bg-primary hover:bg-primary-600 rounded-none">12 items</Badge>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Monthly Verification</span>
-                        <Badge className="bg-primary hover:bg-primary-600 rounded-sm">28 items</Badge>
+                        <Badge className="bg-primary hover:bg-primary-600 rounded-none">28 items</Badge>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Quarterly Verification</span>
-                        <Badge className="bg-primary hover:bg-primary-600 rounded-sm">15 items</Badge>
+                        <Badge className="bg-primary hover:bg-primary-600 rounded-none">15 items</Badge>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="mb-6">
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-4">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-4">
                     VERIFICATION ALERTS
                   </div>
                   <Alert className="border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-500 rounded-none">
@@ -775,11 +775,11 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                   </Alert>
                 </div>
 
-                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <div className="pt-4 border-t border-border">
                   <div className="flex justify-between">
                     <Button
                       variant="outline"
-                      className="text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+                      className="text-xs uppercase tracking-wider border-border hover:bg-muted/50"
                       onClick={() => handleExportReport('pdf')}
                     >
                       <Download className="h-4 w-4 mr-2" />
@@ -787,7 +787,7 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                     </Button>
                     <Button
                       variant="outline"
-                      className="text-xs uppercase tracking-wider border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+                      className="text-xs uppercase tracking-wider border-border hover:bg-muted/50"
                       onClick={() => handleExportReport('csv')}
                     >
                       <Download className="h-4 w-4 mr-2" />
@@ -809,13 +809,13 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
 
           {/* Custom Reports */}
           <TabsContent value="custom">
-            <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black mb-6">
-              <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+            <Card className="overflow-hidden border-border shadow-none bg-card mb-6">
+              <div className="p-4 flex justify-between items-baseline border-b border-border">
                 <div>
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
                     CUSTOM REPORT
                   </div>
-                  <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  <div className="text-lg font-normal">
                     Create Customized Reports
                   </div>
                 </div>
@@ -823,11 +823,11 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div>
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-2">
                       REPORT TYPE
                     </div>
                     <Select defaultValue="inventory">
-                      <SelectTrigger className="border-gray-200 dark:border-white/10 rounded-none">
+                      <SelectTrigger className="border-border rounded-none">
                         <SelectValue placeholder="Select report type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -840,11 +840,11 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                     </Select>
                   </div>
                   <div>
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-2">
                       DATE RANGE
                     </div>
                     <Select defaultValue="30">
-                      <SelectTrigger className="border-gray-200 dark:border-white/10 rounded-none">
+                      <SelectTrigger className="border-border rounded-none">
                         <SelectValue placeholder="Select date range" />
                       </SelectTrigger>
                       <SelectContent>
@@ -857,11 +857,11 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                     </Select>
                   </div>
                   <div>
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-2">
                       FORMAT
                     </div>
                     <Select defaultValue="pdf">
-                      <SelectTrigger className="border-gray-200 dark:border-white/10 rounded-none">
+                      <SelectTrigger className="border-border rounded-none">
                         <SelectValue placeholder="Select format" />
                       </SelectTrigger>
                       <SelectContent>
@@ -875,12 +875,12 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div>
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-2">
                       ADDITIONAL FILTERS
                     </div>
                     <div className="flex gap-2">
                       <Select defaultValue="all">
-                        <SelectTrigger className="border-gray-200 dark:border-white/10 rounded-none">
+                        <SelectTrigger className="border-border rounded-none">
                           <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -891,7 +891,7 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                         </SelectContent>
                       </Select>
                       <Select defaultValue="all">
-                        <SelectTrigger className="border-gray-200 dark:border-white/10 rounded-none">
+                        <SelectTrigger className="border-border rounded-none">
                           <SelectValue placeholder="Category" />
                         </SelectTrigger>
                         <SelectContent>
@@ -905,14 +905,14 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                     </div>
                   </div>
                   <div>
-                    <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-2">
+                    <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-2">
                       SEARCH
                     </div>
                     <div className="relative">
                       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input 
                         placeholder="Search by name, serial number, etc." 
-                        className="pl-8 border-gray-200 dark:border-white/10 rounded-none" 
+                        className="pl-8 border-border rounded-none" 
                       />
                     </div>
                   </div>
@@ -920,7 +920,9 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
 
                 <div className="flex justify-end">
                   <Button 
-                    className="text-xs uppercase tracking-wider bg-primary hover:bg-primary-600 rounded-none"
+                    variant="blue"
+                    size="sm"
+                    className="h-9 px-3 flex items-center gap-1.5 text-xs uppercase tracking-wider"
                     onClick={() => handleGenerateReport("Custom")}
                   >
                     <FileText className="h-4 w-4 mr-2" />
@@ -930,20 +932,20 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
               </CardContent>
             </Card>
 
-            <Card className="overflow-hidden border border-gray-200 dark:border-white/10 shadow-none bg-white dark:bg-black">
-              <div className="p-4 flex justify-between items-baseline border-b border-gray-100 dark:border-white/5">
+            <Card className="overflow-hidden border-border shadow-none bg-card">
+              <div className="p-4 flex justify-between items-baseline border-b border-border">
                 <div>
-                  <div className="uppercase text-xs tracking-wider font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  <div className="uppercase text-xs tracking-wider font-medium text-muted-foreground mb-1">
                     SAVED REPORTS
                   </div>
-                  <div className="text-lg font-normal text-gray-900 dark:text-white">
+                  <div className="text-lg font-normal">
                     Previously Generated Reports
                   </div>
                 </div>
               </div>
               <CardContent className="p-4">
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                  <div className="flex justify-between items-center p-3 border border-border bg-muted/30">
                     <div className="flex items-center gap-3">
                       <FileText className="h-5 w-5 text-primary" />
                       <div>
@@ -952,15 +954,15 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="hover:bg-gray-50 dark:hover:bg-white/5">
-                        <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                      <Button variant="ghost" size="sm" className="hover:bg-muted/50">
+                        <Download className="h-4 w-4 text-muted-foreground" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="hover:bg-gray-50 dark:hover:bg-white/5">
-                        <Printer className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                      <Button variant="ghost" size="sm" className="hover:bg-muted/50">
+                        <Printer className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                  <div className="flex justify-between items-center p-3 border border-border bg-muted/30">
                     <div className="flex items-center gap-3">
                       <FileText className="h-5 w-5 text-primary" />
                       <div>
@@ -969,15 +971,15 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="hover:bg-gray-50 dark:hover:bg-white/5">
-                        <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                      <Button variant="ghost" size="sm" className="hover:bg-muted/50">
+                        <Download className="h-4 w-4 text-muted-foreground" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="hover:bg-gray-50 dark:hover:bg-white/5">
-                        <Printer className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                      <Button variant="ghost" size="sm" className="hover:bg-muted/50">
+                        <Printer className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center p-3 border border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                  <div className="flex justify-between items-center p-3 border border-border bg-muted/30">
                     <div className="flex items-center gap-3">
                       <FileText className="h-5 w-5 text-primary" />
                       <div>
@@ -986,11 +988,11 @@ const Reports: React.FC<ReportsProps> = ({ type }) => {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="hover:bg-gray-50 dark:hover:bg-white/5">
-                        <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                      <Button variant="ghost" size="sm" className="hover:bg-muted/50">
+                        <Download className="h-4 w-4 text-muted-foreground" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="hover:bg-gray-50 dark:hover:bg-white/5">
-                        <Printer className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                      <Button variant="ghost" size="sm" className="hover:bg-muted/50">
+                        <Printer className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </div>
                   </div>
