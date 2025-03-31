@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default defineConfig({
-  base: '/defense/',
+  base: '/defense',
   plugins: [
     react(),
     runtimeErrorOverlay(),
@@ -35,13 +35,19 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    // Ensure JS modules are served with the correct MIME type
     fs: {
-      strict: true,
+      strict: false,
+      allow: ['..'],
     },
-    origin: '*',
+    cors: true,
+    port: 5001,
+    strictPort: false,
     hmr: {
-      path: '/defense',
+      port: 5001,
+      host: 'localhost'
     },
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    }
   },
 });

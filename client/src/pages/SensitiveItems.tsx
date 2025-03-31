@@ -22,11 +22,14 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PageWrapper } from "@/components/ui/page-wrapper";
 import { Separator } from "@/components/ui/separator";
 import QRCodeGenerator from "@/components/common/QRCodeGenerator";
+import QRDisplay from "@/components/common/QRDisplay";
 import TransferRequestModal from "@/components/modals/TransferRequestModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/context/AuthContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import BlockchainLedger from "@/components/blockchain/BlockchainLedger";
+import { recordToBlockchain } from "@/lib/blockchain";
 
 import {
   Search,
@@ -59,6 +62,7 @@ import {
   Headphones,
   Package,
   QrCode,
+  ShieldCheck,
 } from "lucide-react";
 
 import {
@@ -219,9 +223,20 @@ const SensitiveItems: React.FC<SensitiveItemsProps> = ({ id }) => {
   };
 
   const handleVerifyItem = (item: SensitiveItem) => {
+    // Record the verification to the simulated blockchain
+    const user = currentUserFormattedName;
+    
+    // Record verification to blockchain (if item is blockchain-enabled)
+    recordToBlockchain(
+      item,
+      'verification',
+      { status: 'verified', location: item.location },
+      user
+    );
+    
     toast({
       title: "Item Verified",
-      description: `${item.name} (SN: ${item.serialNumber}) has been verified.`,
+      description: `${item.name} (SN: ${item.serialNumber}) has been verified and recorded to the secure ledger.`,
       variant: "default",
     });
   };
@@ -329,6 +344,134 @@ const SensitiveItems: React.FC<SensitiveItemsProps> = ({ id }) => {
       </Button>
     </div>
   );
+
+  // Contents for details modal
+  const renderDetailsModal = () => {
+    if (!selectedItem) return null;
+    
+    const verificationHistory = getItemVerificationLogs(selectedItem.id);
+
+    return (
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              {selectedItem.name}
+              <StatusBadgeComponent status={selectedItem.status} />
+            </DialogTitle>
+            <DialogDescription>
+              Serial Number: {selectedItem.serialNumber}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+            <div>
+              <h3 className="text-sm font-medium mb-2">Item Details</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Category:</span>
+                  <CategoryCell category={selectedItem.category} />
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Location:</span>
+                  <span>{selectedItem.location}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Assigned To:</span>
+                  <span>{selectedItem.assignedTo || "Unassigned"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Assigned Date:</span>
+                  <span>{selectedItem.assignedDate || "N/A"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Last Verified:</span>
+                  <span>{selectedItem.lastVerified}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Next Verification:</span>
+                  <span>{selectedItem.nextVerification}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Security Level:</span>
+                  <span className="capitalize">{selectedItem.securityLevel}</span>
+                </div>
+                {selectedItem.notes && (
+                  <div className="pt-2">
+                    <span className="text-muted-foreground">Notes:</span>
+                    <p className="mt-1 text-sm">{selectedItem.notes}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-sm font-medium mb-2">Verification History</h3>
+              {verificationHistory.length > 0 ? (
+                <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                  {verificationHistory.map((log, index) => (
+                    <div key={index} className="border-b border-gray-100 dark:border-gray-800 pb-2 last:border-0 last:pb-0">
+                      <div className="flex justify-between items-start">
+                        <span className="font-medium">{log.date}</span>
+                        <StatusBadgeComponent status={log.status} />
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Verified by {log.verifiedBy} at {log.time}
+                      </div>
+                      {log.notes && <div className="text-xs mt-1">{log.notes}</div>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">No verification history available.</div>
+              )}
+            </div>
+          </div>
+          
+          {/* QR Code Section */}
+          <div className="mt-4 py-4 border-t border-dashed">
+            <h3 className="text-sm font-medium mb-2">Item QR Code</h3>
+            <div className="flex justify-center bg-white p-4 rounded-md">
+              <QRDisplay
+                value={`handreceipt://sensitive-items/${selectedItem.id}`} 
+                size={150} 
+                includeMargin={true}
+              />
+            </div>
+            <p className="text-xs text-center text-muted-foreground mt-2">
+              Scan this code during physical verification
+            </p>
+          </div>
+          
+          {/* Add the Blockchain Ledger component here */}
+          <BlockchainLedger item={selectedItem} />
+          
+          <DialogFooter className="flex flex-wrap gap-2 justify-end">
+            {selectedItem.assignedTo === currentUserName && (
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  handleVerifyItem(selectedItem);
+                  setDetailsModalOpen(false);
+                }}
+                className="flex items-center"
+              >
+                <ShieldCheck className="w-4 h-4 mr-2" />
+                Verify Now
+              </Button>
+            )}
+            <Button 
+              variant="default" 
+              onClick={() => setDetailsModalOpen(false)} 
+              className="ml-auto"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   return (
     <PageWrapper withPadding={true}>
@@ -665,33 +808,7 @@ const SensitiveItems: React.FC<SensitiveItemsProps> = ({ id }) => {
         )}
       </TooltipProvider>
 
-      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="sm:max-w-[600px] p-6 bg-card">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-medium">{selectedItem?.name}</DialogTitle>
-            <DialogDescription>SN: {selectedItem?.serialNumber} | Category: {selectedItem?.category}</DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-             <p><span className="font-medium">Status:</span> <StatusBadgeComponent status={selectedItem?.status ?? 'not-verified'} /></p>
-             <p><span className="font-medium">Last Verified:</span> 
-               {selectedItem?.lastVerified ? 
-                 `${formatMilitaryDateOnly(selectedItem.lastVerified)} ${findLatestVerificationTime(selectedItem.id) !== 'N/A' ? findLatestVerificationTime(selectedItem.id) : ''}`.trim() 
-                 : "N/A"}
-             </p>
-             <Separator />
-             <h4 className="font-medium text-sm text-muted-foreground">Verification History</h4>
-              {/* TODO: Display actual verification history logs here */}
-          </div>
-          <DialogFooter className="sm:justify-end gap-2">
-             <Button type="button" variant="outline" onClick={() => setDetailsModalOpen(false)} className="transition-colors">
-                Close
-             </Button>
-              <Button type="button" variant="default" onClick={() => handleVerifyItem(selectedItem!)} className="transition-colors">
-                Mark as Verified
-              </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {renderDetailsModal()}
 
       {showVerifyDialog && (
             <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>

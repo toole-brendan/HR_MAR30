@@ -3,6 +3,10 @@ import { useState, useEffect, useReducer, useCallback, useMemo } from "react";
 import { transfers as initialTransfers, user as mockUser } from "@/lib/mockData";
 import { Transfer } from "@/types";
 import { useAuth } from "@/context/AuthContext";
+import { recordToBlockchain, isBlockchainEnabled } from "@/lib/blockchain";
+import { SensitiveItem } from "@/lib/sensitiveItemsData";
+import { sensitiveItems } from "@/lib/sensitiveItemsData";
+import BlockchainLedger from "@/components/blockchain/BlockchainLedger";
 import {
   Card,
   CardContent,
@@ -199,12 +203,11 @@ function transfersReducer(state: TransfersState, action: TransfersAction): Trans
 // --- Component Definition ---
 
 interface TransfersProps {
-  // id?: string; // If using path param like /transfers/:id
+  id?: string;  // Add this for route params like /transfers/:id
 }
 
-const Transfers: React.FC<TransfersProps> = () => {
-  // Use route params if needed
-  // const { id: routeParamId } = useParams<{ id?: string }>(); // Removed usage
+const Transfers: React.FC<TransfersProps> = ({ id }) => {
+  // Use the id parameter to show specific transfer details
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -214,17 +217,15 @@ const Transfers: React.FC<TransfersProps> = () => {
   // Use the mock user directly for the demo
   const currentUser = mockUser.name; // "CPT Rodriguez, Michael"
 
-  // Effect to show specific transfer details if ID is in route param (Keep this logic general for future use, but it won't trigger without router)
-  /* // Commented out as useParams is removed
+  // Check if there's an ID prop to show specific transfer
   useEffect(() => {
-    if (routeParamId) {
-      const transfer = transfers.find(t => t.id === routeParamId);
+    if (id) {
+      const transfer = transfers.find(t => t.id === id);
       if (transfer) {
         dispatch({ type: 'SHOW_DETAILS', payload: transfer });
       }
     }
-  }, [routeParamId, transfers]);
-  */
+  }, [id, transfers]);
 
   // Simulate Async Operation
   const simulateAsyncOperation = (duration = 500) => {
@@ -236,8 +237,9 @@ const Transfers: React.FC<TransfersProps> = () => {
     dispatch({ type: 'START_LOADING', payload: id });
     await simulateAsyncOperation();
 
+    const transfer = transfers.find(t => t.id === id)!;
     const updatedTransfer: Transfer = {
-      ...transfers.find(t => t.id === id)!,
+      ...transfer,
       status: "approved",
       approvedDate: new Date().toISOString(),
     };
@@ -247,11 +249,48 @@ const Transfers: React.FC<TransfersProps> = () => {
     dispatch({ type: 'STOP_LOADING', payload: id });
     dispatch({ type: 'CONFIRM_ACTION', payload: null }); // Close confirmation dialog
 
-    toast({
-      title: "Transfer Approved",
-      description: `Transfer of ${updatedTransfer.name} approved.`, // More specific
-      variant: "default", // Changed from 'success'
-    });
+    // Check if this is a sensitive item and record to blockchain if it is
+    const sensitiveItem = sensitiveItems.find(item => item.serialNumber === transfer.serialNumber);
+    
+    if (sensitiveItem) {
+      try {
+        // Record to blockchain if the item is eligible
+        if (isBlockchainEnabled(sensitiveItem)) {
+          const blockchainRecord = recordToBlockchain(
+            sensitiveItem,
+            'transfer',
+            {
+              from: transfer.from,
+              to: transfer.to,
+              transferId: transfer.id,
+              date: new Date().toISOString()
+            },
+            currentUser
+          );
+          
+          toast({
+            title: "Transfer Approved",
+            description: `${transfer.name} has been transferred to ${transfer.to}. The transfer was recorded to the secure ledger (TX: ${blockchainRecord.txId.substring(0, 8)}...)`,
+          });
+        } else {
+          toast({
+            title: "Transfer Approved",
+            description: `${transfer.name} has been transferred to ${transfer.to}.`,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to record transfer to blockchain:", error);
+        toast({
+          title: "Transfer Approved",
+          description: `${transfer.name} has been transferred to ${transfer.to}.`,
+        });
+      }
+    } else {
+      toast({
+        title: "Transfer Approved",
+        description: `${transfer.name} has been transferred to ${transfer.to}.`,
+      });
+    }
   };
 
   const handleReject = async (id: string, reason: string = "Rejected by recipient") => {
@@ -563,6 +602,125 @@ const Transfers: React.FC<TransfersProps> = () => {
       </div>
     );
   };
+  
+  // --- Render Transfer Details Modal ---
+  const renderTransferDetails = () => {
+    if (!showTransferDetails) return null;
+    
+    const transfer = showTransferDetails;
+    // Find related sensitive item if it exists
+    const relatedSensitiveItem = sensitiveItems.find(item => 
+      item.serialNumber === transfer.serialNumber
+    );
+    
+    return (
+      <Dialog open={!!showTransferDetails} onOpenChange={(open) => !open && dispatch({ type: 'SHOW_DETAILS', payload: null })}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Transfer Details</DialogTitle>
+            <DialogDescription>
+              Information about this transfer request
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* Transfer details content */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+            <div>
+              <h3 className="text-sm font-medium mb-2">Basic Information</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Item:</span>
+                  <span className="font-medium">{transfer.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Serial Number:</span>
+                  <span className="font-mono">{transfer.serialNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status:</span>
+                  <StatusBadge status={transfer.status || 'pending'} />
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">From:</span>
+                  <span>{transfer.from}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">To:</span>
+                  <span>{transfer.to}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Request Date:</span>
+                  <span>{format(parseISO(transfer.date), 'dd MMM yyyy')}</span>
+                </div>
+                {transfer.approvedDate && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Approved Date:</span>
+                    <span>{format(parseISO(transfer.approvedDate), 'dd MMM yyyy')}</span>
+                  </div>
+                )}
+                {transfer.rejectedDate && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Rejected Date:</span>
+                    <span>{format(parseISO(transfer.rejectedDate), 'dd MMM yyyy')}</span>
+                  </div>
+                )}
+                {transfer.rejectionReason && (
+                  <div className="pt-2">
+                    <span className="text-muted-foreground">Rejection Reason:</span>
+                    <p className="mt-1 text-sm">{transfer.rejectionReason}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              {/* QR Code for the transfer */}
+              <h3 className="text-sm font-medium mb-2">Transfer QR Code</h3>
+              <div className="flex justify-center bg-white p-4 rounded-md">
+                <QRCodeGenerator 
+                  itemName={transfer.name}
+                  serialNumber={transfer.serialNumber}
+                />
+              </div>
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                Scan this code to verify the transfer
+              </p>
+            </div>
+          </div>
+          
+          {/* Blockchain ledger if this is a sensitive item */}
+          {relatedSensitiveItem && isBlockchainEnabled(relatedSensitiveItem) && (
+            <div className="py-4">
+              <BlockchainLedger item={relatedSensitiveItem} />
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => dispatch({ type: 'SHOW_DETAILS', payload: null })}>
+              Close
+            </Button>
+            {/* Add buttons for approve/reject if the transfer is pending and directed to the current user */}
+            {transfer.status === 'pending' && transfer.to === currentUser && (
+              <>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => dispatch({ type: 'CONFIRM_ACTION', payload: { id: transfer.id, action: 'reject' } })}
+                >
+                  Reject
+                </Button>
+                <Button 
+                  variant="default" 
+                  onClick={() => dispatch({ type: 'CONFIRM_ACTION', payload: { id: transfer.id, action: 'approve' } })}
+                >
+                  Approve
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   // --- Render Logic ---
   return (
@@ -754,177 +912,7 @@ const Transfers: React.FC<TransfersProps> = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Transfer Details Dialog - Enhanced */}
-      <Dialog open={!!showTransferDetails} onOpenChange={(open) => !open && dispatch({ type: 'SHOW_DETAILS', payload: null })}>
-        <DialogContent className="sm:max-w-lg bg-card rounded-none">
-          <DialogHeader>
-            <DialogTitle>Transfer Details</DialogTitle>
-            <DialogDescription>
-              Detailed information for Transfer ID: {showTransferDetails?.id}
-            </DialogDescription>
-          </DialogHeader>
-          {showTransferDetails && (
-            <ScrollArea className="max-h-[60vh] pr-4">
-              <div className="mt-4 space-y-6">
-                {/* Basic Info */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-semibold leading-tight">{showTransferDetails.name}</h3>
-                      <p className="text-sm text-muted-foreground font-mono tracking-wider">SN: {showTransferDetails.serialNumber}</p>
-                    </div>
-                    <StatusBadge status={showTransferDetails.status} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">From</p>
-                      <p className="font-medium flex items-center">
-                        {showTransferDetails.from}
-                        {showTransferDetails.from === currentUser && <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0 h-4 rounded-sm border-current">You</Badge>}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">To</p>
-                      <p className="font-medium flex items-center">
-                        {showTransferDetails.to}
-                        {showTransferDetails.to === currentUser && <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0 h-4 rounded-sm border-current">You</Badge>}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Request Date</p>
-                      <p className="font-medium">{format(parseISO(showTransferDetails.date), 'ddMMMyyyy').toUpperCase()}, {format(parseISO(showTransferDetails.date), 'HH:mm')}</p>
-                    </div>
-                    {showTransferDetails.status === 'approved' && showTransferDetails.approvedDate && (
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider">Approved Date</p>
-                        <p className="font-medium">{format(parseISO(showTransferDetails.approvedDate), 'ddMMMyyyy').toUpperCase()}, {format(parseISO(showTransferDetails.approvedDate), 'HH:mm')}</p>
-                      </div>
-                    )}
-                    {showTransferDetails.status === 'rejected' && showTransferDetails.rejectedDate && (
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider">Rejected Date</p>
-                        <p className="font-medium">{format(parseISO(showTransferDetails.rejectedDate), 'ddMMMyyyy').toUpperCase()}, {format(parseISO(showTransferDetails.rejectedDate), 'HH:mm')}</p>
-                      </div>
-                    )}
-                    {showTransferDetails.status === 'rejected' && showTransferDetails.rejectionReason && (
-                       <div className="col-span-2">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider">Rejection Reason</p>
-                        <p className="font-medium text-destructive">{showTransferDetails.rejectionReason}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <Separator className="bg-border" />
-
-                {/* Timeline - Enhanced */}
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Transfer Timeline</h4>
-                  <div className="relative pl-6 space-y-4 border-l border-border ml-1.5">
-                    {/* Requested */}
-                    <div className="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-card"></div>
-                    <div>
-                      <p className="text-sm font-medium">Transfer Requested</p>
-                      <p className="text-xs text-muted-foreground">By {showTransferDetails.from} on {format(parseISO(showTransferDetails.date), 'ddMMMyyyy').toUpperCase()}, {format(parseISO(showTransferDetails.date), 'HH:mm')}</p>
-                    </div>
-
-                    {/* Approved/Rejected */}
-                    {(showTransferDetails.status === 'approved' || showTransferDetails.status === 'rejected') && (
-                      <>
-                        <div className={`absolute -left-[7px] top-[calc(50%)] w-3 h-3 rounded-full border-2 border-card ${showTransferDetails.status === 'approved' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                        <div>
-                          <p className="text-sm font-medium">Transfer {showTransferDetails.status.charAt(0).toUpperCase() + showTransferDetails.status.slice(1)}</p>
-                          <p className="text-xs text-muted-foreground">
-                            By {showTransferDetails.to === currentUser ? 'You' : showTransferDetails.to} on
-                            {' '}
-                            {showTransferDetails.approvedDate && `${format(parseISO(showTransferDetails.approvedDate), 'ddMMMyyyy').toUpperCase()}, ${format(parseISO(showTransferDetails.approvedDate), 'HH:mm')}`}
-                            {showTransferDetails.rejectedDate && `${format(parseISO(showTransferDetails.rejectedDate), 'ddMMMyyyy').toUpperCase()}, ${format(parseISO(showTransferDetails.rejectedDate), 'HH:mm')}`}
-                          </p>
-                          {showTransferDetails.rejectionReason && <p className="text-xs text-destructive mt-1">Reason: {showTransferDetails.rejectionReason}</p>}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <Separator className="bg-border" />
-
-                {/* Item Actions */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium">Item Actions</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {/* Simulate Link to Property Book */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 rounded-none"
-                      onClick={() => toast({ title: "Navigate (Demo)", description: `Opening Property Book for SN: ${showTransferDetails.serialNumber}` })}
-                    >
-                      <BookOpen className="h-3.5 w-3.5 mr-1.5" /> View in Property Book
-                    </Button>
-
-                    {/* Export Action */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 rounded-none"
-                      onClick={() => handleExportTransfer(showTransferDetails.id)}
-                    >
-                      <FileText className="h-3.5 w-3.5 mr-1.5" /> Export PDF
-                    </Button>
-                  </div>
-                </div>
-
-                 {/* QR Code (Optional) */}
-                 {/*
-                 <Separator className="bg-border" />
-                 <div className="space-y-2">
-                    <h4 className="text-sm font-medium">Item QR Code</h4>
-                    <div className="flex justify-center p-4 bg-white rounded-lg w-fit mx-auto">
-                      <QRCodeGenerator
-                        itemName={showTransferDetails.name}
-                        serialNumber={showTransferDetails.serialNumber}
-                      />
-                    </div>
-                  </div>
-                  */}
-
-              </div>
-            </ScrollArea>
-          )}
-          <DialogFooter className="mt-6 flex justify-between sm:justify-between">
-             <Button variant="outline" className="rounded-none" onClick={() => dispatch({ type: 'SHOW_DETAILS', payload: null })}>
-              Close
-            </Button>
-
-            {/* Contextual Actions (Approve/Reject in Details) */}
-            {showTransferDetails?.status === "pending" && showTransferDetails.to === currentUser && (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 px-3 rounded-none border-destructive text-destructive hover:bg-destructive/10"
-                  onClick={() => dispatch({ type: 'CONFIRM_ACTION', payload: { id: showTransferDetails.id, action: 'reject' } })}
-                  disabled={loadingStates[showTransferDetails.id]}
-                >
-                  {loadingStates[showTransferDetails.id] ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4 mr-2" />}
-                  Decline
-                </Button>
-                <Button
-                  variant="default" // Use default (likely blue based on theme) or a specific green variant if defined
-                  size="sm"
-                  className="h-9 px-3 rounded-none bg-green-600 hover:bg-green-700 text-white" // Explicit green for accept
-                  onClick={() => dispatch({ type: 'CONFIRM_ACTION', payload: { id: showTransferDetails.id, action: 'approve' } })}
-                  disabled={loadingStates[showTransferDetails.id]}
-                >
-                  {loadingStates[showTransferDetails.id] ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                  Accept
-                </Button>
-              </div>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {renderTransferDetails()}
 
       {/* Confirmation Dialog */}
       <AlertDialog open={transferToConfirm ? true : undefined} onOpenChange={(open) => !open && dispatch({ type: 'CONFIRM_ACTION', payload: null })}>

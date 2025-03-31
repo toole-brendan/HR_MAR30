@@ -10,6 +10,38 @@ import type { WorkboxLifecycleEvent, WorkboxLifecycleWaitingEvent } from 'workbo
 // Import seedDatabase function to initialize data
 import { seedDatabase } from './lib/seedDB';
 
+// Fix WebSocket connection
+// This injects the proper port into window.__vite_ws_port
+(function injectWebSocketPort() {
+  // Get the current port from the URL
+  const currentPort = window.location.port || '5001';
+  // Create a global variable that Vite's client will use
+  // @ts-ignore
+  window.__vite_ws_port = currentPort;
+  console.log(`WebSocket port set to: ${currentPort}`);
+
+  // Monkey patch WebSocket to ensure it uses the correct port
+  const originalWebSocket = window.WebSocket;
+  // @ts-ignore
+  window.WebSocket = function(url, protocols) {
+    if (url.includes('localhost:undefined')) {
+      url = url.replace('localhost:undefined', `localhost:${currentPort}`);
+      console.log(`Fixed WebSocket URL: ${url}`);
+    }
+    return new originalWebSocket(url, protocols);
+  };
+  // Copy properties from the original WebSocket
+  for (const prop in originalWebSocket) {
+    // @ts-ignore
+    if (originalWebSocket.hasOwnProperty(prop)) {
+      // @ts-ignore
+      window.WebSocket[prop] = originalWebSocket[prop];
+    }
+  }
+  // @ts-ignore
+  window.WebSocket.prototype = originalWebSocket.prototype;
+})();
+
 // Seed the database with initial data
 seedDatabase().then(() => {
   console.log('Database seeding completed successfully');

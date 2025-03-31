@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Switch, Route, useLocation, Router as WouterRouter } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -21,7 +21,6 @@ import QRManagement from "./pages/QRManagement";
 import Reports from "./pages/Reports";
 import Login from "./pages/Login";
 import { queryClient } from "./lib/queryClient";
-import { useState, useEffect, useMemo } from "react";
 import { BASE_PATH } from "./lib/queryClient";
 import { saveInventoryItemsToDB, getInventoryItemsFromDB } from "./lib/idb";
 import { inventory as mockInventory } from "./lib/mockData";
@@ -37,6 +36,11 @@ interface ReportPageProps {
 
 interface QRPageProps {
   code?: string;
+}
+
+// Add TransfersProps to fix the TypeScript error
+interface TransfersProps {
+  id?: string;
 }
 
 // Make all component props have any type to fix TypeScript errors with wouter
@@ -89,7 +93,7 @@ function Router() {
   );
 }
 
-function App() {
+const App: React.FC = () => {
   // Handle initial redirection if needed
   useEffect(() => {
     const path = window.location.pathname;

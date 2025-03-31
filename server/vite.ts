@@ -25,13 +25,20 @@ export function log(message: string, source = "express") {
 export async function setupVite(app: Express, server: Server) {
   // Get the actual port from the server
   const address = server.address();
-  let port = typeof address === 'object' && address ? address.port : undefined;
+  let port = typeof address === 'object' && address ? address.port : 5001;
+  
+  // Make port available in the client
+  app.get('/defense/api/hmr-port', (req, res) => {
+    res.json({ port });
+  });
   
   const serverOptions = {
     middlewareMode: true,
     hmr: { 
       server,
-      clientPort: port, // Use the actual server port for WebSocket connections
+      port: port,
+      host: 'localhost',
+      clientPort: port,
       path: '/defense/',
     },
   };

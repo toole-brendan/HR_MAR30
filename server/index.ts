@@ -124,7 +124,13 @@ function findAvailablePort(startPort: number, maxAttempts: number = 10): Promise
       
       // Store the port in a global that client code can access
       // @ts-ignore - Add SERVER_PORT to the global window object
-      if (typeof global !== 'undefined') global.SERVER_PORT = port;
+      if (typeof global !== 'undefined') {
+        global.SERVER_PORT = port;
+        // Add a simple API endpoint to get the port
+        app.get('/api/port', (req, res) => {
+          res.json({ port });
+        });
+      }
     });
   } catch (error) {
     log(`Failed to start server: ${error}`);
