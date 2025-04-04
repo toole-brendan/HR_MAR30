@@ -113,7 +113,6 @@ const Sidebar = ({
   const navItems: NavItem[] = [
     { path: "/", icon: <Home className="sidebar-item-icon" />, label: "Dashboard" },
     { path: "/property-book", icon: <BookOpen className="sidebar-item-icon" />, label: "Property Book" },
-    { path: "/inventory", icon: <Package className="sidebar-item-icon" />, label: "Inventory" },
     { path: "/sensitive-items", icon: <Shield className="sidebar-item-icon" />, label: "Sensitive Items" },
     { 
       path: "/transfers", 

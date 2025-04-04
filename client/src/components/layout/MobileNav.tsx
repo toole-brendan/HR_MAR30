@@ -36,13 +36,6 @@ const MobileNav: React.FC<MobileNavProps> = ({ openQRScanner }) => {
         </div>
       </Link>
       
-      <Link href="/inventory">
-        <div className={`flex flex-col items-center justify-center ${isActive('/inventory') ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500 dark:text-gray-400'}`}>
-          <Package className="h-5 w-5" />
-          <span className="text-xs uppercase tracking-wider font-light mt-1">Inventory</span>
-        </div>
-      </Link>
-      
       <div 
         className={`flex flex-col items-center justify-center cursor-pointer 
                    p-2 bg-purple-600 dark:bg-purple-600 rounded-full -mt-6 border-4 

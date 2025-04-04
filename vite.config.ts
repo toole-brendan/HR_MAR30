@@ -33,11 +33,12 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
+    target: 'esnext',
   },
   server: {
     fs: {
       strict: false,
-      allow: ['..'],
+      allow: ['.', '..', '../..', '/Users/brendantoole/HR_30MAR', '/Users/brendantoole/HR_30MAR/frontend_defense'],
     },
     cors: true,
     port: 5001,
@@ -48,6 +49,24 @@ export default defineConfig({
     },
     headers: {
       'Access-Control-Allow-Origin': '*',
+    },
+    watch: {
+      usePolling: true,
+    },
+    proxy: {
+      // Proxy API requests to backend
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false
+      },
+      // Proxy WebSocket connections
+      '/defense/defense': {
+        target: 'http://localhost:5000',
+        ws: true,
+        changeOrigin: true,
+        secure: false
+      }
     }
   },
 });

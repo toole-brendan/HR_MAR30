@@ -66,6 +66,17 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 // --- Service Worker Registration ---
 if ('serviceWorker' in navigator) {
+  // First, unregister any existing service workers to clean up cache issues
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    registrations.forEach(registration => {
+      console.log('Unregistering existing service worker...');
+      registration.unregister();
+    });
+    console.log('All service workers unregistered. Refresh the page to continue without service worker cache issues.');
+  });
+
+  // Comment out registration for now until we solve the caching issues
+  /*
   // Get the current origin and path for correct registration
   const basePath = '/defense/';
   
@@ -113,6 +124,7 @@ if ('serviceWorker' in navigator) {
     .catch((error: Error) => {
       console.error('Service Worker registration failed:', error);
     });
+  */
 
 } else {
   console.log('Service Worker API not supported in this browser.');
