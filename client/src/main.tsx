@@ -66,20 +66,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 // --- Service Worker Registration ---
 if ('serviceWorker' in navigator) {
-  // First, unregister any existing service workers to clean up cache issues
-  navigator.serviceWorker.getRegistrations().then(registrations => {
-    registrations.forEach(registration => {
-      console.log('Unregistering existing service worker...');
-      registration.unregister();
-    });
-    console.log('All service workers unregistered. Refresh the page to continue without service worker cache issues.');
-  });
-
-  // Comment out registration for now until we solve the caching issues
-  /*
   // Get the current origin and path for correct registration
   const basePath = '/defense/';
-  
+
   // Use Workbox window library for registration with correct base path
   const wb = new Workbox(`${basePath}service-worker.js`, { scope: basePath });
 
@@ -93,22 +82,22 @@ if ('serviceWorker' in navigator) {
     // Example: if (confirm('New app version available. Reload to update?')) {
     //   wb.messageSkipWaiting();
     // }
-    
+
     // For smoother updates during development or testing, skip waiting automatically
     // Remove this for production if you want manual user refresh prompt
     console.log('Service Worker: Automatically skipping waiting.');
-    wb.messageSkipWaiting(); 
+    wb.messageSkipWaiting();
   });
 
   // Use the specific type for the 'activated' listener
-  wb.addEventListener('activated', (event: WorkboxLifecycleEvent) => { 
+  wb.addEventListener('activated', (event: WorkboxLifecycleEvent) => {
      // The 'isUpdate' property should be available on the event object for 'activated'
      if (!event.isUpdate) {
       console.log('Service worker activated for the first time!');
     } else {
       console.log('Service worker updated and activated.');
       // Optional: Reload the page to ensure the user gets the latest assets
-      // window.location.reload(); 
+      // window.location.reload();
     }
   });
 
@@ -124,7 +113,6 @@ if ('serviceWorker' in navigator) {
     .catch((error: Error) => {
       console.error('Service Worker registration failed:', error);
     });
-  */
 
 } else {
   console.log('Service Worker API not supported in this browser.');

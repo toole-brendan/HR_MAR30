@@ -1,12 +1,13 @@
 import React from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useApp } from '@/contexts/AppContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { Bell, Menu, QrCode, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import { Link } from "wouter";
 
 interface TopNavBarProps {
   toggleMobileMenu: () => void;

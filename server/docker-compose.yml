@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  db:
+    image: postgres:14-alpine
+    container_name: handreceipt_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: handreceipt
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Go backend API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: handreceipt_api
+    depends_on:
+      - db
+    environment:
+      - HANDRECEIPT_DATABASE_HOST=db
+      - HANDRECEIPT_DATABASE_PORT=5432
+      - HANDRECEIPT_DATABASE_USER=postgres
+      - HANDRECEIPT_DATABASE_PASSWORD=postgres
+      - HANDRECEIPT_DATABASE_NAME=handreceipt
+      - HANDRECEIPT_SERVER_PORT=5000
+      - HANDRECEIPT_AUTH_JWT_SECRET=your-secret-key-for-development-only
+      # AWS credentials and region for QLDB
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+volumes:
+  postgres_data: 

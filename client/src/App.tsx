@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Switch, Route, useLocation, Router as WouterRouter } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/context/AuthContext";
-import { AppProvider } from "@/context/AppContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { AppProvider } from "@/contexts/AppContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotFound from "@/pages/not-found";
 import AppShell from "./components/layout/AppShell";
 import Dashboard from "./pages/Dashboard";
-import Scan from "./pages/Scan";
 import Transfers from "./pages/Transfers";
-import Inventory from "./pages/Inventory";
 import AuditLog from "./pages/AuditLog";
 import Settings from "./pages/Settings";
 import PropertyBook from "./pages/PropertyBook";
@@ -20,6 +18,7 @@ import Maintenance from "./pages/Maintenance";
 import QRManagement from "./pages/QRManagement";
 import Reports from "./pages/Reports";
 import Login from "./pages/Login";
+import UserManagement from "./pages/UserManagement";
 import { queryClient } from "./lib/queryClient";
 import { BASE_PATH } from "./lib/queryClient";
 import { saveInventoryItemsToDB, getInventoryItemsFromDB } from "./lib/idb";
@@ -54,7 +53,6 @@ function Router() {
         <Route path={`${basePath}`} component={() => <Dashboard />} />
         <Route path={`${basePath}/`} component={() => <Dashboard />} />
         <Route path={`${basePath}/dashboard`} component={() => <Dashboard />} />
-        <Route path={`${basePath}/scan`} component={() => <Scan />} />
         <Route path={`${basePath}/transfers`} component={() => <Transfers />} />
         <Route path={`${basePath}/transfers/:id`}>
           {(params) => <Transfers id={params.id} />}
@@ -62,10 +60,6 @@ function Router() {
         <Route path={`${basePath}/property-book`} component={() => <PropertyBook />} />
         <Route path={`${basePath}/property-book/:id`}>
           {(params) => <PropertyBook id={params.id} />}
-        </Route>
-        <Route path={`${basePath}/inventory`} component={() => <Inventory />} />
-        <Route path={`${basePath}/inventory/:id`}>
-          {(params) => <Inventory id={params.id} />}
         </Route>
         <Route path={`${basePath}/sensitive-items`} component={() => <SensitiveItems />} />
         <Route path={`${basePath}/sensitive-items/:id`}>
@@ -86,6 +80,7 @@ function Router() {
         <Route path={`${basePath}/audit-log`} component={() => <AuditLog />} />
         <Route path={`${basePath}/settings`} component={() => <Settings />} />
         <Route path={`${basePath}/profile`} component={() => <Profile />} />
+        <Route path={`${basePath}/user-management`} component={() => <UserManagement />} />
         <Route path={`${basePath}/login`} component={() => <Login />} />
         <Route path={`${basePath}/*`} component={() => <NotFound />} />
       </Switch>
@@ -121,28 +116,6 @@ const App: React.FC = () => {
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, []);
-
-  // --- Load Initial Data into IndexedDB ---
-  useEffect(() => {
-    const initializeInventoryDB = async () => {
-      try {
-        console.log("Checking IndexedDB for inventory data...");
-        const itemsInDB = await getInventoryItemsFromDB();
-        if (itemsInDB.length === 0) {
-          console.log("IndexedDB is empty, populating with mock inventory data...");
-          await saveInventoryItemsToDB(mockInventory);
-          console.log("Mock inventory data saved to IndexedDB.");
-        } else {
-          console.log(`${itemsInDB.length} items already found in IndexedDB.`);
-        }
-      } catch (error) {
-        console.error("Error initializing inventory in IndexedDB:", error);
-      }
-    };
-
-    initializeInventoryDB();
-  }, []); // Empty dependency array ensures this runs only once on mount
-  // --- End Load Initial Data ---
 
   return (
     <QueryClientProvider client={queryClient}>
