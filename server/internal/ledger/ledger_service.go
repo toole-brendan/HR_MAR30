@@ -8,7 +8,7 @@ import (
 // This allows for different implementations (e.g., QLDB, Azure SQL Ledger, Mock).
 type LedgerService interface {
 	// LogItemCreation logs an item creation event.
-	LogItemCreation(item domain.InventoryItem, userID uint) error
+	LogItemCreation(property domain.Property, userID uint) error
 
 	// LogTransferEvent logs a transfer event (creation or update).
 	LogTransferEvent(transfer domain.Transfer, serialNumber string) error

@@ -8,19 +8,15 @@ HandReceipt is a digital military equipment tracking and supply chain management
 
 - **Equipment Inventory Management:** Tracks military equipment with details like serial numbers, status, assignment, categorization (weapons, comms, etc.), and maintains chain of custody records.
 
-- **QR Code-Based Tracking:** Generates unique QR codes for items, enabling quick scanning for verification or transfers, including managing damaged codes.
-
 - **Sensitive Items Verification:** Provides special tracking and configurable verification schedules (daily, weekly, monthly) for high-security items, logging all checks.
 
 - **Transfer Management:** Implements a digital transfer request workflow with approvals, tracking incoming/outgoing transfers, and maintaining a full history.
 
-- **Maintenance Tracking:** Includes features for scheduling equipment maintenance and recording service history.
+- **Maintenance Tracking:** Includes features for scheduling property maintenance and recording service history.
 
-- **Reporting and Analytics:** Offers equipment status dashboards and compliance reporting capabilities.
+- **Reporting and Analytics:** Offers property status dashboards and compliance reporting capabilities.
 
-- **Security Features:** Incorporates role-based access control, PIN verification for sensitive items, potential blockchain integration, and audit logging.
 
-- **Technology:** Built as a web application using React with TypeScript, featuring a component-based architecture, context providers for state management, and a responsive design for desktop/mobile.
 
 
 ## Possible Future Directions and Feature Enhancements

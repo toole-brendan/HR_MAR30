@@ -58,155 +58,272 @@ func (s *AzureSqlLedgerService) Initialize() error {
 	return nil
 }
 
-// LogItemCreation logs an item creation event to the Azure SQL Ledger.
-func (s *AzureSqlLedgerService) LogItemCreation(item domain.InventoryItem, userID uint) error {
+// LogItemCreation logs an equipment creation/registration event to the Azure SQL Ledger.
+// This implementation assumes the event type is 'Created' based on the function name.
+func (s *AzureSqlLedgerService) LogItemCreation(property domain.Property, userID uint) error {
 	ctx := context.Background() // Or use a more specific context if available
-	log.Printf("AzureSqlLedgerService: Logging item creation for SN: %s", item.SerialNumber)
-	// TODO: Replace YourItemCreationLedgerTable with the actual table name
-	// Ensure the table has columns like: ItemID, SerialNumber, Name, Category, EventUserID, EventTimestamp
+	log.Printf("AzureSqlLedgerService: Logging Equipment Event - ItemID: %d, UserID: %d, Type: Created", property.ID, userID)
+
+	// EventType is hardcoded to 'Created' for this function
+	const eventType = "Created"
+	// Notes are not provided by the interface, setting to NULL
+	var notes sql.NullString
+
 	_, err := s.db.ExecContext(ctx,
-		`INSERT INTO YourItemCreationLedgerTable (ItemID, SerialNumber, Name, Category, EventUserID, EventTimestamp)
-		 VALUES (@p1, @p2, @p3, @p4, @p5, @p6)`,
-		item.ID, // Assuming item has an ID from the main DB
-		item.SerialNumber,
-		item.Name,
-		item.Category, // Handle nil Category if necessary
-		userID,
-		time.Now().UTC()) // Use UTC time
+		`INSERT INTO HandReceipt.EquipmentEvents (ItemID, PerformingUserID, EventType, Notes, EventTimestamp)
+		 VALUES (@p1, @p2, @p3, @p4, SYSUTCDATETIME())`, // Use SYSUTCDATETIME() for DB-generated timestamp
+		property.ID, // Get ItemID from the domain.Property object
+		userID,      // UserID passed as argument
+		eventType,
+		notes, // Pass NULL for notes
+	)
 
 	if err != nil {
-		log.Printf("Error logging item creation to Azure SQL Ledger: %v", err)
-		return fmt.Errorf("failed to log item creation event: %w", err)
+		log.Printf("Error logging Equipment Event to Azure SQL Ledger: %v", err)
+		return fmt.Errorf("failed to log Equipment Event: %w", err)
 	}
-	log.Printf("Successfully logged item creation for SN: %s", item.SerialNumber)
+	log.Printf("Successfully logged Equipment Event - ItemID: %d, Type: %s", property.ID, eventType)
 	return nil
 }
 
-// LogTransferEvent logs a transfer event to the Azure SQL Ledger.
+// LogTransferEvent logs a specific stage of an equipment transfer to the Azure SQL Ledger.
+// It uses the transfer.Status as the EventType for the ledger entry.
 func (s *AzureSqlLedgerService) LogTransferEvent(transfer domain.Transfer, serialNumber string) error {
 	ctx := context.Background()
-	log.Printf("AzureSqlLedgerService: Logging transfer event for SN: %s", serialNumber)
-	// TODO: Replace YourTransferLedgerTable with the actual table name
-	// Ensure the table has columns like: TransferID, ItemID, SerialNumber, FromUserID, ToUserID, Status, EventTimestamp
+	eventType := transfer.Status // Map domain.Transfer.Status to EventType
+	// Use transfer.ID as the grouping identifier for the request. Convert uint to string.
+	transferRequestID := fmt.Sprintf("%d", transfer.ID)
+
+	log.Printf("AzureSqlLedgerService: Logging Transfer Event - RequestID: %s, ItemID: %d, SN: %s, Type: %s", transferRequestID, transfer.PropertyID, serialNumber, eventType)
+
+	// Validate EventType (derived from transfer.Status) against allowed values in the schema
+	allowedTypes := map[string]bool{"Requested": true, "Approved": true, "Rejected": true, "Completed": true, "Cancelled": true}
+	if !allowedTypes[eventType] {
+		return fmt.Errorf("invalid EventType (from transfer.Status) '%s' for TransferEvents", eventType)
+	}
+
+	// Assumptions:
+	// - InitiatingUserID is the FromUserID for this event log.
+	// - ApprovingUserID is not provided by the interface, setting to NULL.
+	initiatingUserID := transfer.FromUserID
+	var approvingUserID sql.NullInt64 // Set to NULL
+	// Handle optional notes from domain.Transfer
+	notesDB := sql.NullString{}
+	if transfer.Notes != nil {
+		notesDB.String = *transfer.Notes
+		notesDB.Valid = true
+	}
+
 	_, err := s.db.ExecContext(ctx,
-		`INSERT INTO YourTransferLedgerTable (TransferID, ItemID, SerialNumber, FromUserID, ToUserID, Status, EventTimestamp)
-		 VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7)`,
-		transfer.ID,
-		transfer.ItemID,
-		serialNumber,
+		`INSERT INTO HandReceipt.TransferEvents (TransferRequestID, ItemID, FromUserID, ToUserID, InitiatingUserID, ApprovingUserID, EventType, Notes, EventTimestamp)
+		 VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, SYSUTCDATETIME())`,
+		transferRequestID,
+		transfer.PropertyID,
 		transfer.FromUserID,
 		transfer.ToUserID,
-		transfer.Status,
-		time.Now().UTC()) // Use UTC time
+		initiatingUserID, // Assumed initiator
+		approvingUserID,  // Assumed NULL approver
+		eventType,
+		notesDB, // Use sql.NullString for nullable notes
+	)
 
 	if err != nil {
-		log.Printf("Error logging transfer event to Azure SQL Ledger: %v", err)
-		return fmt.Errorf("failed to log transfer event: %w", err)
+		log.Printf("Error logging Transfer Event to Azure SQL Ledger: %v", err)
+		return fmt.Errorf("failed to log Transfer Event: %w", err)
 	}
-	log.Printf("Successfully logged transfer event for SN: %s", serialNumber)
+	log.Printf("Successfully logged Transfer Event - RequestID: %s, ItemID: %d, Type: %s", transferRequestID, transfer.PropertyID, eventType)
 	return nil
 }
 
 // LogStatusChange logs a status change event for an item to the Azure SQL Ledger.
 func (s *AzureSqlLedgerService) LogStatusChange(itemID uint, serialNumber string, oldStatus string, newStatus string, userID uint) error {
-	ctx := context.Background()
-	log.Printf("AzureSqlLedgerService: Logging status change for SN: %s from %s to %s", serialNumber, oldStatus, newStatus)
-	// TODO: Replace YourStatusChangeLedgerTable with the actual table name
-	// Ensure the table has columns like: ItemID, SerialNumber, OldStatus, NewStatus, EventUserID, EventTimestamp
+	ctx := context.Background() // Or use a more specific context if available
+	// Log using provided parameters, including serialNumber even if not directly inserted
+	log.Printf("AzureSqlLedgerService: Logging Status Change - ItemID: %d, SN: %s, UserID: %d, FromStatus: %s, ToStatus: %s", itemID, serialNumber, userID, oldStatus, newStatus)
+
+	// Validate NewStatus against allowed values in the schema
+	allowedStatuses := map[string]bool{"Operational": true, "Non-Operational": true, "Damaged": true, "Lost": true, "Found": true, "In Repair": true}
+	if !allowedStatuses[newStatus] {
+		return fmt.Errorf("invalid NewStatus '%s' for StatusChangeEvents", newStatus)
+	}
+
+	// Prepare parameters for DB insertion
+	previousStatusDB := sql.NullString{String: oldStatus, Valid: oldStatus != ""}
+	// Reason is not provided by the interface, set to NULL
+	var reasonDB sql.NullString
+
 	_, err := s.db.ExecContext(ctx,
-		`INSERT INTO YourStatusChangeLedgerTable (ItemID, SerialNumber, OldStatus, NewStatus, EventUserID, EventTimestamp)
-		 VALUES (@p1, @p2, @p3, @p4, @p5, @p6)`,
+		`INSERT INTO HandReceipt.StatusChangeEvents (ItemID, ReportingUserID, PreviousStatus, NewStatus, Reason, ChangeTimestamp)
+		 VALUES (@p1, @p2, @p3, @p4, @p5, SYSUTCDATETIME())`,
 		itemID,
-		serialNumber,
-		oldStatus,
+		userID,           // Map userID from interface to ReportingUserID
+		previousStatusDB, // Use sql.NullString for nullable PreviousStatus
 		newStatus,
-		userID,
-		time.Now().UTC()) // Use UTC time
+		reasonDB, // Pass NULL for Reason
+	)
 
 	if err != nil {
-		log.Printf("Error logging status change to Azure SQL Ledger: %v", err)
-		return fmt.Errorf("failed to log status change event: %w", err)
+		log.Printf("Error logging Status Change event to Azure SQL Ledger: %v", err)
+		return fmt.Errorf("failed to log Status Change event: %w", err)
 	}
-	log.Printf("Successfully logged status change for SN: %s", serialNumber)
+	log.Printf("Successfully logged Status Change - ItemID: %d, NewStatus: %s", itemID, newStatus)
 	return nil
 }
 
 // LogVerificationEvent logs a verification event for an item to the Azure SQL Ledger.
+// Maps the interface's verificationType to the DB's VerificationStatus.
 func (s *AzureSqlLedgerService) LogVerificationEvent(itemID uint, serialNumber string, userID uint, verificationType string) error {
-	ctx := context.Background()
-	log.Printf("AzureSqlLedgerService: Logging verification event for SN: %s (Type: %s)", serialNumber, verificationType)
-	// TODO: Replace YourVerificationLedgerTable with the actual table name
-	// Ensure the table has columns like: ItemID, SerialNumber, VerificationType, VerifiedByUserID, EventTimestamp
+	ctx := context.Background()            // Or use a more specific context if available
+	verificationStatus := verificationType // Map interface param to DB column meaning
+
+	log.Printf("AzureSqlLedgerService: Logging Verification Event - ItemID: %d, SN: %s, UserID: %d, Status(Type): %s", itemID, serialNumber, userID, verificationStatus)
+
+	// Validate VerificationStatus (from verificationType) against allowed values in the schema
+	allowedStatuses := map[string]bool{"Verified Present": true, "Missing": true, "Requires Attention": true, "Status Unchanged": true}
+	if !allowedStatuses[verificationStatus] {
+		// Allow any string if validation needs to be less strict? Or return error?
+		// Returning error for now to enforce schema constraints.
+		return fmt.Errorf("invalid VerificationStatus (from verificationType) '%s' for VerificationEvents", verificationStatus)
+	}
+
+	// Notes are not provided by the interface, setting to NULL
+	var notesDB sql.NullString
+
 	_, err := s.db.ExecContext(ctx,
-		`INSERT INTO YourVerificationLedgerTable (ItemID, SerialNumber, VerificationType, VerifiedByUserID, EventTimestamp)
-		 VALUES (@p1, @p2, @p3, @p4, @p5)`,
+		`INSERT INTO HandReceipt.VerificationEvents (ItemID, VerifyingUserID, VerificationStatus, Notes, VerificationTimestamp)
+		 VALUES (@p1, @p2, @p3, @p4, SYSUTCDATETIME())`,
 		itemID,
-		serialNumber,
-		verificationType,
-		userID,
-		time.Now().UTC()) // Use UTC time
+		userID, // Map userID from interface to VerifyingUserID
+		verificationStatus,
+		notesDB, // Pass NULL for Notes
+	)
 
 	if err != nil {
-		log.Printf("Error logging verification event to Azure SQL Ledger: %v", err)
-		return fmt.Errorf("failed to log verification event: %w", err)
+		log.Printf("Error logging Verification event to Azure SQL Ledger: %v", err)
+		return fmt.Errorf("failed to log Verification event: %w", err)
 	}
-	log.Printf("Successfully logged verification event for SN: %s", serialNumber)
+	log.Printf("Successfully logged Verification Event - ItemID: %d, Status: %s", itemID, verificationStatus)
+	return nil
+}
+
+// LogMaintenanceEvent logs a maintenance event for an item to the Azure SQL Ledger.
+func (s *AzureSqlLedgerService) LogMaintenanceEvent(maintenanceRecordID string, itemID uint, initiatingUserID uint, performingUserID sql.NullInt64, eventType string, maintenanceType sql.NullString, description string) error {
+	ctx := context.Background()
+	log.Printf("AzureSqlLedgerService: Logging Maintenance Event - RecordID: %s, ItemID: %d, Type: %s", maintenanceRecordID, itemID, eventType)
+
+	// Validate EventType against allowed values
+	allowedTypes := map[string]bool{"Scheduled": true, "Started": true, "Completed": true, "Cancelled": true, "Reported Defect": true}
+	if !allowedTypes[eventType] {
+		return fmt.Errorf("invalid EventType '%s' for MaintenanceEvents", eventType)
+	}
+
+	// Ensure performingUserID is null if not applicable
+	if eventType != "Started" && eventType != "Completed" {
+		performingUserID = sql.NullInt64{}
+	}
+
+	_, err := s.db.ExecContext(ctx,
+		`INSERT INTO HandReceipt.MaintenanceEvents (MaintenanceRecordID, ItemID, InitiatingUserID, PerformingUserID, EventType, MaintenanceType, Description, EventTimestamp)
+		 VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, SYSUTCDATETIME())`,
+		maintenanceRecordID,
+		itemID,
+		initiatingUserID,
+		performingUserID,
+		eventType,
+		maintenanceType, // sql.NullString for nullable NVARCHAR
+		sql.NullString{String: description, Valid: description != ""}, // Handle optional description
+	)
+
+	if err != nil {
+		log.Printf("Error logging Maintenance event to Azure SQL Ledger: %v", err)
+		return fmt.Errorf("failed to log Maintenance event: %w", err)
+	}
+	log.Printf("Successfully logged Maintenance Event - RecordID: %s, ItemID: %d, Type: %s", maintenanceRecordID, itemID, eventType)
 	return nil
 }
 
 // LogCorrectionEvent logs a correction event referencing a previous ledger event.
-// NOTE: How corrections are handled in Azure SQL Ledger might differ from QLDB.
-// You might use updatable ledger tables or insert correction records referencing previous transaction IDs.
+// NOTE: How corrections are handled in Azure SQL Ledger needs a defined strategy.
+// Common approaches include:
+//  1. Using updatable ledger tables (requires specific table creation options).
+//  2. Inserting a 'correction' record into a dedicated corrections table or the original table,
+//     referencing the transaction ID or EventID of the record being corrected.
+//
+// This function is a placeholder and needs implementation based on the chosen strategy.
 func (s *AzureSqlLedgerService) LogCorrectionEvent(originalEventID string, eventType string, reason string, userID uint) error {
-	ctx := context.Background()
-	log.Printf("AzureSqlLedgerService: Logging correction event for Original Event: %s (Type: %s)", originalEventID, eventType)
-	// TODO: Replace YourCorrectionLedgerTable with the actual table name and implement the chosen correction strategy.
-	// Ensure the table has columns like: OriginalEventID, EventType, Reason, CorrectedByUserID, CorrectionTimestamp
-	// If using updatable ledger tables, the logic will be different (UPDATE statement).
-	_, err := s.db.ExecContext(ctx,
-		`-- Placeholder INSERT statement for corrections
-		INSERT INTO YourCorrectionLedgerTable (OriginalEventID, EventType, Reason, CorrectedByUserID, CorrectionTimestamp)
-		 VALUES (@p1, @p2, @p3, @p4, @p5)`,
-		originalEventID,
-		eventType,
-		reason,
-		userID,
-		time.Now().UTC()) // Use UTC time
-
-	if err != nil {
-		log.Printf("Error logging correction event to Azure SQL Ledger: %v", err)
-		return fmt.Errorf("failed to log correction event: %w", err)
-	}
-	log.Printf("Successfully logged correction event for Original Event: %s", originalEventID)
-	return nil
+	// ctx := context.Background() // Remove unused ctx for now
+	log.Printf("AzureSqlLedgerService: Logging correction event for Original Event: %s (Type: %s) - NOT IMPLEMENTED", originalEventID, eventType)
+	// TODO: Implement correction logic based on the chosen strategy for Azure SQL Ledger.
+	// Example (Strategy 2: Separate Correction Table):
+	/*
+		_, err := s.db.ExecContext(ctx,
+			`INSERT INTO HandReceipt.CorrectionEvents (OriginalEventID, CorrectingEventType, Reason, CorrectingUserID, CorrectionTimestamp)
+			 VALUES (@p1, @p2, @p3, @p4, SYSUTCDATETIME())`,
+			originalEventID, // Assuming OriginalEventID is the EventID (GUID) from the original table
+			eventType,
+			reason,
+			userID,
+		)
+		if err != nil {
+			log.Printf("Error logging correction event to Azure SQL Ledger: %v", err)
+			return fmt.Errorf("failed to log correction event: %w", err)
+		}
+		log.Printf("Successfully logged correction event for Original Event: %s", originalEventID)
+	*/
+	return fmt.Errorf("correction logging not implemented") // Return error until implemented
 }
 
-// GetItemHistory retrieves the history of an item based on its serial number from Azure SQL Ledger tables.
+// GetItemHistory retrieves the history of an item from the Azure SQL Ledger tables based on its Serial Number.
+// NOTE: This requires querying the system-generated history views for each relevant ledger table.
+// It assumes SerialNumber is reliably logged or can be joined across tables if needed.
+// A potential challenge is that not all events might directly log the Serial Number.
+// Using ItemID might be more robust if SerialNumber isn't in every ledger table.
+// For now, we proceed assuming SerialNumber is the primary query key as per the original interface.
 func (s *AzureSqlLedgerService) GetItemHistory(serialNumber string) ([]map[string]interface{}, error) {
 	ctx := context.Background()
-	log.Printf("AzureSqlLedgerService: Getting history for SN: %s", serialNumber)
+	log.Printf("AzureSqlLedgerService: Getting history for SerialNumber: %s", serialNumber)
 	var history []map[string]interface{}
 
-	// TODO: Replace table names and implement actual history retrieval logic.
-	// This involves querying the system-generated history view for each ledger table
-	// (e.g., YourItemCreationLedgerTable_LedgerHistory).
-	query := `-- Placeholder query - combine results from history views of relevant ledger tables
+	// TODO: Refine this query significantly. It needs to:
+	// 1. Query the correct history views (e.g., HandReceipt.EquipmentEvents_LedgerHistory, HandReceipt.TransferEvents_LedgerHistory, etc.)
+	// 2. Select relevant columns from each history view.
+	// 3. Filter results based on SerialNumber. This might require JOINs if SerialNumber is not directly in all ledger tables.
+	// 4. UNION ALL the results from different history views.
+	// 5. Order the combined results appropriately (e.g., by ledger_commit_time or EventTimestamp).
+	// 6. Handle potential differences in columns between tables gracefully.
+	// 7. Consider creating a stored procedure in Azure SQL for this complex query.
+
+	// Example placeholder query structure (assuming SerialNumber exists in related tables or can be joined):
+	// NOTE: This is a simplified example and likely needs modification based on actual primary DB schema and how ItemID relates to SerialNumber.
+	query := `
+	-- Placeholder Query: Requires joining with primary DB tables to filter by SerialNumber if not present in all ledger tables
+	-- This example ASSUMES SerialNumber is accessible via ItemID JOIN, which might be inefficient.
+	-- A better approach depends heavily on the primary database schema.
+
+	-- Query EquipmentEvents History (Example: Assume JOIN needed)
 	SELECT
-		'Creation' as EventType, ledger_transaction_id, ledger_operation_type_desc, ItemID, SerialNumber, Name, Category, EventUserID, EventTimestamp
-	FROM YourItemCreationLedgerTable_LedgerHistory -- Replace with actual history view name
-	WHERE SerialNumber = @p1
+		'EquipmentEvent' as RecordType, le.EventID, le.ItemID, le.PerformingUserID, le.EventTimestamp, le.EventType, le.Notes,
+		le.ledger_transaction_id, le.ledger_sequence_number, le.ledger_operation_type_desc
+	FROM HandReceipt.EquipmentEvents_LedgerHistory le
+	-- JOIN YourPrimaryDB.Equipment eq ON le.ItemID = eq.ID -- Replace with actual JOIN
+	WHERE 1=2 -- eq.SerialNumber = @p1 -- Placeholder JOIN condition
 	UNION ALL
+	-- Query TransferEvents History (Example: Assume JOIN needed)
 	SELECT
-		'Transfer' as EventType, ledger_transaction_id, ledger_operation_type_desc, ItemID, SerialNumber, FromUserID, ToUserID, Status, EventTimestamp
-	FROM YourTransferLedgerTable_LedgerHistory -- Replace with actual history view name
-	WHERE SerialNumber = @p1
-	-- UNION ALL for StatusChange, Verification, Correction history views...
-	ORDER BY EventTimestamp ASC -- Or ledger_commit_time if preferred
+		'TransferEvent' as RecordType, lt.EventID, lt.ItemID, lt.FromUserID, lt.ToUserID, lt.InitiatingUserID, lt.ApprovingUserID, lt.EventTimestamp, lt.EventType, lt.Notes,
+		lt.ledger_transaction_id, lt.ledger_sequence_number, lt.ledger_operation_type_desc
+	FROM HandReceipt.TransferEvents_LedgerHistory lt
+	-- JOIN YourPrimaryDB.Equipment eq ON lt.ItemID = eq.ID -- Replace with actual JOIN
+	WHERE 1=2 -- eq.SerialNumber = @p1 -- Placeholder JOIN condition
+	-- ... Add UNION ALL clauses for Verification, Maintenance, StatusChange ...
+	-- ORDER BY appropriate timestamp
+	ORDER BY EventTimestamp ASC; -- Example ordering
 	`
+
 	rows, err := s.db.QueryContext(ctx, query, serialNumber)
 	if err != nil {
-		log.Printf("Error querying item history from Azure SQL Ledger: %v", err)
-		return nil, fmt.Errorf("failed to query item history: %w", err)
+		log.Printf("Error querying item history by SerialNumber from Azure SQL Ledger: %v", err)
+		return nil, fmt.Errorf("failed to query item history by SerialNumber: %w", err)
 	}
 	defer rows.Close()
 
@@ -217,7 +334,7 @@ func (s *AzureSqlLedgerService) GetItemHistory(serialNumber string) ([]map[strin
 	}
 
 	for rows.Next() {
-		// Create a slice of interface{}'s to represent the row's values.
+		// Create a slice of interface{}\'s to represent the row\'s values.
 		columns := make([]interface{}, len(cols))
 		columnPointers := make([]interface{}, len(cols))
 		for i := range columns {
@@ -227,23 +344,23 @@ func (s *AzureSqlLedgerService) GetItemHistory(serialNumber string) ([]map[strin
 		// Scan the result into the column pointers...
 		if err := rows.Scan(columnPointers...); err != nil {
 			log.Printf("Error scanning history row: %v", err)
+			// Consider continuing and logging error vs returning partial history
 			return nil, fmt.Errorf("failed to scan history row: %w", err)
 		}
 
-		// Create our map, and retrieve the value for each column from the pointers slice,
-		// storing it in the map with the name of the column as the key.
+		// Create map for the row
 		m := make(map[string]interface{})
 		for i, colName := range cols {
 			val := columnPointers[i].(*interface{})
-			// Handle potential NULL values from DB if necessary
+			// Assign value, handling potential NULLs from the DB explicitly if necessary
 			if *val == nil {
 				m[colName] = nil
 			} else {
-				// Attempt type assertion for common types or handle bytes specifically
+				// Convert []byte to string for simplicity, handle other types as needed
 				switch v := (*val).(type) {
 				case []byte:
-					// Decide how to represent byte slices (e.g., base64 string)
-					m[colName] = string(v) // Simple string conversion for example
+					m[colName] = string(v)
+				// Add cases for other types (e.g., time.Time) if specific formatting is needed
 				default:
 					m[colName] = *val
 				}
@@ -257,32 +374,34 @@ func (s *AzureSqlLedgerService) GetItemHistory(serialNumber string) ([]map[strin
 		return nil, fmt.Errorf("failed during history row iteration: %w", err)
 	}
 
-	log.Printf("Retrieved %d history events for SN: %s", len(history), serialNumber)
+	log.Printf("Retrieved %d history events for SerialNumber: %s", len(history), serialNumber)
 	return history, nil
 }
 
-// VerifyDocument checks the integrity using Azure SQL Ledger verification functions/procedures.
+// VerifyDocument checks the integrity of the database ledger using Azure SQL Ledger's built-in procedure.
+// NOTE: This implementation uses `sys.sp_verify_database_ledger` which verifies the *entire database*.
+// The interface parameters `documentID` and `tableName` are currently ignored.
+// True verification often involves comparing current database digests with previously stored, trusted digests.
 func (s *AzureSqlLedgerService) VerifyDocument(documentID string, tableName string) (bool, error) {
 	ctx := context.Background()
-	log.Printf("AzureSqlLedgerService: Verifying ledger document (DocumentID: %s, Table: %s) - Using sp_verify_database_ledger", documentID, tableName)
+	log.Printf("AzureSqlLedgerService: Verifying ledger integrity (Database-wide check). Called with documentID: '%s', tableName: '%s' (parameters ignored).", documentID, tableName)
 
-	// TODO: Refine verification logic. This example just runs the basic DB verification.
-	// Real verification often involves comparing a current digest to a trusted, previously stored digest.
+	// This procedure verifies the integrity of all ledger tables in the database.
 	_, err := s.db.ExecContext(ctx, "EXEC sys.sp_verify_database_ledger")
 	if err != nil {
-		// Check if the error indicates verification failure vs. execution error
-		log.Printf("Ledger verification stored procedure failed: %v", err)
-		// You might need to parse the specific SQL error to distinguish
-		// between failure to run and actual verification failure.
-		return false, fmt.Errorf("ledger verification failed: %w", err)
+		// The error message itself often indicates if verification passed but encountered issues,
+		// or if it failed due to tampering. Parsing the specific error might be needed for robust handling.
+		log.Printf("Ledger verification stored procedure failed or reported inconsistencies: %v", err)
+		// For now, assume any error means verification failed or could not complete.
+		return false, fmt.Errorf("ledger verification failed or could not be completed: %w", err)
 	}
 
-	// If the stored procedure executed without error, it means the ledger is consistent.
-	log.Printf("Ledger verification successful for the current state.")
+	// If the stored procedure executes without raising an error, the ledger structures are intact.
+	log.Println("Ledger verification procedure executed successfully, indicating ledger integrity.")
 	return true, nil
 }
 
-// Close cleans up resources, specifically closing the database connection.
+// Close cleans up resources, specifically closing the database connection pool.
 func (s *AzureSqlLedgerService) Close() error {
 	if s.db != nil {
 		log.Println("Closing Azure SQL Database connection")

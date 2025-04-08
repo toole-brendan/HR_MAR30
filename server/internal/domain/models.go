@@ -12,42 +12,81 @@ type User struct {
 	Name      string    `json:"name" gorm:"not null"`
 	Rank      string    `json:"rank" gorm:"not null"`
 	CreatedAt time.Time `json:"createdAt" gorm:"not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `json:"updatedAt" gorm:"not null;default:CURRENT_TIMESTAMP"` // Added UpdatedAt for consistency
 }
 
-// InventoryItem represents an item in the inventory
-type InventoryItem struct {
-	ID             uint       `json:"id" gorm:"primaryKey"`
-	Name           string     `json:"name" gorm:"not null"`
-	SerialNumber   string     `json:"serialNumber" gorm:"uniqueIndex;not null"`
-	Description    *string    `json:"description" gorm:"default:null"`
-	Category       *string    `json:"category" gorm:"default:null"`
-	Status         string     `json:"status" gorm:"not null"`
-	AssignedUserID *uint      `json:"assignedUserId" gorm:"default:null"`
-	AssignedDate   *time.Time `json:"assignedDate" gorm:"default:null"`
-	CreatedAt      time.Time  `json:"createdAt" gorm:"not null;default:CURRENT_TIMESTAMP"`
+// Property represents an individual piece of property in the inventory
+type Property struct {
+	ID                uint       `json:"id" gorm:"primaryKey"`
+	PropertyModelID   *uint      `json:"propertyModelId" gorm:"column:property_model_id"` // Foreign key to PropertyModel
+	Name              string     `json:"name" gorm:"not null"`                            // Retained Name for easier display, though model has name too
+	SerialNumber      string     `json:"serialNumber" gorm:"column:serial_number;uniqueIndex;not null"`
+	Description       *string    `json:"description" gorm:"default:null"`
+	CurrentStatus     string     `json:"currentStatus" gorm:"column:current_status;not null"`
+	AssignedToUserID  *uint      `json:"assignedToUserId" gorm:"column:assigned_to_user_id"` // Tracks current assigned user
+	LastVerifiedAt    *time.Time `json:"lastVerifiedAt" gorm:"column:last_verified_at"`
+	LastMaintenanceAt *time.Time `json:"lastMaintenanceAt" gorm:"column:last_maintenance_at"`
+	CreatedAt         time.Time  `json:"createdAt" gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt         time.Time  `json:"updatedAt" gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP"`
+
+	// Optional: Eager/Lazy load related data with GORM tags
+	// PropertyModel     *PropertyModel `json:"propertyModel,omitempty" gorm:"foreignKey:PropertyModelID"`
+	// AssignedToUser    *User          `json:"assignedToUser,omitempty" gorm:"foreignKey:AssignedToUserID"`
 }
 
-// Transfer represents a transfer of an item between users
+// PropertyType represents a broad category of property (e.g., Weapon, Communication)
+type PropertyType struct {
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	Name        string    `json:"name" gorm:"uniqueIndex;not null"`
+	Description *string   `json:"description"`
+	CreatedAt   time.Time `json:"createdAt" gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt   time.Time `json:"updatedAt" gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP"`
+}
+
+// PropertyModel represents a specific model of property (e.g., M4 Carbine)
+type PropertyModel struct {
+	ID             uint      `json:"id" gorm:"primaryKey"`
+	PropertyTypeID uint      `json:"propertyTypeId" gorm:"column:property_type_id;not null"`
+	ModelName      string    `json:"modelName" gorm:"column:model_name;not null"`
+	Manufacturer   *string   `json:"manufacturer"`
+	Nsn            *string   `json:"nsn" gorm:"column:nsn;uniqueIndex"`
+	Description    *string   `json:"description"`
+	Specifications *string   `json:"specifications" gorm:"type:jsonb"` // Assuming JSONB in DB
+	ImageURL       *string   `json:"imageUrl" gorm:"column:image_url"`
+	CreatedAt      time.Time `json:"createdAt" gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt      time.Time `json:"updatedAt" gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP"`
+
+	// PropertyType *PropertyType `json:"propertyType,omitempty" gorm:"foreignKey:PropertyTypeID"`
+}
+
+// Transfer represents a transfer of property between users
 type Transfer struct {
 	ID           uint       `json:"id" gorm:"primaryKey"`
-	ItemID       uint       `json:"itemId" gorm:"not null"`
-	FromUserID   uint       `json:"fromUserId" gorm:"not null"`
-	ToUserID     uint       `json:"toUserId" gorm:"not null"`
-	Status       string     `json:"status" gorm:"not null"`
-	RequestDate  time.Time  `json:"requestDate" gorm:"not null;default:CURRENT_TIMESTAMP"`
-	ResolvedDate *time.Time `json:"resolvedDate" gorm:"default:null"`
-	Notes        *string    `json:"notes" gorm:"default:null"`
+	PropertyID   uint       `json:"propertyId" gorm:"column:property_id;not null"` // Renamed from ItemID
+	FromUserID   uint       `json:"fromUserId" gorm:"column:from_user_id;not null"`
+	ToUserID     uint       `json:"toUserId" gorm:"column:to_user_id;not null"`
+	Status       string     `json:"status" gorm:"not null"` // e.g., Requested, Approved, Completed, Rejected
+	RequestDate  time.Time  `json:"requestDate" gorm:"column:request_date;not null;default:CURRENT_TIMESTAMP"`
+	ResolvedDate *time.Time `json:"resolvedDate" gorm:"column:resolved_date"`
+	Notes        *string    `json:"notes"`
+	CreatedAt    time.Time  `json:"createdAt" gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP"` // Added CreatedAt
+	UpdatedAt    time.Time  `json:"updatedAt" gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP"` // Added UpdatedAt
+
+	// Property      *Property `json:"property,omitempty" gorm:"foreignKey:PropertyID"`
+	// FromUser      *User     `json:"fromUser,omitempty" gorm:"foreignKey:FromUserID"`
+	// ToUser        *User     `json:"toUser,omitempty" gorm:"foreignKey:ToUserID"`
 }
 
-// Activity represents a system activity or event
+// Activity represents a system activity or event (consider replacing with specific ledger events)
 type Activity struct {
 	ID                uint      `json:"id" gorm:"primaryKey"`
 	Type              string    `json:"type" gorm:"not null"`
 	Description       string    `json:"description" gorm:"not null"`
-	UserID            *uint     `json:"userId" gorm:"default:null"`
-	RelatedItemID     *uint     `json:"relatedItemId" gorm:"default:null"`
-	RelatedTransferID *uint     `json:"relatedTransferId" gorm:"default:null"`
+	UserID            *uint     `json:"userId" gorm:"column:user_id"`
+	RelatedPropertyID *uint     `json:"relatedPropertyId" gorm:"column:related_property_id"` // Renamed from RelatedItemID
+	RelatedTransferID *uint     `json:"relatedTransferId" gorm:"column:related_transfer_id"`
 	Timestamp         time.Time `json:"timestamp" gorm:"not null;default:CURRENT_TIMESTAMP"`
+	// Consider adding CreatedAt/UpdatedAt if this table remains
 }
 
 // CreateUserInput represents input for creating a user
@@ -58,31 +97,36 @@ type CreateUserInput struct {
 	Rank     string `json:"rank" binding:"required"`
 }
 
-// CreateInventoryItemInput represents input for creating an inventory item
-type CreateInventoryItemInput struct {
-	Name           string  `json:"name" binding:"required"`
-	SerialNumber   string  `json:"serialNumber" binding:"required"`
-	Description    *string `json:"description"`
-	Category       *string `json:"category"`
-	Status         string  `json:"status" binding:"required"`
-	AssignedUserID *uint   `json:"assignedUserId"`
+// CreatePropertyInput represents input for creating a property item
+type CreatePropertyInput struct {
+	PropertyModelID  *uint   `json:"propertyModelId"` // Optional: Link to model on creation
+	Name             string  `json:"name" binding:"required"`
+	SerialNumber     string  `json:"serialNumber" binding:"required"`
+	Description      *string `json:"description"`
+	CurrentStatus    string  `json:"currentStatus" binding:"required"`
+	AssignedToUserID *uint   `json:"assignedToUserId"`
 }
 
-// CreateTransferInput represents input for creating a transfer
+// CreateTransferInput represents input for creating a transfer request
 type CreateTransferInput struct {
-	ItemID     uint    `json:"itemId" binding:"required"`
-	FromUserID uint    `json:"fromUserId" binding:"required"`
+	PropertyID uint    `json:"propertyId" binding:"required"` // Renamed from ItemID
 	ToUserID   uint    `json:"toUserId" binding:"required"`
-	Status     string  `json:"status" binding:"required"`
 	Notes      *string `json:"notes"`
+	// FromUserID and Status will likely be set by the backend logic
 }
 
-// CreateActivityInput represents input for creating an activity
+// UpdateTransferInput represents input for updating a transfer status
+type UpdateTransferInput struct {
+	Status string  `json:"status" binding:"required"` // e.g., Approved, Rejected, Completed
+	Notes  *string `json:"notes"`
+}
+
+// CreateActivityInput represents input for creating an activity (consider deprecating)
 type CreateActivityInput struct {
 	Type              string `json:"type" binding:"required"`
 	Description       string `json:"description" binding:"required"`
 	UserID            *uint  `json:"userId"`
-	RelatedItemID     *uint  `json:"relatedItemId"`
+	RelatedPropertyID *uint  `json:"relatedPropertyId"` // Renamed from RelatedItemID
 	RelatedTransferID *uint  `json:"relatedTransferId"`
 }
 
@@ -90,58 +134,4 @@ type CreateActivityInput struct {
 type LoginInput struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
-}
-
-// QLDB Models for immutable ledger
-
-// QldbItemCreation represents an item creation event in QLDB
-type QldbItemCreation struct {
-	ID           string    `json:"id"`
-	SerialNumber string    `json:"serialNumber"`
-	Name         string    `json:"name"`
-	Category     string    `json:"category"`
-	UserID       uint      `json:"userId"`
-	Timestamp    time.Time `json:"timestamp"`
-}
-
-// QldbTransferEvent represents a transfer event in QLDB
-type QldbTransferEvent struct {
-	ID           string    `json:"id"`
-	ItemID       uint      `json:"itemId"`
-	SerialNumber string    `json:"serialNumber"`
-	FromUserID   uint      `json:"fromUserId"`
-	ToUserID     uint      `json:"toUserId"`
-	Status       string    `json:"status"`
-	Timestamp    time.Time `json:"timestamp"`
-}
-
-// QldbStatusChange represents a status change event in QLDB
-type QldbStatusChange struct {
-	ID           string    `json:"id"`
-	ItemID       uint      `json:"itemId"`
-	SerialNumber string    `json:"serialNumber"`
-	OldStatus    string    `json:"oldStatus"`
-	NewStatus    string    `json:"newStatus"`
-	UserID       uint      `json:"userId"`
-	Timestamp    time.Time `json:"timestamp"`
-}
-
-// QldbVerificationEvent represents a verification event in QLDB
-type QldbVerificationEvent struct {
-	ID               string    `json:"id"`
-	ItemID           uint      `json:"itemId"`
-	SerialNumber     string    `json:"serialNumber"`
-	VerifiedBy       uint      `json:"verifiedBy"`
-	VerificationType string    `json:"verificationType"`
-	Timestamp        time.Time `json:"timestamp"`
-}
-
-// QldbCorrectionEvent represents a correction event in QLDB
-type QldbCorrectionEvent struct {
-	ID              string    `json:"id"`
-	OriginalEventID string    `json:"originalEventId"`
-	EventType       string    `json:"eventType"`
-	Reason          string    `json:"reason"`
-	UserID          uint      `json:"userId"`
-	Timestamp       time.Time `json:"timestamp"`
 }
