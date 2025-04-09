@@ -1,6 +1,8 @@
 package ledger
 
 import (
+	"database/sql"
+
 	"github.com/yourusername/handreceipt/internal/domain"
 )
 
@@ -19,11 +21,14 @@ type LedgerService interface {
 	// LogVerificationEvent logs a verification event for an item.
 	LogVerificationEvent(itemID uint, serialNumber string, userID uint, verificationType string) error
 
+	// LogMaintenanceEvent logs a maintenance event for an item.
+	LogMaintenanceEvent(maintenanceRecordID string, itemID uint, initiatingUserID uint, performingUserID sql.NullInt64, eventType string, maintenanceType sql.NullString, description string) error
+
 	// LogCorrectionEvent logs a correction event referencing a previous ledger event.
 	LogCorrectionEvent(originalEventID string, eventType string, reason string, userID uint) error
 
 	// GetItemHistory retrieves the history of an item based on its serial number.
-	GetItemHistory(serialNumber string) ([]map[string]interface{}, error)
+	GetItemHistory(itemID uint) ([]map[string]interface{}, error)
 
 	// VerifyDocument checks the integrity of a ledger document (implementation specific).
 	// For mock/development, this might always return true.

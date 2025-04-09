@@ -11,6 +11,7 @@ import (
 	"github.com/yourusername/handreceipt/internal/api/routes"
 	"github.com/yourusername/handreceipt/internal/ledger"
 	"github.com/yourusername/handreceipt/internal/platform/database"
+	"github.com/yourusername/handreceipt/internal/repository"
 )
 
 func main() {
@@ -47,10 +48,30 @@ func main() {
 		log.Fatalf("Failed to create default user: %v", err)
 	}
 
-	// Initialize Ledger Service (Using Mock for now)
+	// Initialize Repository
+	repo := repository.NewGormRepository(db)
+
+	// Initialize Ledger Service
 	var ledgerService ledger.LedgerService
-	// TODO: Add logic here to switch between Mock and Azure SQL implementation based on config/env
-	ledgerService = ledger.NewMockLedgerService()
+
+	// Use Azure SQL Ledger in production, Mock in development
+	if environment == "production" || viper.GetBool("ledger.use_azure") {
+		connectionString := os.Getenv("AZURE_SQL_LEDGER_CONNECTION_STRING")
+		if connectionString == "" {
+			log.Fatalf("Azure SQL Ledger connection string not found in environment variables")
+		}
+
+		var err error
+		ledgerService, err = ledger.NewAzureSqlLedgerService(connectionString)
+		if err != nil {
+			log.Fatalf("Failed to initialize Azure SQL Ledger service: %v", err)
+		}
+		log.Println("Using Azure SQL Ledger")
+	} else {
+		ledgerService = &ledger.AzureSqlLedgerService{} // Using a mock instance for now
+		log.Println("Using Mock Ledger Service for development")
+	}
+
 	if err := ledgerService.Initialize(); err != nil {
 		log.Fatalf("Failed to initialize Ledger service: %v", err)
 	}
@@ -63,8 +84,8 @@ func main() {
 	// CORS middleware
 	router.Use(corsMiddleware())
 
-	// Setup routes, passing the LedgerService interface
-	routes.SetupRoutes(router, ledgerService)
+	// Setup routes, passing the LedgerService interface and Repository
+	routes.SetupRoutes(router, ledgerService, repo)
 
 	// Get server port from config
 	port := viper.GetInt("server.port")

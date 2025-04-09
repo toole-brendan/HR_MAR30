@@ -77,7 +77,7 @@ func Connect() (*gorm.DB, error) {
 func Migrate(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&domain.User{},
-		&domain.InventoryItem{},
+		&domain.Property{},
 		&domain.Transfer{},
 		&domain.Activity{},
 	)

@@ -25,38 +25,36 @@ This document outlines the complete implementation plan for evolving HandReceipt
   - Updated all import paths
   - Deleted the empty `client/src/context` directory
 
-## Phase 1: Backend Migration & Ledger Integration ⏳ **IN PROGRESS**
+## Phase 1: Backend Migration & Ledger Integration ✅ **MOSTLY COMPLETE**
 
 ### Go Backend Implementation
 
 - **Set Up Go Project Structure** ✅ **COMPLETE**
-  - Created directory structure (cmd, internal, pkg, etc.).
-  - Initial Go module setup (assuming `go mod init`).
-- **Implement Core API Functionality** ⏳ **STARTED**
-  - **NEXT:** Set up main application entry point (`server/cmd/server/main.go`).
-  - **NEXT:** Implement configuration loading (e.g., Viper for `.env`).
-  - **NEXT:** Integrate GORM DB connection, Ledger Service, and Repository initialization in `main.go`.
-  - **NEXT:** Set up basic Gin router in `main.go` or `internal/api/routes.go`.
-  - **NEXT:** Implement authentication middleware (JWT or sessions).
-    - Choose strategy (JWT recommended for stateless API).
-    - Implement user registration/login handlers using repository & bcrypt.
-    - Implement middleware for validating tokens/sessions.
-  - **NEXT:** Implement initial API handlers (e.g., GET /api/users/me, GET /api/property).
-    - Define request/response structs.
-    - Use repository for data retrieval.
-    - Apply auth middleware.
+  - Created directory structure (cmd, internal, pkg, etc.). ✅
+  - Initial Go module setup (assuming `go mod init`). ✅
+- **Implement Core API Functionality** ✅ **MOSTLY COMPLETE**
+  - Set up main application entry point (`server/cmd/server/main.go`). ✅
+  - Implemented configuration loading (Viper). ✅
+  - Integrated GORM DB connection, Ledger Service, and Repository initialization in `main.go`. ✅
+  - Set up basic Gin router in `main.go` / `internal/api/routes.go`. ✅
+  - Implemented authentication middleware (Session-based). ✅
+  - Implemented user registration/login handlers using repository & bcrypt. ✅
+  - Implemented initial protected API endpoint (GET /api/users/me). ✅
+  - Implemented core Property API endpoints (CRUD) using Repository and LedgerService. ✅
+  - Implemented core Transfer API endpoints (request, approve/reject) using Repository and LedgerService. ✅
+  - Implemented Reference DB query endpoints (list types, list models, get model by NSN). ✅
   - **LATER:** Port remaining Node.js routes to Go/Gin.
   - **LATER:** Replicate all current API endpoints.
   - **LATER:** Add/Modify endpoints for:
     - Serial Number lookup and transfer initiation.
-    - Reference Database querying.
+    - Reference Database querying (beyond basic NSN lookup).
 
-- **Database Integration** ✅ **STARTED**
+- **Database Integration** ✅ **COMPLETE**
   - Defined PostgreSQL Schema (Reference DB, Property Table updates) in `server/scripts/postgres_schema_updates.sql`. ✅
   - Updated Domain Models (`server/internal/domain/models.go`) to match schema. ✅
   - Set up GORM for PostgreSQL (`server/internal/platform/database/postgres.go`). ✅
   - Implemented basic Repository layer (`server/internal/repository/`). ✅
-  - **NEXT:** Apply schema updates to PostgreSQL database.
+  - Applied schema updates to PostgreSQL database. ✅
 
 ### Azure SQL Database Ledger Integration
 
@@ -65,18 +63,18 @@ This document outlines the complete implementation plan for evolving HandReceipt
   - Created Azure SQL Database (`handreceipt-ledger-db`) with Ledger enabled. ✅
   - Configured firewall rules for Azure services and development IP. ✅
   - Stored connection string securely in `.env` (added to `.gitignore`). ✅
-- **Implement Ledger Service** ✅ **STARTED**
+- **Implement Ledger Service** ✅ **MOSTLY COMPLETE**
   - Defined `LedgerService` interface (`server/internal/ledger/ledger_service.go`). ✅
   - Implemented `AzureSqlLedgerService` (`server/internal/ledger/azure_sql_ledger_service.go`). ✅
     - Connection logic implemented. ✅
     - Basic event logging functions implemented (matching interface). ✅
     - Database-wide verification function implemented. ✅
+    - Refined `GetItemHistory` implementation in `AzureSqlLedgerService`. ✅
   - Defined Azure SQL Ledger Schema in `server/scripts/azure_ledger_schema.sql`. ✅
-  - **NEXT:** Apply ledger schema to Azure SQL DB.
-  - **NEXT:** Refine `GetItemHistory` implementation in `AzureSqlLedgerService` (requires robust SQL query).
-  - **NEXT:** Design and implement correction workflow (`LogCorrectionEvent`).
-- **Define Data Boundaries** ❓ **PENDING**
-  - **NEXT:** Formally document which data resides where (Postgres vs. Azure SQL Ledger).
+  - Applied ledger schema to Azure SQL DB. ✅
+  - **LATER:** Design and implement correction workflow (`LogCorrectionEvent`).
+- **Define Data Boundaries** ✅ **COMPLETE**
+  - Formally documented which data resides where (Postgres vs. Azure SQL Ledger) in `DATA_BOUNDARIES.md`. ✅
 
 ## Phase 2: Native Mobile Applications
 
@@ -197,26 +195,18 @@ This document outlines the complete implementation plan for evolving HandReceipt
 
 ## Next Actions (Revised)
 
-1.  **Immediate (Current Focus - Days):**
-    *   Apply DB schemas: Run `server/scripts/postgres_schema_updates.sql` on PostgreSQL and `server/scripts/azure_ledger_schema.sql` on Azure SQL DB.
-    *   Implement Go backend `main.go` setup: Config loading (Viper), initialize DB/Ledger/Repo connections.
-    *   Set up basic Gin router and root/health check endpoints.
-    *   Implement Authentication: Choose strategy (JWT likely), add user registration/login handlers, implement auth middleware.
-    *   Implement initial protected API endpoint (e.g., GET /api/users/me).
-
-2.  **Short-term (Next Weeks):**
-    *   Implement core Property API endpoints (CRUD) using Repository and LedgerService.
-    *   Implement core Transfer API endpoints (request, approve/reject) using Repository and LedgerService.
-    *   Implement Reference DB query endpoints (list types, list models, get model by NSN).
-    *   Refine `GetItemHistory` in `AzureSqlLedgerService`.
-    *   Define Data Boundaries clearly.
+1.  **Immediate (Current Focus - Days/Weeks):**
+    *   Port remaining essential Node.js routes to Go/Gin.
     *   Begin mobile app UI scaffolding (Reference DB browsing, Manual SN Entry).
+    *   Design and implement ledger correction workflow (`LogCorrectionEvent`).
 
-3.  **Medium-term (Months):**
-    *   Complete porting of all essential API functionality from Node.js.
+2.  **Short-term (Next Weeks/Months):**
     *   Begin core development of native mobile applications (Phase 2), integrating Reference DB display and SN capture (Manual + On-Device OCR).
     *   Conduct initial OCR testing.
-    *   Design and implement ledger correction workflow.
+
+3.  **Medium-term (Months):**
+    *   Complete porting of all API functionality from Node.js.
+    *   Implement advanced mobile features (offline support, sync).
 
 4.  **Long-term (3-6+ Months):**
     *   Implement advanced features (Phase 3), enhance mobile apps (cloud OCR fallback etc.), set up robust testing and CI/CD, refine Reference DB data.

@@ -273,57 +273,52 @@ func (s *AzureSqlLedgerService) LogCorrectionEvent(originalEventID string, event
 	return fmt.Errorf("correction logging not implemented") // Return error until implemented
 }
 
-// GetItemHistory retrieves the history of an item from the Azure SQL Ledger tables based on its Serial Number.
-// NOTE: This requires querying the system-generated history views for each relevant ledger table.
-// It assumes SerialNumber is reliably logged or can be joined across tables if needed.
-// A potential challenge is that not all events might directly log the Serial Number.
-// Using ItemID might be more robust if SerialNumber isn't in every ledger table.
-// For now, we proceed assuming SerialNumber is the primary query key as per the original interface.
-func (s *AzureSqlLedgerService) GetItemHistory(serialNumber string) ([]map[string]interface{}, error) {
+// GetItemHistory retrieves the history of an item from the Azure SQL Ledger tables based on its ItemID.
+func (s *AzureSqlLedgerService) GetItemHistory(itemID uint) ([]map[string]interface{}, error) {
 	ctx := context.Background()
-	log.Printf("AzureSqlLedgerService: Getting history for SerialNumber: %s", serialNumber)
+	log.Printf("AzureSqlLedgerService: Getting history for ItemID: %d", itemID)
 	var history []map[string]interface{}
 
-	// TODO: Refine this query significantly. It needs to:
-	// 1. Query the correct history views (e.g., HandReceipt.EquipmentEvents_LedgerHistory, HandReceipt.TransferEvents_LedgerHistory, etc.)
-	// 2. Select relevant columns from each history view.
-	// 3. Filter results based on SerialNumber. This might require JOINs if SerialNumber is not directly in all ledger tables.
-	// 4. UNION ALL the results from different history views.
-	// 5. Order the combined results appropriately (e.g., by ledger_commit_time or EventTimestamp).
-	// 6. Handle potential differences in columns between tables gracefully.
-	// 7. Consider creating a stored procedure in Azure SQL for this complex query.
-
-	// Example placeholder query structure (assuming SerialNumber exists in related tables or can be joined):
-	// NOTE: This is a simplified example and likely needs modification based on actual primary DB schema and how ItemID relates to SerialNumber.
+	// Query across all relevant ledger history views using UNION ALL.
+	// Filter each part of the UNION by ItemID.
+	// Order the final result set by EventTimestamp.
 	query := `
-	-- Placeholder Query: Requires joining with primary DB tables to filter by SerialNumber if not present in all ledger tables
-	-- This example ASSUMES SerialNumber is accessible via ItemID JOIN, which might be inefficient.
-	-- A better approach depends heavily on the primary database schema.
-
-	-- Query EquipmentEvents History (Example: Assume JOIN needed)
 	SELECT
-		'EquipmentEvent' as RecordType, le.EventID, le.ItemID, le.PerformingUserID, le.EventTimestamp, le.EventType, le.Notes,
-		le.ledger_transaction_id, le.ledger_sequence_number, le.ledger_operation_type_desc
-	FROM HandReceipt.EquipmentEvents_LedgerHistory le
-	-- JOIN YourPrimaryDB.Equipment eq ON le.ItemID = eq.ID -- Replace with actual JOIN
-	WHERE 1=2 -- eq.SerialNumber = @p1 -- Placeholder JOIN condition
+		'EquipmentEvent' as RecordType, EventID, ItemID, PerformingUserID, EventTimestamp, EventType, Notes,
+		ledger_transaction_id, ledger_sequence_number, ledger_operation_type_desc
+	FROM HandReceipt.EquipmentEvents_LedgerHistory
+	WHERE ItemID = @p1
 	UNION ALL
-	-- Query TransferEvents History (Example: Assume JOIN needed)
 	SELECT
-		'TransferEvent' as RecordType, lt.EventID, lt.ItemID, lt.FromUserID, lt.ToUserID, lt.InitiatingUserID, lt.ApprovingUserID, lt.EventTimestamp, lt.EventType, lt.Notes,
-		lt.ledger_transaction_id, lt.ledger_sequence_number, lt.ledger_operation_type_desc
-	FROM HandReceipt.TransferEvents_LedgerHistory lt
-	-- JOIN YourPrimaryDB.Equipment eq ON lt.ItemID = eq.ID -- Replace with actual JOIN
-	WHERE 1=2 -- eq.SerialNumber = @p1 -- Placeholder JOIN condition
-	-- ... Add UNION ALL clauses for Verification, Maintenance, StatusChange ...
-	-- ORDER BY appropriate timestamp
-	ORDER BY EventTimestamp ASC; -- Example ordering
+		'TransferEvent' as RecordType, EventID, ItemID, FromUserID, ToUserID, InitiatingUserID, ApprovingUserID, EventTimestamp, EventType, Notes,
+		ledger_transaction_id, ledger_sequence_number, ledger_operation_type_desc
+	FROM HandReceipt.TransferEvents_LedgerHistory
+	WHERE ItemID = @p1
+	UNION ALL
+	SELECT
+		'VerificationEvent' as RecordType, EventID, ItemID, VerifyingUserID, VerificationTimestamp AS EventTimestamp, VerificationStatus AS EventType, Notes, -- Aliasing columns for consistency
+		ledger_transaction_id, ledger_sequence_number, ledger_operation_type_desc
+	FROM HandReceipt.VerificationEvents_LedgerHistory
+	WHERE ItemID = @p1
+	UNION ALL
+	SELECT
+		'MaintenanceEvent' as RecordType, EventID, ItemID, InitiatingUserID, PerformingUserID, EventTimestamp, EventType, Description AS Notes, -- Aliasing Description to Notes
+		ledger_transaction_id, ledger_sequence_number, ledger_operation_type_desc
+	FROM HandReceipt.MaintenanceEvents_LedgerHistory
+	WHERE ItemID = @p1
+	UNION ALL
+	SELECT
+		'StatusChangeEvent' as RecordType, EventID, ItemID, ReportingUserID, ChangeTimestamp AS EventTimestamp, NewStatus AS EventType, Reason AS Notes, -- Aliasing columns
+		ledger_transaction_id, ledger_sequence_number, ledger_operation_type_desc
+	FROM HandReceipt.StatusChangeEvents_LedgerHistory
+	WHERE ItemID = @p1
+	ORDER BY EventTimestamp ASC;
 	`
 
-	rows, err := s.db.QueryContext(ctx, query, serialNumber)
+	rows, err := s.db.QueryContext(ctx, query, itemID) // Use itemID in query
 	if err != nil {
-		log.Printf("Error querying item history by SerialNumber from Azure SQL Ledger: %v", err)
-		return nil, fmt.Errorf("failed to query item history by SerialNumber: %w", err)
+		log.Printf("Error querying item history by ItemID from Azure SQL Ledger: %v", err)
+		return nil, fmt.Errorf("failed to query item history by ItemID: %w", err)
 	}
 	defer rows.Close()
 
@@ -334,7 +329,7 @@ func (s *AzureSqlLedgerService) GetItemHistory(serialNumber string) ([]map[strin
 	}
 
 	for rows.Next() {
-		// Create a slice of interface{}\'s to represent the row\'s values.
+		// Create a slice of interface{}'s to represent the row's values.
 		columns := make([]interface{}, len(cols))
 		columnPointers := make([]interface{}, len(cols))
 		for i := range columns {
@@ -360,7 +355,8 @@ func (s *AzureSqlLedgerService) GetItemHistory(serialNumber string) ([]map[strin
 				switch v := (*val).(type) {
 				case []byte:
 					m[colName] = string(v)
-				// Add cases for other types (e.g., time.Time) if specific formatting is needed
+				case time.Time: // Format timestamps nicely
+					m[colName] = v.Format(time.RFC3339)
 				default:
 					m[colName] = *val
 				}
@@ -374,7 +370,7 @@ func (s *AzureSqlLedgerService) GetItemHistory(serialNumber string) ([]map[strin
 		return nil, fmt.Errorf("failed during history row iteration: %w", err)
 	}
 
-	log.Printf("Retrieved %d history events for SerialNumber: %s", len(history), serialNumber)
+	log.Printf("Retrieved %d history events for ItemID: %d", len(history), itemID)
 	return history, nil
 }
 

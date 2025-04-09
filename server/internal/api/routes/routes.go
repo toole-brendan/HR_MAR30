@@ -5,21 +5,25 @@ import (
 	"github.com/yourusername/handreceipt/internal/api/handlers"
 	"github.com/yourusername/handreceipt/internal/api/middleware"
 	"github.com/yourusername/handreceipt/internal/ledger"
+	"github.com/yourusername/handreceipt/internal/repository"
 )
 
 // SetupRoutes configures all the API routes for the application
-func SetupRoutes(router *gin.Engine, ledgerService ledger.LedgerService) {
+func SetupRoutes(router *gin.Engine, ledgerService ledger.LedgerService, repo repository.Repository) {
 	// Initialize session middleware
 	middleware.SetupSession(router)
 
 	// Create handlers
-	authHandler := handlers.NewAuthHandler()
-	inventoryHandler := handlers.NewInventoryHandler(ledgerService)
-	transferHandler := handlers.NewTransferHandler(ledgerService)
+	authHandler := handlers.NewAuthHandler(repo)
+	inventoryHandler := handlers.NewInventoryHandler(ledgerService, repo)
+	transferHandler := handlers.NewTransferHandler(ledgerService, repo)
 	activityHandler := handlers.NewActivityHandler() // No ledger needed
 	verificationHandler := handlers.NewVerificationHandler(ledgerService)
 	correctionHandler := handlers.NewCorrectionHandler(ledgerService)
+	referenceDBHandler := handlers.NewReferenceDBHandler(repo) // Add ReferenceDB handler
 	// ... more handlers will be added in the future
+
+	// TODO: Update other handlers to use repository when needed
 
 	// Public routes (no authentication required)
 	public := router.Group("/api")
@@ -83,6 +87,14 @@ func SetupRoutes(router *gin.Engine, ledgerService ledger.LedgerService) {
 		{
 			correction.POST("", correctionHandler.CreateCorrection)
 			// TODO: Add routes for querying/viewing correction events?
+		}
+
+		// Reference Database routes
+		reference := protected.Group("/reference")
+		{
+			reference.GET("/types", referenceDBHandler.ListPropertyTypes)
+			reference.GET("/models", referenceDBHandler.ListPropertyModels)
+			reference.GET("/models/nsn/:nsn", referenceDBHandler.GetPropertyModelByNSN)
 		}
 	}
 }

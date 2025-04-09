@@ -36,7 +36,7 @@ func (h *ActivityHandler) CreateActivity(c *gin.Context) {
 		Type:              input.Type,
 		Description:       input.Description,
 		UserID:            input.UserID, // Prioritize UserID from input if provided
-		RelatedItemID:     input.RelatedItemID,
+		RelatedPropertyID: input.RelatedPropertyID,
 		RelatedTransferID: input.RelatedTransferID,
 		// Timestamp defaults to CURRENT_TIMESTAMP in DB
 	}

@@ -2,6 +2,26 @@
 -- CREATE SCHEMA IF NOT EXISTS handreceipt;
 -- SET search_path TO handreceipt, public; -- Adjust search path if using a dedicated schema
 
+-- Create the property table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.property (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- Create the users table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    rank VARCHAR(100) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
 -- 1. Modify the main Property table
 --    Assuming a table named 'property' already exists.
 --    If it doesn't exist, you'd use CREATE TABLE instead.

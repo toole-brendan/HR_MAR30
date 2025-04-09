@@ -10,18 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yourusername/handreceipt/internal/domain"
 	"github.com/yourusername/handreceipt/internal/ledger"
-	"github.com/yourusername/handreceipt/internal/platform/database"
+	"github.com/yourusername/handreceipt/internal/repository"
 	"gorm.io/gorm"
 )
 
 // TransferHandler handles transfer operations
 type TransferHandler struct {
 	Ledger ledger.LedgerService
+	Repo   repository.Repository
 }
 
 // NewTransferHandler creates a new transfer handler
-func NewTransferHandler(ledgerService ledger.LedgerService) *TransferHandler {
-	return &TransferHandler{Ledger: ledgerService}
+func NewTransferHandler(ledgerService ledger.LedgerService, repo repository.Repository) *TransferHandler {
+	return &TransferHandler{Ledger: ledgerService, Repo: repo}
 }
 
 // CreateTransfer creates a new transfer record
@@ -35,55 +36,53 @@ func (h *TransferHandler) CreateTransfer(c *gin.Context) {
 	}
 
 	// Get user ID from context (set by auth middleware)
-	// This usually represents the user *initiating* the request, which might be the 'fromUser' or an admin
+	// This represents the user *initiating* the request
 	requestingUserIDVal, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
 	}
-	_, ok := requestingUserIDVal.(uint)
+	requestingUserID, ok := requestingUserIDVal.(uint)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format in context"})
 		return
 	}
 
-	// Fetch the inventory item to get the serial number for Ledger logging
-	var item domain.InventoryItem
-	itemResult := database.DB.First(&item, input.ItemID)
-	if itemResult.Error != nil {
-		if errors.Is(itemResult.Error, gorm.ErrRecordNotFound) {
+	// Fetch the inventory item using repository to get the serial number for Ledger logging
+	item, err := h.Repo.GetPropertyByID(input.PropertyID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Inventory item not found"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inventory item: " + itemResult.Error.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inventory item: " + err.Error()})
 		}
 		return
 	}
 
 	// Prepare the transfer for database insertion
-	transfer := domain.Transfer{
-		ItemID:     input.ItemID,
-		FromUserID: input.FromUserID,
+	transfer := &domain.Transfer{ // Changed to pointer
+		PropertyID: input.PropertyID,
+		FromUserID: requestingUserID, // Set FromUserID to the authenticated user
 		ToUserID:   input.ToUserID,
-		Status:     input.Status, // Typically starts as 'pending' unless specified otherwise
+		Status:     "Requested", // Set initial status
 		Notes:      input.Notes,
 		// RequestDate defaults to CURRENT_TIMESTAMP in DB
 		// ResolvedDate is null initially
 	}
 
-	// Insert into PostgreSQL database
-	result := database.DB.Create(&transfer)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create transfer: " + result.Error.Error()})
+	// Insert into database using repository
+	if err := h.Repo.CreateTransfer(transfer); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create transfer: " + err.Error()})
 		return
 	}
 
-	// Log to Ledger Service
-	errLedger := h.Ledger.LogTransferEvent(transfer, item.SerialNumber)
+	// Log to Ledger Service (use transfer *after* creation)
+	errLedger := h.Ledger.LogTransferEvent(*transfer, item.SerialNumber)
 	if errLedger != nil {
-		log.Printf("WARNING: Failed to log transfer creation (ID: %d, ItemID: %d, SN: %s) to Ledger after DB creation: %v", transfer.ID, transfer.ItemID, item.SerialNumber, errLedger)
+		log.Printf("WARNING: Failed to log transfer creation (ID: %d, ItemID: %d, SN: %s) to Ledger after DB creation: %v", transfer.ID, transfer.PropertyID, item.SerialNumber, errLedger)
 		// Consider compensation logic here if ledger write fails, or at least alert
 	} else {
-		log.Printf("Successfully logged transfer creation (ID: %d, ItemID: %d) to Ledger", transfer.ID, transfer.ItemID)
+		log.Printf("Successfully logged transfer creation (ID: %d, ItemID: %d) to Ledger", transfer.ID, transfer.PropertyID)
 	}
 
 	c.JSON(http.StatusCreated, transfer)
@@ -99,10 +98,7 @@ func (h *TransferHandler) UpdateTransferStatus(c *gin.Context) {
 	}
 
 	// Parse status from request body
-	var updateData struct {
-		Status string  `json:"status" binding:"required"`
-		Notes  *string `json:"notes"` // Allow updating notes optionally
-	}
+	var updateData domain.UpdateTransferInput // Use domain type
 
 	if err := c.ShouldBindJSON(&updateData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input format: " + err.Error()})
@@ -110,66 +106,62 @@ func (h *TransferHandler) UpdateTransferStatus(c *gin.Context) {
 	}
 
 	// Validate status value (adjust allowed statuses as needed)
-	allowedStatuses := map[string]bool{"pending": true, "approved": true, "rejected": true, "completed": true}
+	allowedStatuses := map[string]bool{"Requested": true, "Approved": true, "Rejected": true, "Completed": true, "Cancelled": true} // Added more statuses
 	if !allowedStatuses[updateData.Status] {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status value"})
 		return
 	}
 
 	// Get user ID from context (representing the user performing the update)
-	_, exists := c.Get("userID")
+	_, exists := c.Get("userID") // TODO: Use this userID for authorization check
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
 	}
-	// TODO: Add authorization logic here - does this user (userIDVal) have permission to update this transfer?
+	// TODO: Add authorization logic here - does this user have permission to update this transfer?
 
-	// Fetch transfer from database
-	var transfer domain.Transfer
-	result := database.DB.First(&transfer, uint(id))
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	// Fetch transfer from repository
+	transfer, err := h.Repo.GetTransferByID(uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Transfer not found"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch transfer: " + result.Error.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch transfer: " + err.Error()})
 		}
 		return
 	}
 
-	// Fetch the related inventory item for serial number
-	var item domain.InventoryItem
-	itemResult := database.DB.First(&item, transfer.ItemID)
-	if itemResult.Error != nil {
-		log.Printf("Error fetching related item %d for transfer %d update: %v", transfer.ItemID, transfer.ID, itemResult.Error)
+	// Fetch the related inventory item using repository for serial number
+	item, err := h.Repo.GetPropertyByID(transfer.PropertyID)
+	if err != nil {
+		log.Printf("Error fetching related item %d for transfer %d update: %v", transfer.PropertyID, transfer.ID, err)
 		// Decide if this is fatal - maybe proceed without Ledger logging? For now, fail.
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch related inventory item for logging"})
 		return
 	}
 
 	// Update fields
-	// oldStatus := transfer.Status // Keep track for logging if needed, though LogTransferEvent takes the whole object
 	transfer.Status = updateData.Status
 	if updateData.Notes != nil {
 		transfer.Notes = updateData.Notes
 	}
 
 	// Update ResolvedDate based on status
-	if transfer.Status == "approved" || transfer.Status == "rejected" || transfer.Status == "completed" {
+	if transfer.Status == "Approved" || transfer.Status == "Rejected" || transfer.Status == "Completed" || transfer.Status == "Cancelled" {
 		now := time.Now().UTC()
 		transfer.ResolvedDate = &now
 	} else {
-		transfer.ResolvedDate = nil // Reset if moved back to pending
+		transfer.ResolvedDate = nil // Reset if moved back to pending?
 	}
 
-	// Save updated transfer to PostgreSQL
-	result = database.DB.Save(&transfer)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update transfer status: " + result.Error.Error()})
+	// Save updated transfer using repository
+	if err := h.Repo.UpdateTransfer(transfer); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update transfer status: " + err.Error()})
 		return
 	}
 
 	// Log the updated state to Ledger Service
-	errLedger := h.Ledger.LogTransferEvent(transfer, item.SerialNumber)
+	errLedger := h.Ledger.LogTransferEvent(*transfer, item.SerialNumber)
 	if errLedger != nil {
 		// Log error but don't fail the request as DB update succeeded
 		log.Printf("WARNING: Failed to log transfer status update (ID: %d, SN: %s, NewStatus: %s) to Ledger: %v", transfer.ID, item.SerialNumber, transfer.Status, errLedger)
@@ -181,54 +173,79 @@ func (h *TransferHandler) UpdateTransferStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, transfer)
 }
 
-// GetAllTransfers returns all transfers (Placeholder)
+// GetAllTransfers returns all transfers
 func (h *TransferHandler) GetAllTransfers(c *gin.Context) {
-	// TODO: Implement logic to fetch all transfers, potentially with pagination
-	var transfers []domain.Transfer
-	result := database.DB.Order("request_date desc").Find(&transfers) // Example: Order by request date
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch transfers: " + result.Error.Error()})
+	// Get user ID from context to filter transfers (optional)
+	var requestingUserID uint
+	userIDVal, exists := c.Get("userID")
+	if exists {
+		userID, ok := userIDVal.(uint)
+		if ok {
+			requestingUserID = userID
+		} else {
+			log.Printf("Warning: Invalid user ID format in context for GetAllTransfers")
+			// Decide if this should be an error or just ignore filtering
+		}
+	}
+
+	// Optional: Filter by status from query param
+	statusQuery := c.Query("status")
+	var statusFilter *string
+	if statusQuery != "" {
+		statusFilter = &statusQuery
+	}
+
+	// Fetch transfers using repository (passing 0 if user ID not found/valid for listing all relevant)
+	transfers, err := h.Repo.ListTransfers(requestingUserID, statusFilter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch transfers: " + err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"transfers": transfers})
 }
 
-// GetTransferByID returns a specific transfer (Placeholder)
+// GetTransferByID returns a specific transfer
 func (h *TransferHandler) GetTransferByID(c *gin.Context) {
-	// TODO: Implement logic to parse ID and fetch transfer
+	// Parse ID from URL parameter
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
 		return
 	}
 
-	var transfer domain.Transfer
-	result := database.DB.First(&transfer, uint(id))
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	// Fetch transfer using repository
+	transfer, err := h.Repo.GetTransferByID(uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Transfer not found"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch transfer: " + result.Error.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch transfer: " + err.Error()})
 		}
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"transfer": transfer})
 }
 
-// GetTransfersByUser returns transfers associated with a user (Placeholder)
+// GetTransfersByUser returns transfers associated with a user
 func (h *TransferHandler) GetTransfersByUser(c *gin.Context) {
-	// TODO: Implement logic to parse user ID and fetch relevant transfers (from/to)
+	// Parse user ID from URL parameter
 	userID, err := strconv.ParseUint(c.Param("userId"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
 		return
 	}
 
-	// Fetch transfers where the user is either the sender or receiver
-	var transfers []domain.Transfer
-	result := database.DB.Where("from_user_id = ? OR to_user_id = ?", uint(userID), uint(userID)).Order("request_date desc").Find(&transfers)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch transfers for user: " + result.Error.Error()})
+	// Optional: Filter by status from query param
+	statusQuery := c.Query("status")
+	var statusFilter *string
+	if statusQuery != "" {
+		statusFilter = &statusQuery
+	}
+
+	// Fetch transfers using repository
+	transfers, err := h.Repo.ListTransfers(uint(userID), statusFilter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch transfers for user: " + err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"transfers": transfers})

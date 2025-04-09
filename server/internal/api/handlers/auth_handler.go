@@ -7,16 +7,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yourusername/handreceipt/internal/api/middleware"
 	"github.com/yourusername/handreceipt/internal/domain"
-	"github.com/yourusername/handreceipt/internal/platform/database"
+	"github.com/yourusername/handreceipt/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // AuthHandler handles authentication operations
-type AuthHandler struct{}
+type AuthHandler struct {
+	repo repository.Repository
+}
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler() *AuthHandler {
-	return &AuthHandler{}
+func NewAuthHandler(repo repository.Repository) *AuthHandler {
+	return &AuthHandler{
+		repo: repo,
+	}
 }
 
 // Login handles user login
@@ -30,15 +34,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// Find user by username
-	var user domain.User
-	result := database.DB.Where("username = ?", loginInput.Username).First(&user)
-	if result.Error != nil {
+	user, err := h.repo.GetUserByUsername(loginInput.Username)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
 	// Compare passwords
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginInput.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginInput.Password))
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
@@ -82,9 +85,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// Check if username already exists
-	var existingUser domain.User
-	result := database.DB.Where("username = ?", createUserInput.Username).First(&existingUser)
-	if result.Error == nil {
+	_, err := h.repo.GetUserByUsername(createUserInput.Username)
+	if err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Username already exists"})
 		return
 	}
@@ -97,15 +99,14 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// Create user
-	user := domain.User{
+	user := &domain.User{
 		Username: createUserInput.Username,
 		Password: string(hashedPassword),
 		Name:     createUserInput.Name,
 		Rank:     createUserInput.Rank,
 	}
 
-	result = database.DB.Create(&user)
-	if result.Error != nil {
+	if err := h.repo.CreateUser(user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
@@ -139,9 +140,8 @@ func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
 	}
 
 	// Retrieve user from database
-	var user domain.User
-	result := database.DB.First(&user, userID)
-	if result.Error != nil {
+	user, err := h.repo.GetUserByID(userID.(uint))
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
 		return
 	}

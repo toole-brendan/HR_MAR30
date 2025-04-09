@@ -4,32 +4,44 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"time"
 
 	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/yourusername/handreceipt/internal/domain"
 	"github.com/yourusername/handreceipt/internal/ledger"
-	"github.com/yourusername/handreceipt/internal/platform/database"
+	"github.com/yourusername/handreceipt/internal/repository"
 	"gorm.io/gorm"
 )
 
 // InventoryHandler handles inventory operations
 type InventoryHandler struct {
 	Ledger ledger.LedgerService
+	Repo   repository.Repository
 }
 
 // NewInventoryHandler creates a new inventory handler
-func NewInventoryHandler(ledgerService ledger.LedgerService) *InventoryHandler {
-	return &InventoryHandler{Ledger: ledgerService}
+func NewInventoryHandler(ledgerService ledger.LedgerService, repo repository.Repository) *InventoryHandler {
+	return &InventoryHandler{Ledger: ledgerService, Repo: repo}
 }
 
 // GetAllInventoryItems returns all inventory items
 func (h *InventoryHandler) GetAllInventoryItems(c *gin.Context) {
-	var items []domain.InventoryItem
-	result := database.DB.Find(&items)
-	if result.Error != nil {
+	// Check if filtering by assigned user ID
+	var userID *uint
+	userIDStr := c.Query("assignedToUserId")
+	if userIDStr != "" {
+		uID, err := strconv.ParseUint(userIDStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid assignedToUserId format"})
+			return
+		}
+		tempID := uint(uID)
+		userID = &tempID
+	}
+
+	items, err := h.Repo.ListProperties(userID)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inventory items"})
 		return
 	}
@@ -46,11 +58,14 @@ func (h *InventoryHandler) GetInventoryItem(c *gin.Context) {
 		return
 	}
 
-	// Fetch item from database
-	var item domain.InventoryItem
-	result := database.DB.First(&item, uint(id))
-	if result.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Inventory item not found"})
+	// Fetch item from repository
+	item, err := h.Repo.GetPropertyByID(uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Inventory item not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inventory item"})
+		}
 		return
 	}
 
@@ -59,7 +74,7 @@ func (h *InventoryHandler) GetInventoryItem(c *gin.Context) {
 
 // CreateInventoryItem creates a new inventory item
 func (h *InventoryHandler) CreateInventoryItem(c *gin.Context) {
-	var input domain.CreateInventoryItemInput
+	var input domain.CreatePropertyInput
 
 	// Validate request body
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -80,29 +95,23 @@ func (h *InventoryHandler) CreateInventoryItem(c *gin.Context) {
 	}
 
 	// Prepare the inventory item for database insertion
-	item := domain.InventoryItem{
-		Name:         input.Name,
-		SerialNumber: input.SerialNumber,
-		Description:  input.Description,
-		Category:     input.Category,
-		Status:       input.Status,
-		// Assign user and date only if provided
-	}
-	if input.AssignedUserID != nil {
-		item.AssignedUserID = input.AssignedUserID
-		now := time.Now().UTC()
-		item.AssignedDate = &now
+	item := &domain.Property{ // Changed to pointer
+		Name:             input.Name,
+		SerialNumber:     input.SerialNumber,
+		Description:      input.Description,
+		CurrentStatus:    input.CurrentStatus,
+		PropertyModelID:  input.PropertyModelID,
+		AssignedToUserID: input.AssignedToUserID,
 	}
 
-	// Insert into PostgreSQL database
-	result := database.DB.Create(&item)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create inventory item: " + result.Error.Error()})
+	// Insert into database using repository
+	if err := h.Repo.CreateProperty(item); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create inventory item: " + err.Error()})
 		return
 	}
 
-	// Log to Ledger Service
-	errLedger := h.Ledger.LogItemCreation(item, userID)
+	// Log to Ledger Service (use the item *after* creation to ensure ID is populated)
+	errLedger := h.Ledger.LogItemCreation(*item, userID)
 	if errLedger != nil {
 		// Log the error but don't fail the primary operation
 		log.Printf("WARNING: Failed to log item creation (ID: %d, SN: %s) to Ledger: %v", item.ID, item.SerialNumber, errLedger)
@@ -130,21 +139,23 @@ func (h *InventoryHandler) UpdateInventoryItemStatus(c *gin.Context) {
 		return
 	}
 
-	// Fetch item from database
-	var item domain.InventoryItem
-	result := database.DB.First(&item, uint(id))
-	if result.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Inventory item not found"})
+	// Fetch item from repository
+	item, err := h.Repo.GetPropertyByID(uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Inventory item not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inventory item"})
+		}
 		return
 	}
 
 	// Store old status for logging
-	oldStatus := item.Status
+	oldStatus := item.CurrentStatus
 
 	// Update status
-	item.Status = updateData.Status
-	result = database.DB.Save(&item)
-	if result.Error != nil {
+	item.CurrentStatus = updateData.Status
+	if err := h.Repo.UpdateProperty(item); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update inventory item status"})
 		return
 	}
@@ -180,10 +191,10 @@ func (h *InventoryHandler) GetInventoryItemsByUser(c *gin.Context) {
 		return
 	}
 
-	// Fetch items from database
-	var items []domain.InventoryItem
-	result := database.DB.Where("assigned_user_id = ?", uint(userID)).Find(&items)
-	if result.Error != nil {
+	// Fetch items using repository
+	userIDUint := uint(userID)
+	items, err := h.Repo.ListProperties(&userIDUint)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inventory items"})
 		return
 	}
@@ -195,11 +206,26 @@ func (h *InventoryHandler) GetInventoryItemsByUser(c *gin.Context) {
 func (h *InventoryHandler) GetInventoryItemHistory(c *gin.Context) {
 	// Parse serial number from URL parameter
 	serialNumber := c.Param("serialNumber")
+	if serialNumber == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Serial number parameter is required"})
+		return
+	}
 
-	// Get item history from Ledger Service
-	history, err := h.Ledger.GetItemHistory(serialNumber)
+	// Fetch the item by serial number to get its ID
+	item, err := h.Repo.GetPropertyBySerialNumber(serialNumber)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch item history from ledger"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Inventory item not found for serial number: " + serialNumber})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch item by serial number: " + err.Error()})
+		}
+		return
+	}
+
+	// Get item history from Ledger Service using ItemID
+	history, err := h.Ledger.GetItemHistory(item.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch item history from ledger: " + err.Error()})
 		return
 	}
 
@@ -238,14 +264,13 @@ func (h *InventoryHandler) VerifyInventoryItem(c *gin.Context) {
 		return
 	}
 
-	// Fetch item from database to get serial number
-	var item domain.InventoryItem
-	result := database.DB.First(&item, uint(id))
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	// Fetch item from repository to get serial number
+	item, err := h.Repo.GetPropertyByID(uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Inventory item not found"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inventory item: " + result.Error.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inventory item: " + err.Error()})
 		}
 		return
 	}
