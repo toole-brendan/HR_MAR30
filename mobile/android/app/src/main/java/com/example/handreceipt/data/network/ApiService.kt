@@ -25,6 +25,10 @@ interface ApiService {
         @Body credentials: LoginCredentials
     ): Response<LoginResponse>
 
+    // Check current session by fetching user profile
+    @GET("users/me")
+    suspend fun checkSession(): Response<LoginResponse> // Returns Response to handle 401 etc.
+
     // TODO: Add other auth endpoints like logout, register, check-session etc. if needed
     /*
     @POST("auth/logout")
@@ -42,16 +46,30 @@ interface ApiService {
     @GET("reference-db/items") // Placeholder path
     suspend fun getReferenceItems(): List<ReferenceItem>
 
+    // Get specific reference item details by ID
+    // Uses Response<ReferenceItem> to handle 404 Not Found
+    @GET("reference-db/items/{itemId}")
+    suspend fun getReferenceItemById(
+        @Path("itemId") itemId: String
+        // TODO: Add authentication if needed
+    ): Response<ReferenceItem>
+
     // --- Inventory / Property --- 
 
+    // Get properties assigned to the current user
+    @GET("users/me/inventory")
+    suspend fun getMyInventory(): Response<List<Property>>
+
+    // Get specific property details by its ID
+    @GET("inventory/id/{propertyId}")
+    suspend fun getPropertyById(
+        @Path("propertyId") propertyId: String // Or UUID/Int
+    ): Response<Property>
+
     // Get specific property details by serial number
-    // Uses Response<Property> to handle 404 Not Found without throwing an exception
-    // directly, allowing the ViewModel to manage that specific state.
     @GET("inventory/serial/{serialNumber}")
     suspend fun getPropertyBySerialNumber(
         @Path("serialNumber") serialNumber: String
-        // TODO: Add authentication headers if needed
-        // @Header("Authorization") token: String
     ): Response<Property>
 
     // Add other API functions here as needed

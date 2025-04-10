@@ -31,6 +31,7 @@ struct ManualSNEntryView: View {
                     .textInputAutocapitalization(.characters) // Changed to .characters for SNs
                     .disableAutocorrection(true)
                     .submitLabel(.search)
+                    .disabled(viewModel.lookupState == .loading) // Disable when loading
                      // Trigger search on submit (hitting return key)
                     .onSubmit { 
                         viewModel.findProperty() 

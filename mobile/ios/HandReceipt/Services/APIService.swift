@@ -11,6 +11,18 @@ protocol APIServiceProtocol {
     // Function to login a user.
     func login(credentials: LoginCredentials) async throws -> LoginResponse
 
+    // Function to check the current session status by fetching user profile.
+    func checkSession() async throws -> LoginResponse
+
+    // Add function to fetch a specific reference item by ID
+    func fetchReferenceItemById(itemId: String) async throws -> ReferenceItem
+
+    // Add function to fetch current user's properties
+    func getMyProperties() async throws -> [Property] // Expect a list of Property objects
+
+    // Add function to fetch specific property by ID
+    func getPropertyById(propertyId: String) async throws -> Property
+
     // Add other API functions here as needed (e.g., fetch by NSN, logout, etc.)
     // func fetchItemByNSN(nsn: String) async throws -> ReferenceItem
     // func logout() async throws
@@ -152,6 +164,18 @@ class APIService: APIServiceProtocol {
         return try await performRequest(request: request)
     }
 
+    // Check session function implementation
+    func checkSession() async throws -> LoginResponse {
+        let endpoint = baseURL.appendingPathComponent("/users/me") // Correct endpoint path
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "GET"
+        // Cookies are handled automatically by URLSession/HTTPCookieStorage
+
+        // Perform request, expecting LoginResponse (or a similar User Profile struct)
+        // performRequest handles decoding and potential 401 unauthorized errors
+        return try await performRequest(request: request)
+    }
+
     func fetchReferenceItems() async throws -> [ReferenceItem] {
         let endpoint = baseURL.appendingPathComponent("/reference-db/items")
         var request = URLRequest(url: endpoint)
@@ -168,6 +192,39 @@ class APIService: APIServiceProtocol {
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         // Cookies are handled automatically by URLSession/HTTPCookieStorage
+        return try await performRequest(request: request)
+    }
+
+    // Function to fetch a specific reference item by ID
+    func fetchReferenceItemById(itemId: String) async throws -> ReferenceItem {
+        guard let encodedItemId = itemId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            throw APIError.invalidURL
+        }
+        let endpoint = baseURL.appendingPathComponent("/reference-db/items/\(encodedItemId)")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "GET"
+        // Cookies are handled automatically by URLSession/HTTPCookieStorage
+        return try await performRequest(request: request)
+    }
+
+    // Function to fetch current user's properties
+    func getMyProperties() async throws -> [Property] {
+        let endpoint = baseURL.appendingPathComponent("/users/me/inventory") // Assumed endpoint
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "GET"
+        // Cookies are handled automatically by URLSession/HTTPCookieStorage
+        return try await performRequest(request: request)
+    }
+
+    // Function to fetch specific property by ID
+    func getPropertyById(propertyId: String) async throws -> Property {
+        guard let encodedPropertyId = propertyId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            throw APIError.invalidURL
+        }
+        let endpoint = baseURL.appendingPathComponent("/inventory/id/\(encodedPropertyId)") // Assumed endpoint
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "GET"
+        // Cookies handled automatically
         return try await performRequest(request: request)
     }
 }

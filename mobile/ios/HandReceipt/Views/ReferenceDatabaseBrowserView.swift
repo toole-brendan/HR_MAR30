@@ -8,20 +8,19 @@ import SwiftUI
 struct ReferenceDatabaseBrowserView: View {
     @StateObject private var viewModel = ReferenceDBViewModel()
     
-    // Callbacks defined in MainAppView / ContentView
-    var onItemConfirmed: (Property) -> Void // Placeholder, may not be used here
-    var onNavigateToManualEntry: () -> Void // Action to trigger showing the sheet
+    // State to control sheet presentation for Manual SN Entry
+    @State private var showingManualSNEntry = false
 
     var body: some View {
-         // The NavigationView is now provided by MainAppView
-         // NavigationView { // REMOVED NavigationView wrapper from here
+         // Wrap the content in a NavigationView to enable navigation links
+         NavigationView {
             VStack {
-                // REMOVE Search Bar for now
-                // TextField("Search by Name or NSN", text: $viewModel.searchQuery) ... // REMOVED
+                // Search Bar (Optional - can be added later)
+                // TextField("Search...", text: $viewModel.searchQuery)
 
                 if viewModel.isLoading {
                     ProgressView("Loading Items...")
-                        .padding()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let errorMessage = viewModel.errorMessage {
                     VStack {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -44,7 +43,6 @@ struct ReferenceDatabaseBrowserView: View {
                         .buttonStyle(.bordered)
                     }
                     .padding()
-
                 } else {
                     List {
                         if viewModel.referenceItems.isEmpty {
@@ -52,33 +50,56 @@ struct ReferenceDatabaseBrowserView: View {
                                 .foregroundColor(.gray)
                         } else {
                             ForEach(viewModel.referenceItems) { item in
-                                // Use NavigationLink to push the detail view
+                                // NavigationLink now points to the new detail view
                                 NavigationLink {
-                                     ReferenceItemDetailView(item: item)
+                                    // Pass the item's ID (assuming it's a String)
+                                     ReferenceItemDetailView(itemId: item.id.uuidString)
                                 } label: {
-                                    // Label for the row in the list
                                      ReferenceItemRow(item: item)
                                 }
                             }
                         }
                     }
                     .listStyle(PlainListStyle())
-                     // Add refresh control if needed (can stay)
                     .refreshable {
                         viewModel.loadReferenceItems()
                     }
                 }
-                 Spacer() // Keep spacer if needed for layout within VStack
+                 Spacer()
             }
             .navigationTitle("Reference Database")
+            .toolbar { // Add toolbar items here
+                 ToolbarItem(placement: .navigationBarTrailing) {
+                     Button {
+                         showingManualSNEntry = true // Show the Manual SN Entry sheet
+                     } label: {
+                         Image(systemName: "plus.magnifyingglass")
+                         Text("Enter SN")
+                     }
+                 }
+                 // Add other toolbar items if needed (e.g., Filter)
+            }
+            .sheet(isPresented: $showingManualSNEntry) { // Present Manual SN Entry as a sheet
+                 NavigationView { // Embed ManualSNEntryView in its own NavigationView for title/toolbar
+                     ManualSNEntryView(
+                        onItemConfirmed: { property in
+                            // Handle confirmed item if needed (e.g., show confirmation)
+                             print("Item confirmed from sheet: \(property.serialNumber)")
+                            showingManualSNEntry = false // Dismiss sheet
+                        }, 
+                        onCancel: { 
+                            showingManualSNEntry = false // Dismiss sheet on cancel
+                        }
+                     )
+                 }
+            }
             .onAppear {
+                // Load items only if the list is currently empty
                 if viewModel.referenceItems.isEmpty {
                     viewModel.loadReferenceItems()
                 }
             }
-             // Toolbar is now handled by MainAppView
-             // .toolbar { ... } // REMOVED Toolbar definition from here
-         // } // REMOVED NavigationView wrapper end bracket
+         } // End NavigationView
     }
 }
 
@@ -117,7 +138,7 @@ struct ReferenceItemRow: View {
 
 // Keep Placeholder Detail View (ensure it uses the correct ReferenceItem model properties)
 struct ReferenceItemDetailView: View {
-    let item: ReferenceItem // This should now use the model from Models/ReferenceItem.swift
+    let itemId: String
 
     var body: some View {
         ScrollView { // Use ScrollView for potentially long content
@@ -186,9 +207,9 @@ struct ReferenceItemDetailView: View {
 
 struct ReferenceDatabaseBrowserView_Previews: PreviewProvider {
     static var previews: some View {
-         // Wrap in NavigationView for previewing NavigationLink behavior
         NavigationView {
-             ReferenceDatabaseBrowserView(onItemConfirmed: {_ in}, onNavigateToManualEntry: {})
+            // Remove callbacks from preview initializer
+             ReferenceDatabaseBrowserView()
         }
         .previewDisplayName("Browser View")
     }

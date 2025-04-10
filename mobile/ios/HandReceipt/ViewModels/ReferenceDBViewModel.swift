@@ -28,10 +28,23 @@ class ReferenceDBViewModel: ObservableObject {
             do {
                 let items = try await apiService.fetchReferenceItems()
                 self.referenceItems = items
+            } catch let apiError as APIService.APIError {
+                 print("API Error loading reference items: \(apiError.localizedDescription)")
+                 // Provide more specific user-facing messages
+                 switch apiError {
+                 case .unauthorized:
+                     self.errorMessage = "Unauthorized. Please log in again."
+                 case .networkError:
+                     self.errorMessage = "Network error. Please check your connection."
+                 case .serverError(let code, _):
+                     self.errorMessage = "Server error (Code: \(code)). Please try again later."
+                 default:
+                     self.errorMessage = "Failed to load items: \(apiError.localizedDescription)"
+                 }
             } catch {
-                // Handle errors appropriately (e.g., show user-friendly message)
-                self.errorMessage = "Failed to load items: \(error.localizedDescription)"
-                print("Error loading reference items: \(error)")
+                // Handle other unexpected errors
+                 print("Unexpected error loading reference items: \(error)")
+                self.errorMessage = "An unexpected error occurred: \(error.localizedDescription)"
             }
             // Ensure isLoading is set to false regardless of success or failure
             self.isLoading = false

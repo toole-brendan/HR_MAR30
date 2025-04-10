@@ -153,6 +153,13 @@ This document outlines the complete implementation plan for evolving HandReceipt
   - **NEXT:** Implement Ref Item Detail screen data fetching.
   - **NEXT:** Configure Gson for Date/UUID types if needed.
   - **NEXT:** Add Coil placeholder drawables.
+  - ✅ Initialize Android Gradle Project (build.gradle, settings.gradle, etc.).
+  - ✅ Configure base dependencies (Retrofit, Gson, Coil, Lifecycle, Compose) in `app/build.gradle`.
+  - ✅ Implement Session Checking at app start using `AuthViewModel`.
+  - ✅ Implement Logout functionality using `AuthViewModel` and `MainAppScaffold`.
+  - ✅ Implement Ref Item Detail screen data fetching using `ReferenceItemDetailViewModel`.
+  - ✅ Configure Gson for Date/UUID types using TypeAdapter in `NetworkModule`.
+  - ✅ Add Coil placeholder/error drawables (`ic_placeholder.xml`, `ic_broken_image.xml`).
   - **NEXT:** Refactor network client setup using DI (Hilt/Koin).
   - **NEXT:** Refine error handling and user feedback across all screens.
   - **LATER:**
@@ -236,26 +243,31 @@ This document outlines the complete implementation plan for evolving HandReceipt
   - Prepare mobile app store submissions
   - Create deployment documentation
 
-## Next Actions (Revised - November 2023 - Post Auth/Nav Setup)
+## Next Actions (Revised - December 2023 - Post Initial Mobile Core Features)
 
 1.  **Short-term (Current Focus):**
+    *   **▶️ NEXT:** Implement Scan functionality (Camera integration, OCR/Barcode processing) (iOS & Android).
+    *   **▶️ NEXT:** Implement Transfer workflow functionality (API calls, UI updates) (iOS & Android).
+    *   **LATER:** Conduct initial OCR/Scanning testing (iOS & Android).
+
+    *   _Completed Short-term Items:_
     *   ✅ Implement basic mobile Models (`ReferenceItem`, `Property`, `AuthModels`) for iOS & Android.
-    *   ✅ Implement basic mobile API Services (`APIService.swift`, `ApiService.kt`) with cookie handling & login.
-    *   ✅ Implement basic mobile ViewModels/State management (`ReferenceDbViewModel`, `ManualSNViewModel`, `LoginViewModel`) for core screens.
-    *   ✅ Implement basic mobile Views/Screens (`ReferenceDatabaseBrowser`, `ManualSNEntry`, `Login`) connected to ViewModels.
-    *   ✅ Set up basic Authentication Handling (API Client + Login Screen/VM) for iOS & Android.
-    *   ✅ Set up basic Navigation between Login / Main screens for iOS & Android.
-    *   ▶️ **Implement Session Checking at app start (iOS & Android).**
-    *   ▶️ Implement Logout functionality (iOS & Android).
-    *   ▶️ Android: Implement Ref Item Detail screen data fetching.
-    *   ▶️ Android: Configure dependencies (Coil), add placeholder drawables, configure Gson Date/UUID handling.
-    *   ▶️ Android: Refactor network client setup using DI (Hilt/Koin).
-    *   ▶️ Refine error handling and UX across all screens (iOS & Android).
-    *   Conduct initial OCR testing.
+    *   ✅ Implement basic mobile API Services (`APIService.swift`, `ApiService.kt`) with core endpoints (Auth, RefDB, Properties List/Detail).
+    *   ✅ Implement basic mobile ViewModels/State management for core screens (Login, RefDB List/Detail, MyProperties List/Detail, Scan Placeholder, Transfers Placeholder).
+    *   ✅ Implement basic mobile Views/Screens for core features (Login, RefDB List/Detail, MyProperties List/Detail, Scan Placeholder, Transfers Placeholder).
+    *   ✅ Renamed Android "Inventory" components to "Property" (`MyPropertiesViewModel`, `MyPropertiesScreen`).
+    *   ✅ Set up basic Authentication Handling & Session Checking (iOS & Android).
+    *   ✅ Set up basic Navigation (Login > Main App Graph, Detail Screens) (iOS & Android).
+    *   ✅ **Android:** Implemented Bottom Navigation Bar (`MainAppScaffold`, `NavigationBar`).
+    *   ✅ **iOS:** Implemented TabView Navigation (`AuthenticatedTabView`).
+    *   ✅ **Android:** Refactored network client setup using Dependency Injection (**Hilt**).
+    *   ✅ **iOS & Android:** Refined error handling and user feedback across core screens.
 
 2.  **Medium-term (Weeks/Months):**
-    *   Implement core mobile features (Inventory Management screens, Transfer Workflows).
-    *   Integrate ML Kit / Vision Framework for OCR/Scanning.
+    *   Implement mobile Search/Filtering (e.g., in Reference DB Browser).
+    *   Implement Property Detail screen *full* functionality (e.g., fetch assigned user name, link to history) (Android/iOS).
+    *   Implement Transfer workflow *full* functionality (Request initiation, Approval/Rejection UI logic).
+    *   Integrate ML Kit / Vision Framework for OCR/Scanning (Implementation beyond initial testing & placeholder).
 
 3.  **Long-term (Months):**
     *   Implement advanced mobile features (offline support, sync).

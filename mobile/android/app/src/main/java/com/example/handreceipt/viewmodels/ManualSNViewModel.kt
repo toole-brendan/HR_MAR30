@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.handreceipt.data.model.Property
 import com.example.handreceipt.data.network.ApiService
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 // Sealed interface to represent the UI state for property lookup
 sealed interface PropertyLookupUiState {
@@ -20,11 +22,14 @@ sealed interface PropertyLookupUiState {
 }
 
 @OptIn(FlowPreview::class) // For debounce
-class ManualSNViewModel : ViewModel() {
+@HiltViewModel
+class ManualSNViewModel @Inject constructor(
+    private val service: ApiService
+): ViewModel() {
 
     // --- State Management --- 
 
-    // MutableStateFlow for the serial number input text
+    // MutableStateFlow for the serial number input
     private val _serialNumberInput = MutableStateFlow("")
     val serialNumberInput: StateFlow<String> = _serialNumberInput.asStateFlow()
 
@@ -37,7 +42,7 @@ class ManualSNViewModel : ViewModel() {
 
     // Use the ApiService instance provided by the ReferenceDbViewModel's companion object
     // TODO: Replace this with proper Dependency Injection (Hilt/Koin)
-    private val service: ApiService = ReferenceDbViewModel.apiService 
+    // private val service: ApiService = ReferenceDbViewModel.apiService 
 
     // --- Initialization & Logic --- 
 

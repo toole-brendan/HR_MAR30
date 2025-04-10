@@ -38,12 +38,19 @@ struct LoginView: View {
                 
                 // --- Error Message --- 
                  // Use a specific frame height to prevent layout jumps
-                 // when error message appears/disappears
-                Text(errorMessage)
-                    .font(.caption)
-                    .foregroundColor(.red)
-                    .frame(height: 30, alignment: .leading)
-                    .padding(.horizontal, 40)
+                HStack(spacing: 4) { // Use HStack for icon + text
+                     if !errorMessage.isEmpty {
+                         Image(systemName: "exclamationmark.circle") // Add error icon
+                            .foregroundColor(.red)
+                     }
+                    Text(errorMessage)
+                        .font(.caption)
+                        .fontWeight(.medium) // Slightly bolder text
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity, alignment: .leading) // Allow text to wrap
+                }
+                .frame(height: 30, alignment: .leading)
+                .padding(.horizontal, 40)
 
                 // --- Login Button --- 
                 Button {
