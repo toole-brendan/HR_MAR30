@@ -25,6 +25,7 @@ import {
   Bell,
   UserCog,
   History,
+  FileClock,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -130,6 +131,7 @@ const Sidebar = ({
   const adminNavItems: NavItem[] = [
     { path: "/user-management", icon: <UserCog className="sidebar-item-icon" />, label: "User Management" },
     { path: "/audit-log", icon: <History className="sidebar-item-icon" />, label: "Ledger History" },
+    { path: "/correction-log", icon: <FileClock className="sidebar-item-icon" />, label: "Correction Log" },
   ];
   
   // Footer actions

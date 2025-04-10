@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// Initialize Repository
-	repo := repository.NewGormRepository(db)
+	repo := repository.NewPostgresRepository(db)
 
 	// Initialize Ledger Service
 	var ledgerService ledger.LedgerService

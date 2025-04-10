@@ -35,6 +35,11 @@ type LedgerService interface {
 	// For Azure SQL Ledger, this would involve calling verification stored procedures/functions.
 	VerifyDocument(documentID string, tableName string) (bool, error)
 
+	// Query Correction Events
+	GetAllCorrectionEvents() ([]domain.CorrectionEvent, error)
+	GetCorrectionEventsByOriginalID(originalEventID string) ([]domain.CorrectionEvent, error)
+	GetCorrectionEventByID(eventID string) (*domain.CorrectionEvent, error)
+
 	// Initialize prepares the ledger service (e.g., connects, ensures tables/ledger exist).
 	Initialize() error
 

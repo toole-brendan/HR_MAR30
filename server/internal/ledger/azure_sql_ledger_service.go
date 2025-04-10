@@ -249,28 +249,34 @@ func (s *AzureSqlLedgerService) LogMaintenanceEvent(maintenanceRecordID string, 
 //  2. Inserting a 'correction' record into a dedicated corrections table or the original table,
 //     referencing the transaction ID or EventID of the record being corrected.
 //
-// This function is a placeholder and needs implementation based on the chosen strategy.
+// This function implements Strategy A (Separate Correction Table).
 func (s *AzureSqlLedgerService) LogCorrectionEvent(originalEventID string, eventType string, reason string, userID uint) error {
-	// ctx := context.Background() // Remove unused ctx for now
-	log.Printf("AzureSqlLedgerService: Logging correction event for Original Event: %s (Type: %s) - NOT IMPLEMENTED", originalEventID, eventType)
-	// TODO: Implement correction logic based on the chosen strategy for Azure SQL Ledger.
-	// Example (Strategy 2: Separate Correction Table):
-	/*
-		_, err := s.db.ExecContext(ctx,
-			`INSERT INTO HandReceipt.CorrectionEvents (OriginalEventID, CorrectingEventType, Reason, CorrectingUserID, CorrectionTimestamp)
-			 VALUES (@p1, @p2, @p3, @p4, SYSUTCDATETIME())`,
-			originalEventID, // Assuming OriginalEventID is the EventID (GUID) from the original table
-			eventType,
-			reason,
-			userID,
-		)
-		if err != nil {
-			log.Printf("Error logging correction event to Azure SQL Ledger: %v", err)
-			return fmt.Errorf("failed to log correction event: %w", err)
-		}
-		log.Printf("Successfully logged correction event for Original Event: %s", originalEventID)
-	*/
-	return fmt.Errorf("correction logging not implemented") // Return error until implemented
+	ctx := context.Background()
+	log.Printf("AzureSqlLedgerService: Logging correction event for Original Event: %s (Type: %s) by UserID: %d", originalEventID, eventType, userID)
+
+	// Basic validation (consider adding more robust validation if needed)
+	if originalEventID == "" || eventType == "" || reason == "" {
+		return fmt.Errorf("missing required parameters for correction event")
+	}
+
+	// Assuming OriginalEventID is provided as a string representation of a UNIQUEIDENTIFIER
+	// SQL Server will handle the conversion if the string format is correct.
+	_, err := s.db.ExecContext(ctx,
+		`INSERT INTO HandReceipt.CorrectionEvents (OriginalEventID, OriginalEventType, Reason, CorrectingUserID, CorrectionTimestamp)
+		 VALUES (@p1, @p2, @p3, @p4, SYSUTCDATETIME())`,
+		originalEventID,
+		eventType,
+		reason,
+		userID,
+	)
+
+	if err != nil {
+		log.Printf("Error logging correction event to Azure SQL Ledger: %v", err)
+		return fmt.Errorf("failed to log correction event: %w", err)
+	}
+
+	log.Printf("Successfully logged correction event for Original Event ID: %s", originalEventID)
+	return nil
 }
 
 // GetItemHistory retrieves the history of an item from the Azure SQL Ledger tables based on its ItemID.
@@ -372,6 +378,116 @@ func (s *AzureSqlLedgerService) GetItemHistory(itemID uint) ([]map[string]interf
 
 	log.Printf("Retrieved %d history events for ItemID: %d", len(history), itemID)
 	return history, nil
+}
+
+// GetAllCorrectionEvents retrieves all correction events from the ledger.
+func (s *AzureSqlLedgerService) GetAllCorrectionEvents() ([]domain.CorrectionEvent, error) {
+	ctx := context.Background()
+	log.Println("AzureSqlLedgerService: Getting all correction events")
+
+	query := `SELECT EventID, OriginalEventID, OriginalEventType, Reason, CorrectingUserID, CorrectionTimestamp, ledger_transaction_id, ledger_sequence_number
+			 FROM HandReceipt.CorrectionEvents_LedgerHistory ORDER BY CorrectionTimestamp DESC` // Use history view
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		log.Printf("Error querying all correction events: %v", err)
+		return nil, fmt.Errorf("failed to query correction events: %w", err)
+	}
+	defer rows.Close()
+
+	return scanCorrectionEvents(rows)
+}
+
+// GetCorrectionEventsByOriginalID retrieves correction events related to a specific original event ID.
+func (s *AzureSqlLedgerService) GetCorrectionEventsByOriginalID(originalEventID string) ([]domain.CorrectionEvent, error) {
+	ctx := context.Background()
+	log.Printf("AzureSqlLedgerService: Getting correction events for OriginalEventID: %s", originalEventID)
+
+	query := `SELECT EventID, OriginalEventID, OriginalEventType, Reason, CorrectingUserID, CorrectionTimestamp, ledger_transaction_id, ledger_sequence_number
+			 FROM HandReceipt.CorrectionEvents_LedgerHistory
+			 WHERE OriginalEventID = @p1 ORDER BY CorrectionTimestamp DESC` // Use history view
+
+	rows, err := s.db.QueryContext(ctx, query, originalEventID)
+	if err != nil {
+		log.Printf("Error querying correction events by original ID: %v", err)
+		return nil, fmt.Errorf("failed to query correction events by original ID: %w", err)
+	}
+	defer rows.Close()
+
+	return scanCorrectionEvents(rows)
+}
+
+// GetCorrectionEventByID retrieves a specific correction event by its own EventID.
+func (s *AzureSqlLedgerService) GetCorrectionEventByID(eventID string) (*domain.CorrectionEvent, error) {
+	ctx := context.Background()
+	log.Printf("AzureSqlLedgerService: Getting correction event by EventID: %s", eventID)
+
+	query := `SELECT TOP 1 EventID, OriginalEventID, OriginalEventType, Reason, CorrectingUserID, CorrectionTimestamp, ledger_transaction_id, ledger_sequence_number
+			 FROM HandReceipt.CorrectionEvents_LedgerHistory
+			 WHERE EventID = @p1` // Use history view
+
+	rows, err := s.db.QueryContext(ctx, query, eventID)
+	if err != nil {
+		log.Printf("Error querying correction event by ID: %v", err)
+		return nil, fmt.Errorf("failed to query correction event by ID: %w", err)
+	}
+	defer rows.Close()
+
+	events, err := scanCorrectionEvents(rows)
+	if err != nil {
+		return nil, err
+	}
+	if len(events) == 0 {
+		return nil, nil // Not found
+	}
+	return &events[0], nil
+}
+
+// scanCorrectionEvents is a helper function to scan sql.Rows into a slice of CorrectionEvent.
+func scanCorrectionEvents(rows *sql.Rows) ([]domain.CorrectionEvent, error) {
+	var events []domain.CorrectionEvent
+	for rows.Next() {
+		var event domain.CorrectionEvent
+		// Need pointers for nullable ledger metadata
+		var ledgerTxID sql.NullInt64
+		var ledgerSeqNum sql.NullInt64
+		// Need strings for GUIDs coming from DB
+		var eventIDStr, originalEventIDStr string
+
+		if err := rows.Scan(
+			&eventIDStr,         // Scan GUID as string
+			&originalEventIDStr, // Scan GUID as string
+			&event.OriginalEventType,
+			&event.Reason,
+			&event.CorrectingUserID, // Scan BIGINT as uint64
+			&event.CorrectionTimestamp,
+			&ledgerTxID,
+			&ledgerSeqNum,
+		); err != nil {
+			log.Printf("Error scanning correction event row: %v", err)
+			return nil, fmt.Errorf("failed to scan correction event row: %w", err)
+		}
+
+		// Assign scanned strings to struct fields
+		event.EventID = eventIDStr
+		event.OriginalEventID = originalEventIDStr
+
+		// Assign nullable ledger metadata
+		if ledgerTxID.Valid {
+			event.LedgerTransactionID = &ledgerTxID.Int64
+		}
+		if ledgerSeqNum.Valid {
+			event.LedgerSequenceNumber = &ledgerSeqNum.Int64
+		}
+
+		events = append(events, event)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating correction event rows: %v", err)
+		return nil, fmt.Errorf("failed during correction event row iteration: %w", err)
+	}
+	return events, nil
 }
 
 // VerifyDocument checks the integrity of the database ledger using Azure SQL Ledger's built-in procedure.

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -286,4 +287,46 @@ func (h *InventoryHandler) VerifyInventoryItem(c *gin.Context) {
 
 	log.Printf("Successfully logged verification event for ItemID: %d, SN: %s", item.ID, item.SerialNumber)
 	c.JSON(http.StatusOK, gin.H{"message": "Verification event logged successfully"})
+}
+
+// GetPropertyBySerialNumber godoc
+// @Summary Get property by serial number
+// @Description Get details for a specific property item by its unique serial number
+// @Tags Inventory
+// @Produce json
+// @Param serialNumber path string true "Serial Number"
+// @Success 200 {object} domain.Property "Successfully retrieved property"
+// @Failure 400 {object} map[string]string "error: Invalid Serial Number parameter"
+// @Failure 404 {object} map[string]string "error: Property not found"
+// @Failure 500 {object} map[string]string "error: Failed to fetch property"
+// @Router /inventory/serial/{serialNumber} [get]
+// @Security BearerAuth
+func (h *InventoryHandler) GetPropertyBySerialNumber(c *gin.Context) {
+	serialNumber := c.Param("serialNumber")
+	if serialNumber == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Serial number parameter cannot be empty"})
+		return
+	}
+
+	property, err := h.Repo.GetPropertyBySerialNumber(serialNumber)
+	if err != nil {
+		// Check if the error indicates the record was not found
+		// Note: The repository might return nil, nil or a specific error for not found
+		// Assuming the repository returns gorm.ErrRecordNotFound or equivalent
+		if errors.Is(err, gorm.ErrRecordNotFound) { // Adjust if your repo uses a different not-found indicator
+			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Property with serial number '%s' not found", serialNumber)})
+		} else {
+			log.Printf("Error fetching property by serial number %s: %v", serialNumber, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch property by serial number"})
+		}
+		return
+	}
+
+	// Handle the case where the repository returns nil, nil explicitly (if applicable)
+	if property == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Property with serial number '%s' not found", serialNumber)})
+		return
+	}
+
+	c.JSON(http.StatusOK, property) // Return the found property directly
 }

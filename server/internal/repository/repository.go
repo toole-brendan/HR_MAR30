@@ -10,6 +10,7 @@ type Repository interface {
 	CreateUser(user *domain.User) error
 	GetUserByID(id uint) (*domain.User, error)
 	GetUserByUsername(username string) (*domain.User, error)
+	GetAllUsers() ([]domain.User, error)
 	// Add other user methods as needed (Update, Delete, List)
 
 	// Property operations

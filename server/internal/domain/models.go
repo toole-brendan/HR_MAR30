@@ -135,3 +135,16 @@ type LoginInput struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
+// CorrectionEvent represents a record from the CorrectionEvents ledger table.
+type CorrectionEvent struct {
+	EventID             string    `json:"eventId"`             // EventID (UNIQUEIDENTIFIER as string)
+	OriginalEventID     string    `json:"originalEventId"`     // OriginalEventID (UNIQUEIDENTIFIER as string)
+	OriginalEventType   string    `json:"originalEventType"`   // Type hint for the original event
+	Reason              string    `json:"reason"`              // Reason for correction
+	CorrectingUserID    uint64    `json:"correctingUserId"`    // User ID (BIGINT)
+	CorrectionTimestamp time.Time `json:"correctionTimestamp"` // Timestamp from DB
+	// Optional Ledger metadata (might be useful for UI)
+	LedgerTransactionID  *int64 `json:"ledgerTransactionId,omitempty"`
+	LedgerSequenceNumber *int64 `json:"ledgerSequenceNumber,omitempty"`
+}

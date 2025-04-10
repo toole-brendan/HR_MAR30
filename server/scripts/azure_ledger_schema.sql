@@ -67,3 +67,36 @@ CREATE TABLE HandReceipt.StatusChangeEvents (
     Reason NVARCHAR(MAX) NULL            -- Optional reason for the status change
 )
 WITH (SYSTEM_VERSIONING = ON, LEDGER = ON);
+
+-- =============================================
+-- CorrectionEvents Table (Append-Only Ledger)
+-- =============================================
+PRINT 'Creating CorrectionEvents table...';
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'CorrectionEvents' AND schema_id = SCHEMA_ID('HandReceipt'))
+BEGIN
+    CREATE TABLE HandReceipt.CorrectionEvents (
+        EventID UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY NONCLUSTERED, -- Unique ID for the correction event itself
+        OriginalEventID UNIQUEIDENTIFIER NOT NULL, -- ID of the ledger event being corrected (from its respective table)
+        OriginalEventType NVARCHAR(50) NOT NULL, -- Type of the original event (e.g., 'TransferEvent', 'StatusChangeEvent') to help locate it
+        Reason NVARCHAR(MAX) NOT NULL, -- Explanation for the correction
+        CorrectingUserID BIGINT NOT NULL, -- User who logged the correction
+        CorrectionTimestamp DATETIME2 GENERATED ALWAYS AS ROW START NOT NULL,
+        -- Ledger-specific columns
+        ledger_transaction_id BIGINT NULL,
+        ledger_sequence_number BIGINT NULL
+    )
+    WITH (
+        SYSTEM_VERSIONING = OFF, -- Explicitly OFF for Append-Only Ledger
+        LEDGER = ON (APPEND_ONLY = ON)
+    );
+    PRINT 'CorrectionEvents table created.';
+
+    -- Optional: Index on OriginalEventID for faster lookups
+    CREATE INDEX IX_CorrectionEvents_OriginalEventID ON HandReceipt.CorrectionEvents(OriginalEventID);
+    PRINT 'Index on OriginalEventID created for CorrectionEvents.';
+END
+ELSE
+BEGIN
+    PRINT 'CorrectionEvents table already exists.';
+END
+GO

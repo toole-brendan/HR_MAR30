@@ -21,6 +21,7 @@ func SetupRoutes(router *gin.Engine, ledgerService ledger.LedgerService, repo re
 	verificationHandler := handlers.NewVerificationHandler(ledgerService)
 	correctionHandler := handlers.NewCorrectionHandler(ledgerService)
 	referenceDBHandler := handlers.NewReferenceDBHandler(repo) // Add ReferenceDB handler
+	userHandler := handlers.NewUserHandler(repo)               // Added User handler
 	// ... more handlers will be added in the future
 
 	// TODO: Update other handlers to use repository when needed
@@ -55,6 +56,7 @@ func SetupRoutes(router *gin.Engine, ledgerService ledger.LedgerService, repo re
 			inventory.GET("/user/:userId", inventoryHandler.GetInventoryItemsByUser)
 			inventory.GET("/history/:serialNumber", inventoryHandler.GetInventoryItemHistory)
 			inventory.POST("/:id/verify", inventoryHandler.VerifyInventoryItem)
+			inventory.GET("/serial/:serialNumber", inventoryHandler.GetPropertyBySerialNumber)
 		}
 
 		// Transfer routes
@@ -78,7 +80,7 @@ func SetupRoutes(router *gin.Engine, ledgerService ledger.LedgerService, repo re
 		// Verification routes (for checking ledger status/integrity)
 		verification := protected.Group("/verification")
 		{
-			verification.GET("/status", verificationHandler.CheckLedgerStatus)
+			verification.GET("/database", verificationHandler.VerifyDatabaseLedger)
 			// TODO: Add route for full cryptographic document verification
 		}
 
@@ -86,6 +88,9 @@ func SetupRoutes(router *gin.Engine, ledgerService ledger.LedgerService, repo re
 		correction := protected.Group("/corrections")
 		{
 			correction.POST("", correctionHandler.CreateCorrection)
+			correction.GET("", correctionHandler.GetAllCorrections)
+			correction.GET("/:event_id", correctionHandler.GetCorrectionEventByID)
+			correction.GET("/original/:original_event_id", correctionHandler.GetCorrectionsByOriginalID)
 			// TODO: Add routes for querying/viewing correction events?
 		}
 
@@ -95,6 +100,14 @@ func SetupRoutes(router *gin.Engine, ledgerService ledger.LedgerService, repo re
 			reference.GET("/types", referenceDBHandler.ListPropertyTypes)
 			reference.GET("/models", referenceDBHandler.ListPropertyModels)
 			reference.GET("/models/nsn/:nsn", referenceDBHandler.GetPropertyModelByNSN)
+		}
+
+		// User management routes
+		users := protected.Group("/users")
+		{
+			users.GET("", userHandler.GetAllUsers)
+			users.GET("/:id", userHandler.GetUserByID)
+			// POST /api/users from Node is handled by POST /api/auth/register
 		}
 	}
 }
