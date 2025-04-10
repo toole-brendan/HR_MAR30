@@ -5,11 +5,14 @@ import com.example.handreceipt.data.model.LoginCredentials
 import com.example.handreceipt.data.model.LoginResponse
 import com.example.handreceipt.data.model.Property
 import com.example.handreceipt.data.model.ReferenceItem
+import com.example.handreceipt.data.model.TransferRequest
+import com.example.handreceipt.data.model.User // Import User model
 import retrofit2.Response
 import retrofit2.http.Body // Import Body annotation
 import retrofit2.http.GET
 import retrofit2.http.POST // Import POST annotation
 import retrofit2.http.Path
+import retrofit2.http.Query // Import Query annotation
 // import retrofit2.http.Header // Import if adding authentication headers
 
 // Retrofit interface defining the API endpoints
@@ -30,13 +33,8 @@ interface ApiService {
     suspend fun checkSession(): Response<LoginResponse> // Returns Response to handle 401 etc.
 
     // TODO: Add other auth endpoints like logout, register, check-session etc. if needed
-    /*
     @POST("auth/logout")
-    suspend fun logout(): Response<Unit> // Or some confirmation response
-    
-    @GET("users/me") // Example protected endpoint to check session
-    suspend fun getCurrentUser(): Response<User> // Assuming a User model
-    */
+    suspend fun logout(): Response<Unit> // Assuming logout returns no specific body
 
     // --- Reference Database --- 
 
@@ -88,4 +86,51 @@ interface ApiService {
         @Path("propertyId") propertyId: String // Or UUID/Int
     ): Response<Property>
     */
+
+    // --- Transfers ---
+
+    // Request a property transfer
+    @POST("transfers/request") // Assuming endpoint path /api/transfers/request
+    suspend fun requestTransfer(
+        @Body request: TransferRequest
+    ): Response<Unit> // Assuming simple 200 OK or error response, adjust if backend sends a body
+
+    // TODO: Add endpoints for viewing transfers (pending, history)
+    // TODO: Add endpoints for approving/rejecting transfers
+
+    // --- Users ---
+
+    // Search users by query (e.g., username)
+    @GET("users") // Assuming endpoint path /api/users
+    suspend fun searchUsers(
+        @Query("search") query: String // Assuming backend uses 'search' query parameter
+    ): Response<List<User>> // Returns a list of matching users
+
+    // Endpoint to get current user details (already exists)
+    @GET("users/me")
+    suspend fun checkSession(): Response<LoginResponse> // Assuming LoginResponse contains User info or similar
+
+    // TODO: Add endpoint to get user by ID if needed for recipient details display?
+
+    // --- Transfer Endpoints ---
+
+    @GET("/api/transfers")
+    suspend fun getTransfers(
+        @Query("status") status: String? = null, // e.g., "PENDING", "APPROVED"
+        @Query("direction") direction: String? = null // e.g., "incoming", "outgoing"
+    ): Response<List<Transfer>>
+
+    @POST("/api/transfers")
+    suspend fun requestTransfer(@Body transferRequest: TransferRequest): Response<Transfer> // Assuming backend returns the created transfer
+
+    @POST("/api/transfers/{transferId}/approve")
+    suspend fun approveTransfer(@Path("transferId") transferId: String): Response<Transfer> // Assuming backend returns the updated transfer
+    
+    @POST("/api/transfers/{transferId}/reject")
+    suspend fun rejectTransfer(@Path("transferId") transferId: String): Response<Transfer> // Assuming backend returns the updated transfer
+
+    // --- User Endpoints ---
+    
+    @GET("/api/users")
+    suspend fun getUsers(@Query("search") searchQuery: String? = null): Response<List<User>>
 } 

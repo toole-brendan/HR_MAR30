@@ -3,6 +3,8 @@ import SwiftUI
 struct PropertyDetailView: View {
     @StateObject private var viewModel: PropertyDetailViewModel
     
+    @Environment(\.dismiss) var dismiss
+
     // Shared Date Formatter (Consider moving to a Utils file)
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -16,124 +18,106 @@ struct PropertyDetailView: View {
     }
 
     var body: some View {
-        content
-            .navigationTitle("Property Detail") // Default title
-            .navigationBarTitleDisplayMode(.inline)
-            // Potentially update title when data loads
-            .onChange(of: viewModel.loadingState) { newState in
-                 // Can update navigation title here if needed, though requires more complex state management
-            }
-    }
-    
-    @ViewBuilder
-    private var content: some View {
-        switch viewModel.loadingState {
-        case .idle, .loading:
-            ProgressView("Loading Details...")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        case .success(let property):
-            PropertyDetailContentView(property: property, dateFormatter: dateFormatter)
-        case .error(let message):
-            // Use the generic ErrorStateView from MyPropertiesView
-            ErrorStateView(message: message) { 
-                viewModel.fetchDetails()
+        VStack(alignment: .leading) {
+            if viewModel.isLoading {
+                ProgressView()
+            } else if let property = viewModel.property {
+                PropertyDetailContent(property: property, viewModel: viewModel)
+            } else if let errorMessage = viewModel.errorMessage {
+                Text("Error: \(errorMessage)")
+                    .foregroundColor(.red)
+            } else {
+                Text("Property details could not be loaded.")
             }
         }
+        .navigationTitle(viewModel.property?.serialNumber ?? "Details")
+         .navigationBarTitleDisplayMode(.inline)
+         .toolbar { // Add actions to toolbar
+             ToolbarItem(placement: .navigationBarTrailing) {
+                 if viewModel.property != nil { // Only show if property is loaded
+                    Button("Request Transfer") {
+                         viewModel.requestTransferClicked()
+                     }
+                      .disabled(viewModel.transferRequestState == .loading) // Disable if already requesting
+                 }
+             }
+         }
+         // Present User Selection Sheet
+         .sheet(isPresented: $viewModel.showingUserSelection) {
+             UserSelectionView(onUserSelected: { selectedUser in
+                 viewModel.initiateTransfer(targetUser: selectedUser)
+             })
+         }
+         // TODO: Display transferRequestState feedback (loading/success/error)
+         // Similar to TransferStatusMessage in ScanView, perhaps as an overlay or alert
+         .overlay( // Example: Simple overlay for loading/error
+             Group { 
+                 if viewModel.transferRequestState == .loading {
+                     ProgressView("Requesting Transfer...")
+                         .padding()
+                         .background(.thinMaterial)
+                         .cornerRadius(10)
+                 } else if case .error(let msg) = viewModel.transferRequestState {
+                      Text("Transfer Error: \(msg)")
+                         .padding()
+                         .foregroundColor(.white)
+                         .background(Color.red.opacity(0.8))
+                         .cornerRadius(10)
+                         // Auto-dismiss error? Or require user interaction?
+                 } else if case .success = viewModel.transferRequestState {
+                      // Success message handled by timer in VM for now
+                      // Could show temporary checkmark here
+                      Image(systemName: "checkmark.circle.fill")
+                          .resizable()
+                          .frame(width: 50, height: 50)
+                          .foregroundColor(.green)
+                          .padding()
+                          .background(.thinMaterial)
+                          .cornerRadius(10)
+                 }
+             }
+             .animation(.easeInOut, value: viewModel.transferRequestState)
+         )
     }
 }
 
-// Subview to display the property content
-struct PropertyDetailContentView: View {
+// Extracted content view
+struct PropertyDetailContent: View {
     let property: Property
-    let dateFormatter: DateFormatter
+    // Use @ObservedObject if actions need the VM instance directly
+     @ObservedObject var viewModel: PropertyDetailViewModel 
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(property.itemName).font(.largeTitle).padding(.bottom, 4)
-
-                PropertyInfoRowView(label: "Serial Number", value: property.serialNumber)
-                PropertyInfoRowView(label: "NSN", value: property.nsn)
-                PropertyInfoRowView(label: "Status", value: property.status)
-                PropertyInfoRowView(label: "Location", value: property.location)
-
-                if let lastInv = property.lastInventoryDate {
-                    PropertyInfoRowView(label: "Last Inventory", value: lastInv, formatter: dateFormatter)
-                }
-                if let acqDate = property.acquisitionDate {
-                    PropertyInfoRowView(label: "Acquisition Date", value: acqDate, formatter: dateFormatter)
-                }
-                 if let assignedTo = property.assignedToUserId {
-                    // TODO: Fetch and display user name
-                    PropertyInfoRowView(label: "Assigned To", value: "User ID: \(assignedTo.uuidString)")
-                 }
-                if let notes = property.notes, !notes.isEmpty {
-                     Divider()
-                     Text("Notes").font(.headline)
-                     Text(notes).font(.body)
-                 }
-
+        ScrollView { // Make content scrollable if it gets long
+            VStack(alignment: .leading, spacing: 12) {
+                 DetailRow(label: "Item Name", value: property.referenceItem?.itemName ?? "N/A")
+                 DetailRow(label: "NSN", value: property.nsn)
+                 DetailRow(label: "Serial Number", value: property.serialNumber ?? "N/A")
                  Divider()
+                 DetailRow(label: "Status", value: property.status ?? "N/A")
+                 DetailRow(label: "Location", value: property.location ?? "N/A")
+                 DetailRow(label: "Assigned To ID", value: property.assignedToUserId?.uuidString ?? "None")
+                 // TODO: Fetch and display assigned user name?
                 
-                 // Action Buttons
-                 HStack(spacing: 12) {
-                     Spacer()
-                     Button {
-                         // TODO: Implement Transfer Action
-                         print("Initiate Transfer Tapped")
-                     } label: {
-                         Label("Initiate Transfer", systemImage: "arrow.right.arrow.left.circle.fill")
-                     }
-                     .buttonStyle(.borderedProminent)
-
-                     Button {
-                         // TODO: Implement View History Action
-                         print("View History Tapped")
-                     } label: {
-                          Label("History", systemImage: "list.bullet.clipboard.fill")
-                     }
-                     .buttonStyle(.bordered)
-                     Spacer()
-                 }
-                 .padding(.top)
-
+                // Spacer() // Removed spacer for ScrollView
             }
             .padding()
         }
     }
 }
 
-// Reusable Row View for Detail Screens
-struct PropertyInfoRowView: View {
+// Helper view for consistent detail rows
+struct DetailRow: View {
     let label: String
-    let value: String?
-    var formatter: Formatter? = nil
-    
-    init(label: String, value: String?) {
-        self.label = label
-        self.value = value
-        self.formatter = nil
-    }
-    
-    init(label: String, value: Date?, formatter: Formatter) {
-        self.label = label
-        self.formatter = formatter
-        if let dateValue = value {
-             self.value = formatter.string(for: dateValue)
-         } else {
-             self.value = nil
-         }
-    }
+    let value: String
 
     var body: some View {
-        HStack(alignment: .top) {
-            Text("\(label):")
-                .font(.headline)
-                .frame(width: 140, alignment: .leading)
-            Text(value ?? "N/A")
-                .font(.body)
-                .foregroundColor(value == nil ? .secondary : .primary)
-            Spacer() // Push content to leading edge
+        HStack {
+            Text(label + ":")
+                .bold()
+                .frame(width: 120, alignment: .leading)
+            Text(value)
+            Spacer() // Pushes content to the left
         }
     }
 }

@@ -227,6 +227,75 @@ class APIService: APIServiceProtocol {
         // Cookies handled automatically
         return try await performRequest(request: request)
     }
+
+    // Fetch Property Detail
+    func fetchPropertyDetail(propertyId: String, completion: @escaping (Result<Property, Error>) -> Void) {
+        let urlString = baseURL.appendingPathComponent("/api/inventory/\(propertyId)").absoluteString
+        performRequest(urlString: urlString, method: "GET", completion: completion)
+    }
+
+    // Fetch Property by Serial Number
+    func fetchPropertyBySerial(serialNumber: String, completion: @escaping (Result<Property, Error>) -> Void) {
+        // Ensure serialNumber is URL encoded if it might contain special characters
+        guard let encodedSerial = serialNumber.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            completion(.failure(APIError.invalidURL))
+            return
+        }
+        let urlString = baseURL.appendingPathComponent("/api/inventory/serial/\(encodedSerial)").absoluteString
+        performRequest(urlString: urlString, method: "GET", completion: completion)
+    }
+
+    // --- Transfer Functions ---
+    
+    // Fetch Transfers (with optional filters)
+    func fetchTransfers(status: String? = nil, direction: String? = nil, completion: @escaping (Result<[Transfer], Error>) -> Void) {
+        var urlComponents = URLComponents(string: baseURL.appendingPathComponent("/api/transfers").absoluteString)
+        var queryItems = [URLQueryItem]()
+        if let status = status { queryItems.append(URLQueryItem(name: "status", value: status)) }
+        if let direction = direction { queryItems.append(URLQueryItem(name: "direction", value: direction)) }
+        if !queryItems.isEmpty { urlComponents?.queryItems = queryItems }
+        
+        guard let urlString = urlComponents?.string else {
+            completion(.failure(APIError.invalidURL))
+            return
+        }
+        performRequest(urlString: urlString, method: "GET", completion: completion)
+    }
+    
+    // Request Transfer
+    func requestTransfer(propertyId: UUID, targetUserId: UUID, completion: @escaping (Result<Transfer, Error>) -> Void) {
+        let urlString = baseURL.appendingPathComponent("/api/transfers").absoluteString
+        let requestBody = TransferRequest(propertyId: propertyId, targetUserId: targetUserId)
+        performRequest(urlString: urlString, method: "POST", body: requestBody, completion: completion)
+    }
+    
+    // Approve Transfer
+    func approveTransfer(transferId: UUID, completion: @escaping (Result<Transfer, Error>) -> Void) {
+        let urlString = baseURL.appendingPathComponent("/api/transfers/\(transferId.uuidString)/approve").absoluteString
+        performRequest(urlString: urlString, method: "POST", completion: completion) // Assuming no body needed
+    }
+    
+    // Reject Transfer
+    func rejectTransfer(transferId: UUID, completion: @escaping (Result<Transfer, Error>) -> Void) {
+        let urlString = baseURL.appendingPathComponent("/api/transfers/\(transferId.uuidString)/reject").absoluteString
+        performRequest(urlString: urlString, method: "POST", completion: completion) // Assuming no body needed
+    }
+
+    // --- User Functions ---
+
+    // Fetch Users (with optional search)
+    func fetchUsers(searchQuery: String? = nil, completion: @escaping (Result<[User], Error>) -> Void) {
+        var urlComponents = URLComponents(string: baseURL.appendingPathComponent("/api/users").absoluteString)
+        if let query = searchQuery, !query.isEmpty {
+             urlComponents?.queryItems = [URLQueryItem(name: "search", value: query)]
+        }
+        
+        guard let urlString = urlComponents?.string else {
+            completion(.failure(APIError.invalidURL))
+            return
+        }
+        performRequest(urlString: urlString, method: "GET", completion: completion)
+    }
 }
 
 // Helper struct for requests expecting no response body (e.g., 204)

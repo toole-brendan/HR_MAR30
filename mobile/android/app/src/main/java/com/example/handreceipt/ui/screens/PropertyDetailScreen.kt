@@ -18,39 +18,108 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.handreceipt.data.model.Property
 import com.example.handreceipt.viewmodels.PropertyDetailUiState
 import com.example.handreceipt.viewmodels.PropertyDetailViewModel
+import com.example.handreceipt.viewmodels.TransferActionState
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun PropertyDetailScreen(
+    propertyId: String,
     viewModel: PropertyDetailViewModel = hiltViewModel(),
-    // Optional: Add callbacks for actions like starting transfer, maintenance etc.
-    // onStartTransfer: (Property) -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    // Update title or perform actions when state changes (optional)
-    LaunchedEffect(uiState) {
-        // Can update Scaffold title here if needed, though Scaffold is external
+    val showUserSelection by viewModel.showUserSelection
+    val transferState by viewModel.transferRequestState
+    
+    val coroutineScope = rememberCoroutineScope()
+    val modalSheetState = rememberModalBottomSheetState(
+         initialValue = ModalBottomSheetValue.Hidden,
+         confirmValueChange = { it != ModalBottomSheetValue.HalfExpanded } 
+     )
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    LaunchedEffect(showUserSelection) {
+        if (showUserSelection) {
+            coroutineScope.launch { modalSheetState.show() }
+        } else {
+            coroutineScope.launch { modalSheetState.hide() }
+        }
+    }
+    
+    LaunchedEffect(modalSheetState.isVisible) {
+        if (!modalSheetState.isVisible && showUserSelection) {
+             viewModel.userSelectionDismissed()
+        }
+    }
+    
+    LaunchedEffect(transferState) {
+        when (val state = transferState) {
+            is TransferActionState.Success -> {
+                snackbarHostState.showSnackbar(message = state.message, duration = SnackbarDuration.Short)
+                viewModel.clearTransferState()
+            }
+            is TransferActionState.Error -> {
+                snackbarHostState.showSnackbar(message = state.message, duration = SnackbarDuration.Long)
+                viewModel.clearTransferState()
+            }
+            else -> {}
+        }
     }
 
-    Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        when (val state = uiState) {
-            is PropertyDetailUiState.Loading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+    ModalBottomSheetLayout(
+        sheetState = modalSheetState,
+        sheetContent = {
+             Box(modifier = Modifier.defaultMinSize(minHeight = 1.dp)) { 
+                 UserSelectionScreen(
+                     onUserSelected = { selectedUser ->
+                         viewModel.initiateTransfer(targetUser = selectedUser)
+                     },
+                     onDismiss = { viewModel.userSelectionDismissed() }
+                 )
             }
-            is PropertyDetailUiState.Success -> {
-                PropertyDetailContent(property = state.property)
+        }
+    ) {
+        Scaffold(
+             snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                TopAppBar(
+                    title = { Text("Property Details") },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    }
+                )
             }
-            is PropertyDetailUiState.Error -> {
-                PropertyDetailErrorView(message = state.message, onRetry = viewModel::fetchPropertyDetails)
+        ) { paddingValues ->
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp)) {
+                when (val state = uiState) {
+                    is PropertyDetailUiState.Loading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
+                    is PropertyDetailUiState.Success -> {
+                        PropertyDetailContent(property = state.property, viewModel = viewModel)
+                    }
+                    is PropertyDetailUiState.Error -> {
+                        PropertyDetailErrorView(message = state.message, onRetry = viewModel::fetchPropertyDetails)
+                    }
+                }
+                if (transferState == TransferActionState.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
             }
         }
     }
 }
 
 @Composable
-fun PropertyDetailContent(property: Property) {
+fun PropertyDetailContent(
+    property: Property,
+    viewModel: PropertyDetailViewModel
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -79,10 +148,9 @@ fun PropertyDetailContent(property: Property) {
             PropertyInfoRow(label = "Notes", value = property.notes)
         }
 
-        // TODO: Add buttons for actions (Transfer, Maintenance, View History etc.)
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { /* TODO: Implement Transfer */ }) { Text("Initiate Transfer") }
+            Button(onClick = { viewModel.requestTransferClicked() }) { Text("Request Transfer") }
             OutlinedButton(onClick = { /* TODO: View History */ }) { Text("View History") }
         }
     }
@@ -94,7 +162,7 @@ fun PropertyInfoRow(label: String, value: String?) {
         Text(
             text = "$label:",
             style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.width(120.dp) // Align labels
+            modifier = Modifier.width(120.dp)
         )
         Text(
             text = value ?: "N/A",
@@ -122,7 +190,6 @@ fun PropertyDetailErrorView(message: String, onRetry: () -> Unit) {
     }
 }
 
-// Duplicated from MyPropertiesScreen - consider moving to a common util file
 private fun formatDate(date: Date): String {
     val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     return formatter.format(date)

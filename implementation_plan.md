@@ -247,8 +247,53 @@ This document outlines the complete implementation plan for evolving HandReceipt
 
 1.  **Short-term (Current Focus):**
     *   **▶️ NEXT:** Implement Scan functionality (Camera integration, OCR/Barcode processing) (iOS & Android).
+        *   **iOS:**
+            *   ✅ Integrate `AVFoundation` for camera access.
+            *   ✅ Implement permission requests for camera usage (`Info.plist`, `AVCaptureDevice.requestAccess`).
+            *   ✅ Integrate Vision framework for barcode/QR scanning (`AVCaptureMetadataOutput`).
+            *   ✅ Integrate Vision framework for text recognition (OCR) (`VNRecognizeTextRequest`).
+            *   ✅ Develop UI for camera preview and scan overlays (`CameraView`, `ScanView`).
+            *   ✅ Implement logic to process scan results (`CameraViewControllerDelegate`, `ScanViewModel`).
+                *   ✅ Add OCR debounce mechanism.
+                *   ✅ Filter OCR results (alphanumeric, min length).
+            *   ✅ Connect scanned data to ViewModel (`$scannedCodeFromCamera`).
+            *   ✅ Add API call to backend (`fetchPropertyBySerial`) in `ScanViewModel`.
+            *   ✅ Implement UI to display fetched item details for confirmation (`ScanStatusOverlay`, `PropertyDetailsCard`).
+            *   ✅ Add placeholder "Confirm" button in `ScanStatusOverlay`.
+        *   **Android:**
+            *   ✅ Integrate CameraX library for camera access.
+            *   ✅ Implement permission requests for camera usage (`AndroidManifest.xml`, `rememberLauncherForActivityResult`).
+            *   ✅ Integrate ML Kit Barcode Scanning API.
+            *   ✅ Integrate ML Kit Text Recognition API (On-Device).
+            *   ✅ Develop Jetpack Compose UI for camera preview and scan overlays (`CameraView.kt`, `ScanScreen.kt`).
+            *   ✅ Implement logic to process scan results (`ImageAnalysis.Analyzer`, `ScanViewModel`).
+                *   ✅ Add OCR debounce mechanism (`lastAnalyzedTimestamp`).
+                *   ✅ Filter OCR results (alphanumeric, min length).
+            *   ✅ Connect scanned data to ViewModel (`onBarcodeScanned`, `onTextRecognized` -> `viewModel.processScannedCode`).
+            *   ✅ Add API call to backend (`getPropertyBySerial`) in `ScanViewModel`.
+            *   ✅ Implement UI to display fetched item details for confirmation (`ScanStatusOverlay`, `PropertyDetailsCard`).
+            *   ✅ Add placeholder "Confirm" button in `ScanStatusOverlay`.
     *   **▶️ NEXT:** Implement Transfer workflow functionality (API calls, UI updates) (iOS & Android).
+        *   **Backend (Go):**
+            *   Review/confirm existing Transfer API endpoints meet mobile needs (`/api/transfers` (GET, POST), `/api/transfers/{id}/approve`, `/api/transfers/{id}/reject`).
+            *   Consider adding an endpoint to initiate transfer directly via Serial Number (or handle in standard POST /api/transfers).
+        *   **Data Models (Mobile):**
+            *   Define `Transfer` model (Id, PropertyId/Details, FromUserId/Details, ToUserId/Details, Status, RequestDate, ApprovalDate etc.).
+            *   Define `TransferRequest` model (PropertyId/SN, TargetUserId). 
+        *   **iOS:**
+            *   Update `APIService.swift` with functions for transfer operations (list, request, approve/reject).
+            *   Implement `TransfersViewModel.swift`.
+            *   Implement UI (`TransfersView.swift`) to list pending/historical transfers.
+            *   Implement UI flow for initiating a transfer request (Select Item + Select User).
+            *   Implement UI for viewing transfer details and actions (approve/reject).
+        *   **Android:**
+            *   Update `ApiService.kt` with endpoints for transfers.
+            *   Implement `TransfersViewModel.kt`.
+            *   Implement UI (`TransfersScreen.kt`) to list transfers.
+            *   Implement UI flow for initiating a transfer request.
+            *   Implement UI for viewing transfer details and actions.
     *   **LATER:** Conduct initial OCR/Scanning testing (iOS & Android).
+    *   **LATER:** Implement actual confirmation action in Scan screen (e.g., navigate to initiate transfer).
 
     *   _Completed Short-term Items:_
     *   ✅ Implement basic mobile Models (`ReferenceItem`, `Property`, `AuthModels`) for iOS & Android.

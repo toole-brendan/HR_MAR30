@@ -43,6 +43,8 @@ import com.example.handreceipt.ui.screens.ReferenceDatabaseBrowserScreen
 import com.example.handreceipt.ui.screens.ReferenceItemDetailScreen
 import com.example.handreceipt.ui.screens.MyPropertiesScreen // Updated import
 import com.example.handreceipt.ui.screens.PropertyDetailScreen // Import the new screen
+import com.example.handreceipt.ui.screens.ScanScreen // Import ScanScreen
+import com.example.handreceipt.ui.screens.TransfersScreen // Import TransfersScreen
 import com.example.handreceipt.viewmodels.AuthViewModel
 import com.example.handreceipt.viewmodels.LoginViewModel // Import LoginViewModel
 import com.example.handreceipt.viewmodels.ManualSNViewModel // Import ManualSNViewModel
@@ -69,6 +71,9 @@ object Routes {
     const val REF_DB_BROWSER = "refDbBrowser"
     const val MANUAL_SN_ENTRY = "manualSnEntry"
     const val MY_PROPERTIES = "myProperties" // Updated route constant
+    const val SCAN_SCREEN = "scanScreen" // Add Scan Screen Destination
+    const val TRANSFERS_SCREEN = "transfersScreen" // Add Transfers Screen Destination
+    const val TRANSFER_DETAIL_SCREEN = "transferDetail/{transferId}" // Add Detail Destination
 
     // Nested object for Reference Item Detail route and argument
     object ReferenceItemDetail {
@@ -262,6 +267,41 @@ fun AppNavigation(
                      )
                  }
              }
+
+             // Scan Screen
+             composable(Routes.SCAN_SCREEN) {
+                 ScanScreen(
+                     onNavigateBack = { navController.popBackStack() }
+                 )
+             }
+
+             // Transfers Screen
+             composable(Routes.TRANSFERS_SCREEN) {
+                 TransfersScreen(
+                     onNavigateBack = { navController.popBackStack() },
+                     onSelectTransfer = { transferId ->
+                         println("Navigate to Transfer Detail for: $transferId")
+                         navController.navigate(Routes.TRANSFER_DETAIL_SCREEN.replace("{transferId}", transferId))
+                     }
+                 )
+             }
+
+             // Transfer Detail Screen
+             composable(
+                 route = Routes.TRANSFER_DETAIL_SCREEN,
+                 arguments = listOf(navArgument("transferId") { type = NavType.StringType })
+             ) { backStackEntry ->
+                 val transferId = backStackEntry.arguments?.getString("transferId")
+                 if (transferId != null) {
+                     TransferDetailScreen(
+                         transferId = transferId,
+                         onNavigateBack = { navController.popBackStack() }
+                     )
+                 } else {
+                     // Handle error: transferId not found (e.g., show error message or navigate back)
+                     Text("Error: Transfer ID missing")
+                 }
+             }
         } // End of Main App Nested Graph
     }
 }
@@ -298,6 +338,9 @@ fun MainAppScaffold(
             Routes.PropertyDetail.ROUTE_PATTERN -> "Property Detail"
             Routes.ReferenceItemDetail.ROUTE_PATTERN -> "Reference Detail"
             Routes.MANUAL_SN_ENTRY -> "Manual SN Entry"
+            Routes.SCAN_SCREEN -> "Scan"
+            Routes.TRANSFERS_SCREEN -> "Transfers"
+            Routes.TRANSFER_DETAIL_SCREEN -> "Transfer Detail"
             else -> "HandReceipt" // Default fallback
         }
     }
