@@ -20,6 +20,7 @@ func SetupRoutes(router *gin.Engine, ledgerService ledger.LedgerService, repo re
 	activityHandler := handlers.NewActivityHandler() // No ledger needed
 	verificationHandler := handlers.NewVerificationHandler(ledgerService)
 	correctionHandler := handlers.NewCorrectionHandler(ledgerService)
+	ledgerHandler := handlers.NewLedgerHandler(ledgerService)  // Create ledger handler
 	referenceDBHandler := handlers.NewReferenceDBHandler(repo) // Add ReferenceDB handler
 	userHandler := handlers.NewUserHandler(repo)               // Added User handler
 	// ... more handlers will be added in the future
@@ -92,6 +93,13 @@ func SetupRoutes(router *gin.Engine, ledgerService ledger.LedgerService, repo re
 			correction.GET("/:event_id", correctionHandler.GetCorrectionEventByID)
 			correction.GET("/original/:original_event_id", correctionHandler.GetCorrectionsByOriginalID)
 			// TODO: Add routes for querying/viewing correction events?
+		}
+
+		// Ledger routes (Consolidated general ledger access)
+		ledgerRoutes := protected.Group("/ledger") // New group for general ledger
+		{
+			ledgerRoutes.GET("/history", ledgerHandler.GetLedgerHistoryHandler) // New route
+			// TODO: Add route for item-specific history (/ledger/item/:itemId/history) ?
 		}
 
 		// Reference Database routes

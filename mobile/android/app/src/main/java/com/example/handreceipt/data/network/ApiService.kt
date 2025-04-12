@@ -120,6 +120,10 @@ interface ApiService {
         @Query("direction") direction: String? = null // e.g., "incoming", "outgoing"
     ): Response<List<Transfer>>
 
+    // Add endpoint to get single transfer by ID
+    @GET("/api/transfers/{transferId}")
+    suspend fun getTransferById(@Path("transferId") transferId: String): Response<Transfer>
+
     @POST("/api/transfers")
     suspend fun requestTransfer(@Body transferRequest: TransferRequest): Response<Transfer> // Assuming backend returns the created transfer
 

@@ -40,6 +40,10 @@ type LedgerService interface {
 	GetCorrectionEventsByOriginalID(originalEventID string) ([]domain.CorrectionEvent, error)
 	GetCorrectionEventByID(eventID string) (*domain.CorrectionEvent, error)
 
+	// GetGeneralHistory retrieves a consolidated view of all ledger event types.
+	// TODO: Add filtering/pagination parameters (e.g., time range, event type, user ID, item ID).
+	GetGeneralHistory() ([]domain.GeneralLedgerEvent, error)
+
 	// Initialize prepares the ledger service (e.g., connects, ensures tables/ledger exist).
 	Initialize() error
 

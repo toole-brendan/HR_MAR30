@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useApp } from "@/contexts/AppContext";
 import { 
   Card, 
   CardContent, 
@@ -126,7 +126,7 @@ const Settings: React.FC = () => {
       email: "john.doe@military.gov",
       phone: "555-123-4567",
       rank: user?.rank || "",
-      unit: user?.unit || "",
+      unit: "",
     },
   });
 

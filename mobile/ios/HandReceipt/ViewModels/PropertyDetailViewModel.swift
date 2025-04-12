@@ -83,7 +83,7 @@ class PropertyDetailViewModel: ObservableObject {
     }
     
     func initiateTransfer(targetUser: User) {
-        showingUserSelection = false // Dismiss sheet implicitly handled by sheet modifier
+        // showingUserSelection = false // Dismiss sheet implicitly handled by sheet modifier - no need to set here
         guard let propertyToTransfer = property else {
              transferRequestState = .error("Property details not available.")
              return
@@ -93,22 +93,19 @@ class PropertyDetailViewModel: ObservableObject {
         transferRequestState = .loading
         clearStateTimer?.cancel() // Cancel previous timer
         
-        apiService.requestTransfer(propertyId: propertyToTransfer.id, targetUserId: targetUser.id) { [weak self] result in
-             DispatchQueue.main.async {
-                 guard let self = self else { return }
-                 switch result {
-                 case .success(let newTransfer):
-                     print("PropertyDetailVM: Transfer request successful - ID \(newTransfer.id)")
-                     self.transferRequestState = .success(newTransfer)
-                     // Schedule state reset
-                     self.scheduleTransferStateReset(delay: 3.0)
-                     // TODO: Optionally refresh property details or navigate away
-                 case .failure(let error):
-                      print("PropertyDetailVM: Transfer request failed - \(error.localizedDescription)")
-                     self.transferRequestState = .error("Transfer failed: \(error.localizedDescription)")
-                     // Schedule state reset
-                     self.scheduleTransferStateReset(delay: 5.0)
-                 }
+        Task {
+             do {
+                 let newTransfer = try await apiService.requestTransfer(propertyId: propertyToTransfer.id, targetUserId: targetUser.id)
+                 print("PropertyDetailVM: Transfer request successful - ID \(newTransfer.id)")
+                 self.transferRequestState = .success(newTransfer)
+                 // Schedule state reset
+                 self.scheduleTransferStateReset(delay: 3.0)
+                 // TODO: Optionally refresh property details or navigate away
+             } catch {
+                 print("PropertyDetailVM: Transfer request failed - \(error.localizedDescription)")
+                 self.transferRequestState = .error("Transfer failed: \(error.localizedDescription)")
+                 // Schedule state reset
+                 self.scheduleTransferStateReset(delay: 5.0)
              }
         }
     }

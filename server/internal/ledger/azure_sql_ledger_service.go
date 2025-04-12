@@ -3,6 +3,7 @@ package ledger
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -488,6 +489,190 @@ func scanCorrectionEvents(rows *sql.Rows) ([]domain.CorrectionEvent, error) {
 		return nil, fmt.Errorf("failed during correction event row iteration: %w", err)
 	}
 	return events, nil
+}
+
+// GetGeneralHistory retrieves a consolidated view of all ledger event types.
+func (s *AzureSqlLedgerService) GetGeneralHistory() ([]domain.GeneralLedgerEvent, error) {
+	ctx := context.Background()
+	log.Println("AzureSqlLedgerService: Getting general ledger history")
+	var history []domain.GeneralLedgerEvent
+
+	// Combine history views using UNION ALL, mapping columns to GeneralLedgerEvent
+	// NOTE: JSON_OBJECT requires SQL Server 2022+. Use string concatenation or fetch individual
+	// fields and build JSON in Go for older versions.
+	// Ensure correct column names based on your schema (e.g., UserID vs PerformingUserID)
+	query := `
+	WITH CombinedHistory AS (
+		-- Equipment Events
+		SELECT
+			EventID AS eventId,
+			'EquipmentEvent' AS eventType,
+			EventTimestamp AS timestamp,
+			TRY_CAST(PerformingUserID AS BIGINT) AS userId,
+			TRY_CAST(ItemID AS BIGINT) AS itemId,
+			JSON_OBJECT(
+				'eventTypeDetail': EventType,
+				'notes': Notes
+			) AS detailsJson, -- Construct JSON details
+			ledger_transaction_id AS ledgerTransactionId,
+			ledger_sequence_number AS ledgerSequenceNumber
+		FROM HandReceipt.EquipmentEvents_LedgerHistory
+
+		UNION ALL
+
+		-- Transfer Events
+		SELECT
+			EventID AS eventId,
+			'TransferEvent' AS eventType,
+			EventTimestamp AS timestamp,
+			TRY_CAST(InitiatingUserID AS BIGINT) AS userId, -- Or ApprovingUserID depending on context needed
+			TRY_CAST(ItemID AS BIGINT) AS itemId,
+			JSON_OBJECT(
+				'transferRequestId': TransferRequestID,
+				'fromUserId': FromUserID,
+				'toUserId': ToUserID,
+				'eventTypeDetail': EventType,
+				'notes': Notes
+			) AS detailsJson,
+			ledger_transaction_id AS ledgerTransactionId,
+			ledger_sequence_number AS ledgerSequenceNumber
+		FROM HandReceipt.TransferEvents_LedgerHistory
+
+		UNION ALL
+
+		-- Verification Events
+		SELECT
+			EventID AS eventId,
+			'VerificationEvent' AS eventType,
+			VerificationTimestamp AS timestamp,
+			TRY_CAST(VerifyingUserID AS BIGINT) AS userId,
+			TRY_CAST(ItemID AS BIGINT) AS itemId,
+			JSON_OBJECT(
+				'verificationStatus': VerificationStatus,
+				'notes': Notes
+			) AS detailsJson,
+			ledger_transaction_id AS ledgerTransactionId,
+			ledger_sequence_number AS ledgerSequenceNumber
+		FROM HandReceipt.VerificationEvents_LedgerHistory
+
+		UNION ALL
+
+		-- Maintenance Events
+		SELECT
+			EventID AS eventId,
+			'MaintenanceEvent' AS eventType,
+			EventTimestamp AS timestamp,
+			TRY_CAST(InitiatingUserID AS BIGINT) AS userId, -- Or PerformingUserID
+			TRY_CAST(ItemID AS BIGINT) AS itemId,
+			JSON_OBJECT(
+				'maintenanceRecordId': MaintenanceRecordID,
+				'eventTypeDetail': EventType,
+				'maintenanceType': MaintenanceType,
+				'description': Description
+			) AS detailsJson,
+			ledger_transaction_id AS ledgerTransactionId,
+			ledger_sequence_number AS ledgerSequenceNumber
+		FROM HandReceipt.MaintenanceEvents_LedgerHistory
+
+		UNION ALL
+
+		-- Status Change Events
+		SELECT
+			EventID AS eventId,
+			'StatusChangeEvent' AS eventType,
+			ChangeTimestamp AS timestamp,
+			TRY_CAST(ReportingUserID AS BIGINT) AS userId,
+			TRY_CAST(ItemID AS BIGINT) AS itemId,
+			JSON_OBJECT(
+				'previousStatus': PreviousStatus,
+				'newStatus': NewStatus,
+				'reason': Reason
+			) AS detailsJson,
+			ledger_transaction_id AS ledgerTransactionId,
+			ledger_sequence_number AS ledgerSequenceNumber
+		FROM HandReceipt.StatusChangeEvents_LedgerHistory
+	)
+	SELECT eventId, eventType, timestamp, userId, itemId, detailsJson, ledgerTransactionId, ledgerSequenceNumber
+	FROM CombinedHistory
+	ORDER BY timestamp DESC; -- Order by most recent first
+	`
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		log.Printf("Error querying general history from Azure SQL Ledger: %v", err)
+		return nil, fmt.Errorf("failed to query general history: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var event domain.GeneralLedgerEvent
+		var detailsJSON string // Scan JSON details as string
+		// Use sql.Null types for potentially null fields from the DB
+		var eventIDStr sql.NullString
+		var userID sql.NullInt64
+		var itemID sql.NullInt64
+		var ledgerTxID sql.NullInt64
+		var ledgerSeqNum sql.NullInt64
+
+		if err := rows.Scan(
+			&eventIDStr,
+			&event.EventType,
+			&event.Timestamp,
+			&userID,
+			&itemID,
+			&detailsJSON,
+			&ledgerTxID,
+			&ledgerSeqNum,
+		); err != nil {
+			log.Printf("Error scanning general history row: %v", err)
+			return nil, fmt.Errorf("failed to scan general history row: %w", err)
+		}
+
+		// Assign scanned values, handling potential NULLs
+		if eventIDStr.Valid {
+			event.EventID = eventIDStr.String
+		}
+		if userID.Valid {
+			u64 := uint64(userID.Int64)
+			event.UserID = &u64
+		}
+		if itemID.Valid {
+			i64 := uint64(itemID.Int64)
+			event.ItemID = &i64
+		}
+		if ledgerTxID.Valid {
+			event.LedgerTransactionID = &ledgerTxID.Int64
+		}
+		if ledgerSeqNum.Valid {
+			event.LedgerSequenceNumber = &ledgerSeqNum.Int64
+		}
+
+		// Unmarshal the JSON details string into the 'any' field
+		if detailsJSON != "" {
+			// Use json.Unmarshal or a similar library
+			// For simplicity, we might just assign the raw string if the frontend can handle it,
+			// or unmarshal into a map[string]interface{}
+			var detailsMap map[string]interface{}
+			if err := json.Unmarshal([]byte(detailsJSON), &detailsMap); err == nil {
+				event.Details = detailsMap
+			} else {
+				log.Printf("Warning: Failed to unmarshal details JSON for event %s: %v", event.EventID, err)
+				event.Details = detailsJSON // Assign raw string as fallback
+			}
+		} else {
+			event.Details = nil // Or an empty map: map[string]interface{}{}
+		}
+
+		history = append(history, event)
+	}
+
+	if err = rows.Err(); err != nil {
+		log.Printf("Error iterating general history rows: %v", err)
+		return nil, fmt.Errorf("failed during general history row iteration: %w", err)
+	}
+
+	log.Printf("Retrieved %d general history events", len(history))
+	return history, nil
 }
 
 // VerifyDocument checks the integrity of the database ledger using Azure SQL Ledger's built-in procedure.

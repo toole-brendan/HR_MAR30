@@ -30,33 +30,33 @@ This document outlines the complete implementation plan for evolving HandReceipt
 ### Go Backend Implementation
 
 - **Set Up Go Project Structure** ✅ **COMPLETE**
-  - Created directory structure (cmd, internal, pkg, etc.). ✅
-  - Initial Go module setup (assuming `go mod init`). ✅
+  - ✅ Created directory structure (cmd, internal, pkg, etc.).
+  - ✅ Initial Go module setup (assuming `go mod init`).
 - **Implement Core API Functionality** ✅ **COMPLETE**
-  - Set up main application entry point (`server/cmd/server/main.go`). ✅
-  - Implemented configuration loading (Viper). ✅
-  - Integrated GORM DB connection, Ledger Service, and Repository initialization in `main.go`. ✅
-  - Set up basic Gin router in `main.go` / `internal/api/routes.go`. ✅
-  - Implemented authentication middleware (Session-based). ✅
-  - Implemented user registration/login handlers using repository & bcrypt. ✅
-  - Implemented initial protected API endpoint (GET /api/users/me). ✅
-  - Implemented core Property API endpoints (CRUD) using Repository and LedgerService. ✅
-  - Implemented core Transfer API endpoints (request, approve/reject) using Repository and LedgerService. ✅
-  - Implemented Reference DB query endpoints (list types, list models, get model by NSN). ✅
+  - ✅ Set up main application entry point (`server/cmd/server/main.go`).
+  - ✅ Implemented configuration loading (Viper).
+  - ✅ Integrated GORM DB connection, Ledger Service, and Repository initialization in `main.go`.
+  - ✅ Set up basic Gin router in `main.go` / `internal/api/routes.go`.
+  - ✅ Implemented authentication middleware (Session-based).
+  - ✅ Implemented user registration/login handlers using repository & bcrypt.
+  - ✅ Implemented initial protected API endpoint (GET /api/users/me).
+  - ✅ Implemented core Property API endpoints (CRUD) using Repository and LedgerService.
+  - ✅ Implemented core Transfer API endpoints (request, approve/reject) using Repository and LedgerService.
+  - ✅ Implemented Reference DB query endpoints (list types, list models, get model by NSN).
   - ✅ Ported remaining Node.js routes (User management: GET /users, GET /users/:id) to Go/Gin.
   - ✅ Replicated essential API endpoints (Auth, Inventory, Transfers, Activities, Users).
-  - ✅ **Added Endpoint:** `GET /api/inventory/serial/:serialNumber` for property lookup by serial number.
+  - ✅ Added Endpoint: `GET /api/inventory/serial/:serialNumber` for property lookup by serial number.
   - **LATER:**
     - Add/Modify endpoints for Reference Database querying (beyond basic NSN lookup).
     - Add/Modify endpoints for initiating transfers via Serial Number.
 
 - **Database Integration** ✅ **COMPLETE**
-  - Defined PostgreSQL Schema (Reference DB, Property Table updates) in `server/scripts/postgres_schema_updates.sql`. ✅
-  - Updated Domain Models (`server/internal/domain/models.go`) to match schema. ✅
-  - Set up GORM for PostgreSQL (`server/internal/platform/database/postgres.go`). ✅
-  - Implemented basic Repository layer (`server/internal/repository/`). ✅
-  - Applied schema updates to PostgreSQL database. ✅
-  - Applied ledger schema to Azure SQL DB. ✅
+  - ✅ Defined PostgreSQL Schema (Reference DB, Property Table updates) in `server/scripts/postgres_schema_updates.sql`.
+  - ✅ Updated Domain Models (`server/internal/domain/models.go`) to match schema.
+  - ✅ Set up GORM for PostgreSQL (`server/internal/platform/database/postgres.go`).
+  - ✅ Implemented basic Repository layer (`server/internal/repository/`).
+  - ✅ Applied schema updates to PostgreSQL database.
+  - ✅ Applied ledger schema to Azure SQL DB.
   - ✅ Designed and implemented correction workflow (`LogCorrectionEvent`) using separate `CorrectionEvents` table.
   - ✅ Implemented query methods for correction events (`GetAll`, `GetByID`, `GetByOriginalID`).
   - ✅ Implemented database-wide ledger verification endpoint (`GET /api/verification/database`).
@@ -64,21 +64,21 @@ This document outlines the complete implementation plan for evolving HandReceipt
 ### Azure SQL Database Ledger Integration
 
 - **Set Up Azure SQL Database Ledger in Azure** ✅ **COMPLETE**
-  - Created Azure SQL Server (`handreceipt-ledger-server`). ✅
-  - Created Azure SQL Database (`handreceipt-ledger-db`) with Ledger enabled. ✅
-  - Configured firewall rules for Azure services and development IP. ✅
-  - Stored connection string securely in `.env` (added to `.gitignore`). ✅
+  - ✅ Created Azure SQL Server (`handreceipt-ledger-server`).
+  - ✅ Created Azure SQL Database (`handreceipt-ledger-db`) with Ledger enabled.
+  - ✅ Configured firewall rules for Azure services and development IP.
+  - ✅ Stored connection string securely in `.env` (added to `.gitignore`).
 - **Implement Ledger Service** ✅ **COMPLETE**
-  - Defined `LedgerService` interface (`server/internal/ledger/ledger_service.go`). ✅
-  - Implemented `AzureSqlLedgerService` (`server/internal/ledger/azure_sql_ledger_service.go`). ✅
-    - Connection logic implemented. ✅
-    - Basic event logging functions implemented (matching interface). ✅
-    - Database-wide verification function implemented. ✅
-    - Refined `GetItemHistory` implementation in `AzureSqlLedgerService`. ✅
-    - Implemented Correction Event logging and querying methods. ✅
-  - Defined Azure SQL Ledger Schema in `server/scripts/azure_ledger_schema.sql`. ✅
+  - ✅ Defined `LedgerService` interface (`server/internal/ledger/ledger_service.go`).
+  - ✅ Implemented `AzureSqlLedgerService` (`server/internal/ledger/azure_sql_ledger_service.go`).
+    - ✅ Connection logic implemented.
+    - ✅ Basic event logging functions implemented (matching interface).
+    - ✅ Database-wide verification function implemented.
+    - ✅ Refined `GetItemHistory` implementation in `AzureSqlLedgerService`.
+    - ✅ Implemented Correction Event logging and querying methods.
+  - ✅ Defined Azure SQL Ledger Schema in `server/scripts/azure_ledger_schema.sql`.
 - **Define Data Boundaries** ✅ **COMPLETE**
-  - Formally documented which data resides where (Postgres vs. Azure SQL Ledger) in `DATA_BOUNDARIES.md`. ✅
+  - ✅ Formally documented which data resides where (Postgres vs. Azure SQL Ledger) in `DATA_BOUNDARIES.md`.
 
 ## Phase 2: Native Mobile Applications (In Progress)
 
@@ -101,24 +101,26 @@ This document outlines the complete implementation plan for evolving HandReceipt
   - ✅ Updated `ManualSNEntryView.swift`.
   - ✅ Implemented basic `LoginView.swift`.
   - ✅ Implemented basic Navigation (`ContentView.swift` managing auth state, `MainAppView` using `NavigationView` and `.sheet`).
-  - **NEXT:** Implement Session Checking (at app start).
-  - **NEXT:** Implement Logout functionality.
-  - **NEXT:** Refine error handling and user feedback across all screens.
+  - ✅ Implement Session Checking (at app start).
+  - ✅ Implement Logout functionality.
+  - ✅ Refine error handling and user feedback across all screens.
+  - ✅ Implement core Transfer workflow UI & Logic (List, Detail, Approve/Reject).
+  - ✅ Implement core Scan workflow UI & Logic (Camera, API Call, Confirmation).
+  - ✅ Implement Transfer Initiation from Scan/Property Detail (User Selection).
   - **LATER:**
-    - Inventory management screens
-    - Transfer workflows (including initiation via SN)
-    - Status updates and notifications
     - Add search/filtering to Reference DB Browser.
+    - Implement Property Detail screen *full* functionality (e.g., fetch assigned user name).
+    - Status updates and notifications
 
 - **ML Kit / Vision Framework Integration**
-  - Integrate Google ML Kit (or Apple Vision for iOS-specific) for:
-    - Barcode/QR scanning.
-    - On-Device OCR for Serial Number Capture.
-  - Implement camera permissions and handling.
-  - Create scanning UI with visual feedback.
-  - Develop UI for displaying OCR results with confidence scores (if available) and easy user correction.
-  - Implement Manual Serial Number Entry UI as a fallback/alternative.
-  - **Crucial:** Add confirmation step after SN entry/correction, showing item details from Reference DB lookup.
+  - ✅ Integrate Apple Vision for iOS-specific tasks.
+  - ✅ Barcode/QR scanning integrated.
+  - ✅ On-Device OCR for Serial Number Capture integrated.
+  - ✅ Camera permissions and handling implemented.
+  - ✅ Scanning UI with visual feedback implemented.
+  - ✅ Manual Serial Number Entry UI implemented.
+  - ✅ Confirmation step after SN entry implemented.
+  - **LATER:** Refine OCR/Scanning based on testing (confidence scores, challenging conditions).
 
 - **Offline Support**
   - Implement local storage using Core Data.
@@ -135,7 +137,6 @@ This document outlines the complete implementation plan for evolving HandReceipt
   - ✅ Created basic UI Scaffolding for:
     - `ReferenceDatabaseBrowserScreen.kt`
     - `ManualSNEntryScreen.kt`
-  - **NEXT:** Configure Android Studio project, dependencies (Retrofit, Gson, Coil, Lifecycle).
 
 - **Implement Core Functionality**
   - ✅ Defined `ReferenceItem.kt`, `Property.kt`, `AuthModels.kt`.
@@ -148,35 +149,32 @@ This document outlines the complete implementation plan for evolving HandReceipt
   - ✅ Implemented basic `LoginScreen.kt`.
   - ✅ Implemented basic Navigation (`AppNavigation.kt` using NavHost).
   - ✅ Updated `MainActivity.kt` to use `AppNavigation`.
-  - **NEXT:** Implement Session Checking (at app start).
-  - **NEXT:** Implement Logout functionality.
-  - **NEXT:** Implement Ref Item Detail screen data fetching.
-  - **NEXT:** Configure Gson for Date/UUID types if needed.
-  - **NEXT:** Add Coil placeholder drawables.
-  - ✅ Initialize Android Gradle Project (build.gradle, settings.gradle, etc.).
-  - ✅ Configure base dependencies (Retrofit, Gson, Coil, Lifecycle, Compose) in `app/build.gradle`.
-  - ✅ Implement Session Checking at app start using `AuthViewModel`.
-  - ✅ Implement Logout functionality using `AuthViewModel` and `MainAppScaffold`.
-  - ✅ Implement Ref Item Detail screen data fetching using `ReferenceItemDetailViewModel`.
-  - ✅ Configure Gson for Date/UUID types using TypeAdapter in `NetworkModule`.
-  - ✅ Add Coil placeholder/error drawables (`ic_placeholder.xml`, `ic_broken_image.xml`).
-  - **NEXT:** Refactor network client setup using DI (Hilt/Koin).
-  - **NEXT:** Refine error handling and user feedback across all screens.
-  - **LATER:**
-    - Inventory management screens
-    - Transfer workflows (including initiation via SN)
-    - Status updates and notifications
+  ✅ Initialize Android Gradle Project (build.gradle, settings.gradle, etc.).
+  ✅ Configure base dependencies (Retrofit, Gson, Coil, Lifecycle, Compose) in `app/build.gradle`.
+  ✅ Implement Session Checking at app start using `AuthViewModel`.
+  ✅ Implement Logout functionality using `AuthViewModel` and `MainAppScaffold`.
+  ✅ Implement Ref Item Detail screen data fetching using `ReferenceItemDetailViewModel`.
+  ✅ Configure Gson for Date/UUID types using TypeAdapter in `NetworkModule`.
+  ✅ Add Coil placeholder/error drawables (`ic_placeholder.xml`, `ic_broken_image.xml`).
+  ✅ Refactor network client setup using DI (**Hilt**).
+  ✅ Refine error handling and user feedback across core screens.
+  ✅ Implement core Transfer workflow UI & Logic (List, Detail, Approve/Reject).
+  ✅ Implement core Scan workflow UI & Logic (CameraX, MLKit, API Call, Confirmation).
+  ✅ Implement Transfer Initiation from Scan/Property Detail (User Selection).
+  **LATER:**
     - Add search/filtering to Reference DB Browser.
+    - Implement Property Detail screen *full* functionality (e.g., fetch assigned user name).
+    - Status updates and notifications
 
 - **ML Kit Integration**
-  - Integrate Google ML Kit for:
-    - Barcode/QR scanning.
-    - On-Device OCR for Serial Number Capture.
-  - Implement camera permissions and handling.
-  - Create scanning UI with visual feedback.
-  - Develop UI for displaying OCR results with confidence scores (if available) and easy user correction.
-  - Implement Manual Serial Number Entry UI as a fallback/alternative.
-  - **Crucial:** Add confirmation step after SN entry/correction, showing item details from Reference DB lookup.
+  - ✅ Integrate Google ML Kit.
+  - ✅ Barcode/QR scanning integrated.
+  - ✅ On-Device OCR for Serial Number Capture integrated.
+  - ✅ Camera permissions and handling implemented.
+  - ✅ Scanning UI with visual feedback implemented.
+  - ✅ Manual Serial Number Entry UI implemented.
+  - ✅ Confirmation step after SN entry implemented.
+  - **LATER:** Refine OCR/Scanning based on testing (confidence scores, challenging conditions).
 
 - **Offline Support**
   - Implement local storage using Room.
@@ -243,77 +241,68 @@ This document outlines the complete implementation plan for evolving HandReceipt
   - Prepare mobile app store submissions
   - Create deployment documentation
 
-## Next Actions (Revised - December 2023 - Post Initial Mobile Core Features)
+## Next Actions (Revised - Post Core Mobile Scan/Transfer)
 
-1.  **Short-term (Current Focus):**
-    *   **▶️ NEXT:** Implement Scan functionality (Camera integration, OCR/Barcode processing) (iOS & Android).
+1.  **Short-term (Completed):**
+    *   ✅ Implement Scan functionality (Camera integration, OCR/Barcode processing) (iOS & Android).
         *   **iOS:**
-            *   ✅ Integrate `AVFoundation` for camera access.
-            *   ✅ Implement permission requests for camera usage (`Info.plist`, `AVCaptureDevice.requestAccess`).
-            *   ✅ Integrate Vision framework for barcode/QR scanning (`AVCaptureMetadataOutput`).
-            *   ✅ Integrate Vision framework for text recognition (OCR) (`VNRecognizeTextRequest`).
-            *   ✅ Develop UI for camera preview and scan overlays (`CameraView`, `ScanView`).
-            *   ✅ Implement logic to process scan results (`CameraViewControllerDelegate`, `ScanViewModel`).
-                *   ✅ Add OCR debounce mechanism.
-                *   ✅ Filter OCR results (alphanumeric, min length).
-            *   ✅ Connect scanned data to ViewModel (`$scannedCodeFromCamera`).
-            *   ✅ Add API call to backend (`fetchPropertyBySerial`) in `ScanViewModel`.
-            *   ✅ Implement UI to display fetched item details for confirmation (`ScanStatusOverlay`, `PropertyDetailsCard`).
-            *   ✅ Add placeholder "Confirm" button in `ScanStatusOverlay`.
+            *   ✅ Integrate `AVFoundation` / `Vision`.
+            *   ✅ Implement permissions.
+            *   ✅ Integrate barcode/QR scanning.
+            *   ✅ Integrate OCR.
+            *   ✅ Develop UI (`CameraView`, `ScanView`).
+            *   ✅ Implement logic (`ScanViewModel`).
+            *   ✅ Add API call (`fetchPropertyBySerial`).
+            *   ✅ Implement confirmation UI.
+            *   ✅ Implement confirmation action (triggers user selection).
         *   **Android:**
-            *   ✅ Integrate CameraX library for camera access.
-            *   ✅ Implement permission requests for camera usage (`AndroidManifest.xml`, `rememberLauncherForActivityResult`).
-            *   ✅ Integrate ML Kit Barcode Scanning API.
-            *   ✅ Integrate ML Kit Text Recognition API (On-Device).
-            *   ✅ Develop Jetpack Compose UI for camera preview and scan overlays (`CameraView.kt`, `ScanScreen.kt`).
-            *   ✅ Implement logic to process scan results (`ImageAnalysis.Analyzer`, `ScanViewModel`).
-                *   ✅ Add OCR debounce mechanism (`lastAnalyzedTimestamp`).
-                *   ✅ Filter OCR results (alphanumeric, min length).
-            *   ✅ Connect scanned data to ViewModel (`onBarcodeScanned`, `onTextRecognized` -> `viewModel.processScannedCode`).
-            *   ✅ Add API call to backend (`getPropertyBySerial`) in `ScanViewModel`.
-            *   ✅ Implement UI to display fetched item details for confirmation (`ScanStatusOverlay`, `PropertyDetailsCard`).
-            *   ✅ Add placeholder "Confirm" button in `ScanStatusOverlay`.
-    *   **▶️ NEXT:** Implement Transfer workflow functionality (API calls, UI updates) (iOS & Android).
+            *   ✅ Integrate CameraX.
+            *   ✅ Implement permissions.
+            *   ✅ Integrate ML Kit Barcode Scanning.
+            *   ✅ Integrate ML Kit Text Recognition.
+            *   ✅ Develop UI (`CameraView.kt`, `ScanScreen.kt`).
+            *   ✅ Implement logic (`ScanViewModel`).
+            *   ✅ Add API call (`getPropertyBySerial`).
+            *   ✅ Implement confirmation UI.
+            *   ✅ Implement confirmation action (triggers user selection sheet).
+    *   ✅ Implement Transfer workflow functionality (API calls, UI updates) (iOS & Android).
         *   **Backend (Go):**
-            *   Review/confirm existing Transfer API endpoints meet mobile needs (`/api/transfers` (GET, POST), `/api/transfers/{id}/approve`, `/api/transfers/{id}/reject`).
-            *   Consider adding an endpoint to initiate transfer directly via Serial Number (or handle in standard POST /api/transfers).
+            *   ✅ Review/confirm existing Transfer API endpoints.
+            *   ✅ Ensure endpoint exists to fetch single transfer by ID (`GET /api/transfers/{id}`).
         *   **Data Models (Mobile):**
-            *   Define `Transfer` model (Id, PropertyId/Details, FromUserId/Details, ToUserId/Details, Status, RequestDate, ApprovalDate etc.).
-            *   Define `TransferRequest` model (PropertyId/SN, TargetUserId). 
+            *   ✅ Define/Consolidate `Transfer`, `TransferRequest`, `UserSummary` models.
         *   **iOS:**
-            *   Update `APIService.swift` with functions for transfer operations (list, request, approve/reject).
-            *   Implement `TransfersViewModel.swift`.
-            *   Implement UI (`TransfersView.swift`) to list pending/historical transfers.
-            *   Implement UI flow for initiating a transfer request (Select Item + Select User).
-            *   Implement UI for viewing transfer details and actions (approve/reject).
+            *   ✅ Update `APIService.swift` with transfer functions.
+            *   ✅ Implement `TransfersViewModel.swift` (List fetch, Approve/Reject).
+            *   ✅ Implement `TransferDetailViewModel.swift` (Fetch detail).
+            *   ✅ Implement `TransfersView.swift` (List display, Filters).
+            *   ✅ Implement `TransferDetailView.swift` (Detail display, Action buttons).
+            *   ✅ Implement `UserSelectionViewModel/View` (Fetch users, Selection UI).
+            *   ✅ Implement Transfer Initiation flow (`PropertyDetailView`/`ScanView` -> `UserSelectionView` -> `ViewModel.initiateTransfer`).
         *   **Android:**
-            *   Update `ApiService.kt` with endpoints for transfers.
-            *   Implement `TransfersViewModel.kt`.
-            *   Implement UI (`TransfersScreen.kt`) to list transfers.
-            *   Implement UI flow for initiating a transfer request.
-            *   Implement UI for viewing transfer details and actions.
+            *   ✅ Update `ApiService.kt` with transfer endpoints.
+            *   ✅ Implement `TransfersViewModel.kt` (List fetch, Approve/Reject).
+            *   ✅ Implement `TransferDetailViewModel.kt` (Fetch detail).
+            *   ✅ Implement `TransfersScreen.kt` (List display, Filters).
+            *   ✅ Implement `TransferDetailScreen.kt` (Detail display, Action buttons).
+            *   ✅ Implement `UserSelectionViewModel/Screen` (Fetch users, Selection UI).
+            *   ✅ Implement Transfer Initiation flow (`PropertyDetailScreen`/`ScanScreen` -> `UserSelectionScreen` -> `ViewModel.initiateTransfer`).
     *   **LATER:** Conduct initial OCR/Scanning testing (iOS & Android).
-    *   **LATER:** Implement actual confirmation action in Scan screen (e.g., navigate to initiate transfer).
 
-    *   _Completed Short-term Items:_
-    *   ✅ Implement basic mobile Models (`ReferenceItem`, `Property`, `AuthModels`) for iOS & Android.
-    *   ✅ Implement basic mobile API Services (`APIService.swift`, `ApiService.kt`) with core endpoints (Auth, RefDB, Properties List/Detail).
-    *   ✅ Implement basic mobile ViewModels/State management for core screens (Login, RefDB List/Detail, MyProperties List/Detail, Scan Placeholder, Transfers Placeholder).
-    *   ✅ Implement basic mobile Views/Screens for core features (Login, RefDB List/Detail, MyProperties List/Detail, Scan Placeholder, Transfers Placeholder).
-    *   ✅ Renamed Android "Inventory" components to "Property" (`MyPropertiesViewModel`, `MyPropertiesScreen`).
-    *   ✅ Set up basic Authentication Handling & Session Checking (iOS & Android).
-    *   ✅ Set up basic Navigation (Login > Main App Graph, Detail Screens) (iOS & Android).
-    *   ✅ **Android:** Implemented Bottom Navigation Bar (`MainAppScaffold`, `NavigationBar`).
-    *   ✅ **iOS:** Implemented TabView Navigation (`AuthenticatedTabView`).
-    *   ✅ **Android:** Refactored network client setup using Dependency Injection (**Hilt**).
-    *   ✅ **iOS & Android:** Refined error handling and user feedback across core screens.
+2.  **Current Focus (Immediate Next Steps):**
+    *   Start Building Tests:
+        *   ✅ Implement initial unit tests for Go backend (Repository layer).
+    *   Scaffold Web Ledger Verification UI:
+        *   ✅ Create `LedgerVerificationPage.tsx` component.
+        *   ✅ Add routing and sidebar navigation for the new page.
+        *   ✅ Add placeholders for `LedgerStatusIndicator` and `LedgerHistoryExplorer`.
 
-2.  **Medium-term (Weeks/Months):**
+3.  **Near-term Focus (Following Current):**
     *   Implement mobile Search/Filtering (e.g., in Reference DB Browser).
-    *   Implement Property Detail screen *full* functionality (e.g., fetch assigned user name, link to history) (Android/iOS).
-    *   Implement Transfer workflow *full* functionality (Request initiation, Approval/Rejection UI logic).
-    *   Integrate ML Kit / Vision Framework for OCR/Scanning (Implementation beyond initial testing & placeholder).
+    *   Implement Property Detail screen *full* functionality (e.g., fetch assigned user name).
+    *   Refine Transfer workflow (e.g., handle edge cases, improve UI feedback, fetch user names).
+    *   Refine OCR/Scanning based on testing.
 
-3.  **Long-term (Months):**
+4.  **Long-term (Months):**
     *   Implement advanced mobile features (offline support, sync).
     *   Implement advanced features (Phase 3 - Web UI, Reporting, Advanced CV, Enterprise), enhance mobile apps (cloud OCR fallback etc.), set up robust testing and CI/CD, refine Reference DB data.

@@ -56,13 +56,13 @@ export default defineConfig({
     proxy: {
       // Proxy API requests to backend
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:5005',
         changeOrigin: true,
         secure: false
       },
       // Proxy WebSocket connections
       '/defense/defense': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5005',
         ws: true,
         changeOrigin: true,
         secure: false

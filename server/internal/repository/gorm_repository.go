@@ -48,6 +48,14 @@ func (r *gormRepository) GetUserByUsername(username string) (*domain.User, error
 	return &user, nil
 }
 
+// GetAllUsers retrieves all users from the database.
+// TODO: Implement pagination, filtering, sorting as needed.
+func (r *gormRepository) GetAllUsers() ([]domain.User, error) {
+	var users []domain.User
+	err := r.db.Find(&users).Error
+	return users, err
+}
+
 // --- Property Operations ---
 
 func (r *gormRepository) CreateProperty(property *domain.Property) error {

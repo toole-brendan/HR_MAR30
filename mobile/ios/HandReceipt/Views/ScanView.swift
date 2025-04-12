@@ -11,13 +11,6 @@ struct ScanView: View {
 
     @Environment(\.presentationMode) var presentationMode
     
-    // Define the confirmation action
-    let onPropertyConfirmed: (Property) -> Void = { property in
-        // Default implementation: just print
-        print("ScanView: Property confirmed - \(property.serialNumber ?? "N/A")") 
-        // TODO: Replace with actual navigation or action logic (e.g., dismiss, pass data back)
-    }
-
     var body: some View {
         NavigationView { 
             ZStack {
@@ -110,7 +103,7 @@ struct ScanStatusOverlay: View {
                      
                      HStack(spacing: 20) { // Use HStack for buttons
                          Button("Confirm") {
-                            println("Confirm button clicked for: ${property.serialNumber ?? "N/A"}")
+                            print("Confirm button clicked for: \(property.serialNumber ?? "N/A")")
                             onConfirm(property)
                             // TODO: Implement actual confirmation action
                          }

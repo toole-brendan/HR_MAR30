@@ -9,53 +9,46 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.handreceipt.data.model.Transfer
 import com.example.handreceipt.data.model.TransferStatus
-import com.example.handreceipt.viewmodels.TransferActionState
-import com.example.handreceipt.viewmodels.TransfersUiState
-import com.example.handreceipt.viewmodels.TransfersViewModel
+import com.example.handreceipt.viewmodels.*
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransferDetailScreen(
-    transferId: String,
-    viewModel: TransfersViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    // Inject both ViewModels
+    detailViewModel: TransferDetailViewModel = hiltViewModel(),
+    transfersViewModel: TransfersViewModel = hiltViewModel(), // Assumes singleton or correctly scoped VM
+    onNavigateBack: () -> Unit,
+    // TODO: Inject current user ID properly for button logic
+    currentUserId: UUID? // Placeholder
 ) {
-    val transfersState by viewModel.transfersState
-    val actionState by viewModel.actionState
-    
-    // Find the specific transfer from the list state (simplistic approach)
-    val transfer: Transfer? = remember(transfersState, transferId) {
-        if (transfersState is TransfersUiState.Success) {
-            try {
-                 val uuid = UUID.fromString(transferId)
-                (transfersState as TransfersUiState.Success).transfers.find { it.id == uuid }
-            } catch (e: IllegalArgumentException) {
-                null // Invalid UUID format
-            }
-        } else {
-            null
+    val detailState by detailViewModel.detailState.collectAsState()
+    val actionState by transfersViewModel.actionState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() } // Snackbar for detail-specific feedback if needed
+
+    // LaunchedEffect to potentially navigate back after successful action
+    LaunchedEffect(actionState) {
+        if (actionState is TransferActionState.Success) {
+            // Delay slightly so user sees success message from list screen
+            // kotlinx.coroutines.delay(500) 
+            // onNavigateBack() // Navigate back after success
         }
     }
 
-    // Effect to navigate back when an action completes successfully
-     LaunchedEffect(actionState) {
-         if (actionState == TransferActionState.Idle && 
-             (viewModel.transfersState.value is TransfersUiState.Loading || 
-              /* Add condition if you want dismissal only after specific actions */ true )) {
-             // Check if we were previously loading and are now idle (meaning success)
-             // This logic might need refinement depending on exact state flow
-             println("Action likely succeeded (state reset to Idle), navigating back.")
-            // onNavigateBack() // FIXME: This dismisses too eagerly on initial load. Need better success signal.
-         }
-     }
-
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Transfer # ${transferId.take(8)}...") },
+                title = {
+                    // Show placeholder or actual ID based on state
+                    val titleText = if (detailState is TransferDetailState.Success) {
+                         "Transfer #" + (detailState as TransferDetailState.Success).transfer.id.toString().take(8)
+                    } else {
+                         "Transfer Details"
+                    }
+                     Text(titleText)
+                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -64,69 +57,67 @@ fun TransferDetailScreen(
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (transfer == null) {
-                // Show loading indicator or error if transfer not found
-                if (transfersState is TransfersUiState.Loading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            when (val state = detailState) {
+                is TransferDetailState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                } else {
-                    Text(
-                        "Transfer details not found.", 
-                         modifier = Modifier.align(Alignment.Center).padding(16.dp)
-                    )
                 }
-            } else {
-                // Display Transfer Details
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                ) {
-                    // Reuse TransferListItem or create a dedicated detail layout
-                    TransferListItem(transfer = transfer, onSelectTransfer = {}) // Pass empty lambda
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                    
-                    // Action Buttons
-                    if (transfer.status == TransferStatus.PENDING) {
-                         // Display Action Error if any
-                         if (actionState is TransferActionState.Error) {
-                             Text(
-                                 "Error: ${(actionState as TransferActionState.Error).message}", 
-                                 color = MaterialTheme.colorScheme.error,
-                                 modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                         }
-                         
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            Button(
-                                onClick = { viewModel.approveTransferAction(transferId) },
-                                enabled = actionState != TransferActionState.Loading, // Disable during loading
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                is TransferDetailState.Success -> {
+                    val transfer = state.transfer
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        TransferListItem(transfer = transfer) {} // Display details (non-clickable)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        // Add more details here if needed
+                        // Text("Requested by: ...")
+                        
+                        Spacer(modifier = Modifier.weight(1f))
+                        
+                        // Action Buttons
+                        if (transfer.status == TransferStatus.PENDING && transfer.toUserId == currentUserId) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
                             ) {
-                                if (actionState == TransferActionState.Loading) {
-                                     CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp, color = LocalContentColor.current)
-                                } else {
-                                     Text("Approve")
+                                Button(
+                                    onClick = { transfersViewModel.approveTransfer(transfer.id.toString()) },
+                                    enabled = actionState !is TransferActionState.Loading,
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                                ) {
+                                    Text("Approve")
+                                }
+                                Button(
+                                    onClick = { transfersViewModel.rejectTransfer(transfer.id.toString()) },
+                                    enabled = actionState !is TransferActionState.Loading,
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                                ) {
+                                    Text("Reject")
                                 }
                             }
-                            Button(
-                                onClick = { viewModel.rejectTransferAction(transferId) },
-                                enabled = actionState != TransferActionState.Loading, // Disable during loading
-                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                            ) {
-                                 if (actionState == TransferActionState.Loading) {
-                                     CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp, color = LocalContentColor.current)
-                                 } else {
-                                      Text("Reject")
-                                 }
+                            if (actionState is TransferActionState.Loading) {
+                                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 8.dp))
                             }
                         }
+                         Spacer(modifier = Modifier.height(16.dp)) // Bottom padding
                     }
-                    Spacer(modifier = Modifier.weight(1f))
+                }
+                is TransferDetailState.Error -> {
+                    Text(
+                        state.message,
+                        modifier = Modifier.align(Alignment.Center),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    // Optional: Add Retry button
+                     Button(
+                         onClick = { detailViewModel.fetchTransferDetails() },
+                         modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp)
+                     ) {
+                         Text("Retry")
+                     }
                 }
             }
         }

@@ -19,65 +19,48 @@ struct PropertyDetailView: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            if viewModel.isLoading {
-                ProgressView()
-            } else if let property = viewModel.property {
-                PropertyDetailContent(property: property, viewModel: viewModel)
-            } else if let errorMessage = viewModel.errorMessage {
-                Text("Error: \(errorMessage)")
-                    .foregroundColor(.red)
-            } else {
-                Text("Property details could not be loaded.")
+            switch viewModel.loadingState { // Switch on the new LoadingState enum
+                case .idle, .loading:
+                    ProgressView("Loading Details...") // Consistent message
+                        .frame(maxWidth: .infinity, maxHeight: .infinity) // Center it
+                case .success(let property):
+                    PropertyDetailContent(property: property, viewModel: viewModel)
+                case .error(let message):
+                    // Use the reusable ErrorStateView from MyPropertiesView
+                    ErrorStateView(message: message) {
+                        viewModel.loadPropertyDetails() // Call the ViewModel's load function
+                    }
             }
         }
         .navigationTitle(viewModel.property?.serialNumber ?? "Details")
          .navigationBarTitleDisplayMode(.inline)
          .toolbar { // Add actions to toolbar
              ToolbarItem(placement: .navigationBarTrailing) {
-                 if viewModel.property != nil { // Only show if property is loaded
+                 // Only show button if property is loaded and not currently trying to transfer
+                 if viewModel.property != nil && viewModel.transferRequestState != .loading {
                     Button("Request Transfer") {
                          viewModel.requestTransferClicked()
                      }
-                      .disabled(viewModel.transferRequestState == .loading) // Disable if already requesting
                  }
              }
          }
          // Present User Selection Sheet
          .sheet(isPresented: $viewModel.showingUserSelection) {
+             // Pass the callback to the ViewModel's initiateTransfer function
              UserSelectionView(onUserSelected: { selectedUser in
                  viewModel.initiateTransfer(targetUser: selectedUser)
              })
          }
-         // TODO: Display transferRequestState feedback (loading/success/error)
-         // Similar to TransferStatusMessage in ScanView, perhaps as an overlay or alert
-         .overlay( // Example: Simple overlay for loading/error
-             Group { 
-                 if viewModel.transferRequestState == .loading {
-                     ProgressView("Requesting Transfer...")
-                         .padding()
-                         .background(.thinMaterial)
-                         .cornerRadius(10)
-                 } else if case .error(let msg) = viewModel.transferRequestState {
-                      Text("Transfer Error: \(msg)")
-                         .padding()
-                         .foregroundColor(.white)
-                         .background(Color.red.opacity(0.8))
-                         .cornerRadius(10)
-                         // Auto-dismiss error? Or require user interaction?
-                 } else if case .success = viewModel.transferRequestState {
-                      // Success message handled by timer in VM for now
-                      // Could show temporary checkmark here
-                      Image(systemName: "checkmark.circle.fill")
-                          .resizable()
-                          .frame(width: 50, height: 50)
-                          .foregroundColor(.green)
-                          .padding()
-                          .background(.thinMaterial)
-                          .cornerRadius(10)
-                 }
-             }
-             .animation(.easeInOut, value: viewModel.transferRequestState)
+         // Use ActionStatusOverlay for transfer state feedback
+         .overlay(
+             ActionStatusOverlay(state: viewModel.transferRequestState) // Use the shared overlay view
+                .animation(.spring(), value: viewModel.transferRequestState) // Animate the overlay
          )
+         .onAppear { // Load details when the view appears
+             if viewModel.loadingState == .idle {
+                 viewModel.loadPropertyDetails()
+             }
+         }
     }
 }
 
@@ -122,13 +105,30 @@ struct DetailRow: View {
     }
 }
 
+// Ensure ActionStatusOverlay is accessible or defined here
+// If it's in TransfersView.swift, it might need to be moved to its own file
+// or defined again here (less ideal).
+
+// Assuming ActionStatusOverlay is accessible:
+
 // MARK: - Preview
 struct PropertyDetailView_Previews: PreviewProvider {
     static var previews: some View {
+        // Preview needs adjustment to work with new VM states and potentially MockAPIService
         NavigationView { // Wrap in NavigationView for Title
-             PropertyDetailView(propertyId: Property.mockList[0].id.uuidString)
-                 // Provide a mock service for the preview
-                 .environmentObject(MyPropertiesViewModel(apiService: MockAPIService(mockProperty: Property.mockList[0]))) // Need to adjust mocking
+             let successVM = PropertyDetailViewModel(propertyId: Property.mockList[0].id.uuidString, apiService: MockAPIService(mockProperty: Property.mockList[0]))
+             PropertyDetailView(viewModel: successVM)
+                 .previewDisplayName("Success State")
+        }
+        NavigationView { // Wrap in NavigationView for Title
+             let loadingVM = PropertyDetailViewModel(propertyId: UUID().uuidString, apiService: MockAPIService(simulatedDelay: 2.0))
+             PropertyDetailView(viewModel: loadingVM)
+                 .previewDisplayName("Loading State")
+        }
+        NavigationView { // Wrap in NavigationView for Title
+             let errorVM = PropertyDetailViewModel(propertyId: UUID().uuidString, apiService: MockAPIService(shouldThrowError: true))
+             PropertyDetailView(viewModel: errorVM)
+                 .previewDisplayName("Error State")
         }
     }
 } 

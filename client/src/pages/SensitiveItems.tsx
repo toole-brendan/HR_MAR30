@@ -26,7 +26,7 @@ import QRDisplay from "@/components/common/QRDisplay";
 import TransferRequestModal from "@/components/modals/TransferRequestModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import BlockchainLedger from "@/components/blockchain/BlockchainLedger";
 import { recordToBlockchain } from "@/lib/blockchain";

@@ -23,9 +23,23 @@ protocol APIServiceProtocol {
     // Add function to fetch specific property by ID
     func getPropertyById(propertyId: String) async throws -> Property
 
-    // Add other API functions here as needed (e.g., fetch by NSN, logout, etc.)
+    // Function to logout the user.
+    func logout() async throws
+
+    // Add other API functions here as needed (e.g., fetch by NSN, etc.)
     // func fetchItemByNSN(nsn: String) async throws -> ReferenceItem
-    // func logout() async throws
+    
+    // --- Transfer Functions ---
+    func fetchTransfers(status: String?, direction: String?) async throws -> [Transfer]
+    func requestTransfer(propertyId: UUID, targetUserId: UUID) async throws -> Transfer
+    func approveTransfer(transferId: UUID) async throws -> Transfer
+    func rejectTransfer(transferId: UUID) async throws -> Transfer
+
+    // --- User Functions ---
+    func fetchUsers(searchQuery: String?) async throws -> [UserSummary] // Expect UserSummary for selection
+
+    // Add requirement for base URL string for cookie clearing
+    var baseURLString: String { get }
 }
 
 // Concrete implementation of the API service
@@ -33,6 +47,7 @@ class APIService: APIServiceProtocol {
 
     // Replace with your actual backend base URL
     private let baseURL = URL(string: "http://localhost:8080/api")! // Example URL
+    var baseURLString: String { baseURL.absoluteString } // Conform to protocol
 
     // Use URLSession.shared by default, which handles cookies automatically via HTTPCookieStorage
     private let urlSession: URLSession
@@ -164,6 +179,20 @@ class APIService: APIServiceProtocol {
         return try await performRequest(request: request)
     }
 
+    // Logout function implementation
+    func logout() async throws {
+        let endpoint = baseURL.appendingPathComponent("/auth/logout")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        // No body is typically needed for logout, the session cookie identifies the user
+
+        // We expect a 2xx response (e.g., 200 OK or 204 No Content) on success.
+        // performRequest handles status code checks and throws errors.
+        // Since logout doesn't usually return data, we can expect EmptyResponse.
+        let _: EmptyResponse = try await performRequest(request: request)
+        print("APIService: Logout successful on server.")
+    }
+
     // Check session function implementation
     func checkSession() async throws -> LoginResponse {
         let endpoint = baseURL.appendingPathComponent("/users/me") // Correct endpoint path
@@ -245,56 +274,74 @@ class APIService: APIServiceProtocol {
         performRequest(urlString: urlString, method: "GET", completion: completion)
     }
 
-    // --- Transfer Functions ---
+    // --- Transfer Functions (Async/Await) ---
     
     // Fetch Transfers (with optional filters)
-    func fetchTransfers(status: String? = nil, direction: String? = nil, completion: @escaping (Result<[Transfer], Error>) -> Void) {
-        var urlComponents = URLComponents(string: baseURL.appendingPathComponent("/api/transfers").absoluteString)
+    func fetchTransfers(status: String? = nil, direction: String? = nil) async throws -> [Transfer] {
+        var components = URLComponents(url: baseURL.appendingPathComponent("/transfers"), resolvingAgainstBaseURL: false)!
         var queryItems = [URLQueryItem]()
-        if let status = status { queryItems.append(URLQueryItem(name: "status", value: status)) }
-        if let direction = direction { queryItems.append(URLQueryItem(name: "direction", value: direction)) }
-        if !queryItems.isEmpty { urlComponents?.queryItems = queryItems }
+        if let status = status, !status.isEmpty { queryItems.append(URLQueryItem(name: "status", value: status)) }
+        if let direction = direction, !direction.isEmpty { queryItems.append(URLQueryItem(name: "direction", value: direction)) }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
         
-        guard let urlString = urlComponents?.string else {
-            completion(.failure(APIError.invalidURL))
-            return
+        guard let url = components.url else {
+            throw APIError.invalidURL
         }
-        performRequest(urlString: urlString, method: "GET", completion: completion)
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        return try await performRequest(request: request)
     }
     
     // Request Transfer
-    func requestTransfer(propertyId: UUID, targetUserId: UUID, completion: @escaping (Result<Transfer, Error>) -> Void) {
-        let urlString = baseURL.appendingPathComponent("/api/transfers").absoluteString
+    func requestTransfer(propertyId: UUID, targetUserId: UUID) async throws -> Transfer {
+        let endpoint = baseURL.appendingPathComponent("/transfers")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let requestBody = TransferRequest(propertyId: propertyId, targetUserId: targetUserId)
-        performRequest(urlString: urlString, method: "POST", body: requestBody, completion: completion)
+        
+        do {
+            request.httpBody = try encoder.encode(requestBody)
+        } catch {
+            print("Failed to encode transfer request: \(error)")
+            throw APIError.encodingError(error)
+        }
+        return try await performRequest(request: request)
     }
     
     // Approve Transfer
-    func approveTransfer(transferId: UUID, completion: @escaping (Result<Transfer, Error>) -> Void) {
-        let urlString = baseURL.appendingPathComponent("/api/transfers/\(transferId.uuidString)/approve").absoluteString
-        performRequest(urlString: urlString, method: "POST", completion: completion) // Assuming no body needed
+    func approveTransfer(transferId: UUID) async throws -> Transfer {
+        let endpoint = baseURL.appendingPathComponent("/transfers/\(transferId.uuidString)/approve")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        // No body needed
+        return try await performRequest(request: request)
     }
     
     // Reject Transfer
-    func rejectTransfer(transferId: UUID, completion: @escaping (Result<Transfer, Error>) -> Void) {
-        let urlString = baseURL.appendingPathComponent("/api/transfers/\(transferId.uuidString)/reject").absoluteString
-        performRequest(urlString: urlString, method: "POST", completion: completion) // Assuming no body needed
+    func rejectTransfer(transferId: UUID) async throws -> Transfer {
+        let endpoint = baseURL.appendingPathComponent("/transfers/\(transferId.uuidString)/reject")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        // No body needed
+        return try await performRequest(request: request)
     }
 
-    // --- User Functions ---
+    // --- User Functions (Async/Await) ---
 
     // Fetch Users (with optional search)
-    func fetchUsers(searchQuery: String? = nil, completion: @escaping (Result<[User], Error>) -> Void) {
-        var urlComponents = URLComponents(string: baseURL.appendingPathComponent("/api/users").absoluteString)
+    func fetchUsers(searchQuery: String? = nil) async throws -> [UserSummary] {
+        var components = URLComponents(url: baseURL.appendingPathComponent("/users"), resolvingAgainstBaseURL: false)!
         if let query = searchQuery, !query.isEmpty {
-             urlComponents?.queryItems = [URLQueryItem(name: "search", value: query)]
+            components.queryItems = [URLQueryItem(name: "search", value: query)]
         }
         
-        guard let urlString = urlComponents?.string else {
-            completion(.failure(APIError.invalidURL))
-            return
+        guard let url = components.url else {
+            throw APIError.invalidURL
         }
-        performRequest(urlString: urlString, method: "GET", completion: completion)
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        return try await performRequest(request: request)
     }
 }
 

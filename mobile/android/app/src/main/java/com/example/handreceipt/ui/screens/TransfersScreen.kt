@@ -4,143 +4,226 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.handreceipt.viewmodels.TransfersViewModel
-import com.example.handreceipt.viewmodels.TransfersUiState
-import com.example.handreceipt.data.model.Transfer // Import Transfer model
+import com.example.handreceipt.data.model.Transfer
+import com.example.handreceipt.data.model.TransferStatus
+import com.example.handreceipt.viewmodels.*
 import java.text.SimpleDateFormat
-import java.util.* // For Date formatting
+import java.util.*
+import kotlinx.coroutines.flow.collectLatest // Needed for collecting action state
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TransfersScreen(
     viewModel: TransfersViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit,
-    onSelectTransfer: (String) -> Unit // Callback for selecting a transfer
+    onNavigateToDetail: (String) -> Unit, // Callback for navigation
+    // Add callback for showing snackbar if not handled internally
+    // showSnackbar: (String, SnackbarDuration) -> Unit 
 ) {
-    val transfersState by viewModel.transfersState
-    val directionFilter by viewModel.directionFilter
-    val statusFilter by viewModel.statusFilter
+    val loadingState by viewModel.loadingState.collectAsState()
+    val actionState by viewModel.actionState.collectAsState()
+    val filteredTransfers by viewModel.filteredTransfers.collectAsState()
+    val selectedDirection by viewModel.selectedDirectionFilter.collectAsState()
+    val selectedStatus by viewModel.selectedStatusFilter.collectAsState()
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Observe action state for Snackbars
+    LaunchedEffect(actionState) {
+        when (val state = actionState) {
+            is TransferActionState.Success -> {
+                snackbarHostState.showSnackbar(state.message, duration = SnackbarDuration.Short)
+                // State reset is handled by timer in ViewModel
+            }
+            is TransferActionState.Error -> {
+                snackbarHostState.showSnackbar(state.message, duration = SnackbarDuration.Long)
+                 // State reset is handled by timer in ViewModel
+            }
+            else -> { /* Do nothing for Idle/Loading */ }
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Transfers") },
-                 navigationIcon = {
-                     // Only show back button if needed (depends on how it's integrated)
-                     // IconButton(onClick = onNavigateBack) {
-                     //    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                     // }
-                 },
-                 actions = {
-                    // TODO: Add filter/refresh buttons?
-                    IconButton(onClick = { viewModel.fetchTransfers() }) { // Simple refresh
+                actions = {
+                    IconButton(
+                        onClick = { viewModel.fetchTransfers() },
+                        enabled = loadingState !is TransfersLoadingState.Loading
+                    ) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
-                 }
+                }
             )
         }
     ) { paddingValues ->
-        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            // Filter Chips Row
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 8.dp) // Add horizontal padding
+        ) {
+            // Filter Row
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // --- Direction Filters --- 
-                 Text("Direction:", modifier = Modifier.align(Alignment.CenterVertically))
-                 FilterChip(selected = directionFilter == null, onClick = { viewModel.setDirectionFilter(null) }, label = { Text("All") })
-                 FilterChip(selected = directionFilter == "incoming", onClick = { viewModel.setDirectionFilter("incoming") }, label = { Text("Incoming") })
-                 FilterChip(selected = directionFilter == "outgoing", onClick = { viewModel.setDirectionFilter("outgoing") }, label = { Text("Outgoing") })
+                FilterChipGroup(
+                    title = "Direction",
+                    filters = TransferDirectionFilter.values().toList(),
+                    selectedFilter = selectedDirection,
+                    onFilterSelected = { viewModel.setDirectionFilter(it) },
+                    modifier = Modifier.weight(1f)
+                )
+                FilterChipGroup(
+                    title = "Status",
+                    filters = TransferStatusFilter.values().toList(),
+                    selectedFilter = selectedStatus,
+                    onFilterSelected = { viewModel.setStatusFilter(it) },
+                    modifier = Modifier.weight(1f)
+                )
             }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                 // --- Status Filters --- 
-                 Text("Status:", modifier = Modifier.align(Alignment.CenterVertically))
-                  FilterChip(selected = statusFilter == null, onClick = { viewModel.setStatusFilter(null) }, label = { Text("All") })
-                  FilterChip(selected = statusFilter == "PENDING", onClick = { viewModel.setStatusFilter("PENDING") }, label = { Text("Pending") })
-                  FilterChip(selected = statusFilter == "HISTORY", onClick = { viewModel.setStatusFilter("HISTORY") }, label = { Text("History") })
-            }
-            
-            Divider() // Separate filters from list
-            
-            // List Content Box
-            Box(modifier = Modifier.weight(1f)) { // Make list take remaining space
-                when (transfersState) {
-                    is TransfersUiState.Loading -> {
+
+            Divider()
+
+            // Content Area
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (val state = loadingState) {
+                    is TransfersLoadingState.Loading -> {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                     }
-                    is TransfersUiState.Success -> {
-                        val transfers = (transfersState as TransfersUiState.Success).transfers
-                        if (transfers.isEmpty()) {
-                             Text("No transfers found matching filters.", modifier = Modifier.align(Alignment.Center).padding(16.dp))
+                    is TransfersLoadingState.Success -> {
+                        if (filteredTransfers.isEmpty()) {
+                            Text(
+                                "No transfers match filters.",
+                                modifier = Modifier.align(Alignment.Center),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         } else {
-                            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
-                                items(transfers, key = { it.id }) { transfer ->
-                                    TransferListItem(transfer = transfer, onSelectTransfer = onSelectTransfer)
+                            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                items(filteredTransfers, key = { it.id }) { transfer ->
+                                    TransferListItem(transfer = transfer) {
+                                        onNavigateToDetail(transfer.id.toString()) // Navigate with ID
+                                    }
                                     Divider()
                                 }
                             }
                         }
                     }
-                    is TransfersUiState.Error -> {
+                    is TransfersLoadingState.Error -> {
                         Text(
-                            "Error: ${(transfersState as TransfersUiState.Error).message}",
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.align(Alignment.Center).padding(16.dp)
+                            state.message,
+                            modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
+                     is TransfersLoadingState.Idle -> {
+                         Text(
+                            "Initializing...", // Or "Select filters..."
+                            modifier = Modifier.align(Alignment.Center),
+                             style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                         )
+                     }
                 }
+                 // Overlay for Action Loading state?
+                 if (actionState is TransferActionState.Loading) {
+                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                 }
             }
         }
-        // TODO: Add FAB to initiate a new transfer?
     }
 }
 
-// SimpleDateFormat is not locale-aware, consider alternatives for production
-private val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun <T : Enum<T>> FilterChipGroup(
+    title: String,
+    filters: List<T>,
+    selectedFilter: T,
+    onFilterSelected: (T) -> Unit,
+    modifier: Modifier = Modifier,
+    getDisplayName: (T) -> String = { it.name } // Default to enum name
+) {
+    Column(modifier = modifier) {
+        // Text(title, style = MaterialTheme.typography.labelSmall)
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            filters.forEach { filter ->
+                FilterChip(
+                    selected = filter == selectedFilter,
+                    onClick = { onFilterSelected(filter) },
+                    label = { 
+                        // Use reflection to get displayName if available
+                        val name = try { 
+                            filter::class.java.getDeclaredMethod("getDisplayName").invoke(filter) as String
+                        } catch (e: Exception) { 
+                            getDisplayName(filter) // Fallback
+                        }
+                        Text(name) 
+                    },
+                    modifier = Modifier.height(32.dp) // Adjust chip height
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun TransferListItem(
     transfer: Transfer,
-    onSelectTransfer: (String) -> Unit
+    onClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-           // .clickable { onSelectTransfer(transfer.id.toString()) }, // Make clickable
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
+    // Simple Date Formatter (Consider injecting or providing via CompositionLocal)
+    val dateFormatter = remember { SimpleDateFormat("MM/dd/yy HH:mm", Locale.getDefault()) }
+
+    ListItem(
+        headlineContent = { Text(transfer.propertyName ?: transfer.propertySerialNumber) },
+        supportingContent = {
+            Column {
+                Text("SN: ${transfer.propertySerialNumber}", style = MaterialTheme.typography.bodySmall)
                 Text(
-                     "Item: ${transfer.propertyName ?: transfer.propertySerialNumber}",
-                     style = MaterialTheme.typography.titleMedium
+                    "From: ${transfer.fromUser?.username ?: "?"} -> To: ${transfer.toUser?.username ?: "?"}",
+                    style = MaterialTheme.typography.bodySmall
                 )
-                 Text("SN: ${transfer.propertySerialNumber}")
-                 Spacer(modifier = Modifier.height(4.dp))
-                 Text("From: ${transfer.fromUser?.username ?: transfer.fromUserId.toString().take(8)}")
-                 Text("To: ${transfer.toUser?.username ?: transfer.toUserId.toString().take(8)}")
-                 Text("Requested: ${dateFormatter.format(transfer.requestTimestamp)}")
-                if (transfer.approvalTimestamp != null) {
-                     Text("Approved: ${dateFormatter.format(transfer.approvalTimestamp)}")
-                 }
+                Text(
+                    "Requested: ${dateFormatter.format(transfer.requestTimestamp)}",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(transfer.status.name, style = MaterialTheme.typography.bodySmall)
-            // TODO: Add approve/reject buttons directly here for PENDING items if needed?
-        }
+        },
+        trailingContent = {
+            Text(
+                transfer.status.name,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White,
+                modifier = Modifier
+                    .background(statusColor(transfer.status), shape = MaterialTheme.shapes.small)
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            )
+        },
+        modifier = Modifier.clickable(onClick = onClick)
+    )
+}
+
+fun statusColor(status: TransferStatus): Color {
+    return when (status) {
+        TransferStatus.PENDING -> Color(0xFFFFA500) // Orange
+        TransferStatus.APPROVED -> Color(0xFF4CAF50) // Green
+        TransferStatus.REJECTED -> Color(0xFFF44336) // Red
+        TransferStatus.CANCELLED -> Color.Gray
+        TransferStatus.UNKNOWN -> Color.Magenta
     }
 } 

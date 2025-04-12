@@ -20,6 +20,7 @@ import Reports from "./pages/Reports";
 import Login from "./pages/Login";
 import UserManagement from "./pages/UserManagement";
 import CorrectionLogPage from './pages/CorrectionLogPage';
+import LedgerVerificationPage from './pages/LedgerVerificationPage';
 import { queryClient } from "./lib/queryClient";
 import { BASE_PATH } from "./lib/queryClient";
 import { saveInventoryItemsToDB, getInventoryItemsFromDB } from "./lib/idb";
@@ -80,6 +81,7 @@ function Router() {
         </Route>
         <Route path={`${basePath}/audit-log`} component={() => <AuditLog />} />
         <Route path={`${basePath}/correction-log`} component={() => <CorrectionLogPage />} />
+        <Route path={`${basePath}/ledger-verification`} component={() => <LedgerVerificationPage />} />
         <Route path={`${basePath}/settings`} component={() => <Settings />} />
         <Route path={`${basePath}/profile`} component={() => <Profile />} />
         <Route path={`${basePath}/user-management`} component={() => <UserManagement />} />

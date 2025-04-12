@@ -1,4 +1,5 @@
-import { useLocation, Link } from "wouter";
+import { useLocation } from "wouter";
+import { Link } from "wouter";
 import { 
   LayoutDashboard, 
   Package, 
@@ -7,7 +8,8 @@ import {
   Wrench
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useApp } from "@/context/AppContext";
+import { useApp } from "@/contexts/AppContext";
+import { Button } from "@/components/ui/button";
 
 interface MobileNavProps {
   openQRScanner?: () => void;

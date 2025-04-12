@@ -1,161 +1,226 @@
 package com.example.handreceipt.viewmodels
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.handreceipt.data.model.Transfer
+import com.example.handreceipt.data.model.TransferStatus
+import com.example.handreceipt.data.model.UserSummary // Assuming UserSummary exists for filtering
 import com.example.handreceipt.data.network.ApiService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import retrofit2.HttpException
 import java.io.IOException
 import java.util.UUID
+import javax.inject.Inject
 
-sealed class TransfersUiState {
-    object Loading : TransfersUiState()
-    data class Success(val transfers: List<Transfer>) : TransfersUiState()
-    data class Error(val message: String) : TransfersUiState()
+// --- State Enums ---
+sealed class TransfersLoadingState {
+    object Idle : TransfersLoadingState()
+    object Loading : TransfersLoadingState()
+    data class Success(val allTransfers: List<Transfer>) : TransfersLoadingState()
+    data class Error(val message: String) : TransfersLoadingState()
 }
 
-// Optional: Add state for individual transfer actions
 sealed class TransferActionState {
     object Idle : TransferActionState()
     object Loading : TransferActionState()
+    data class Success(val message: String) : TransferActionState()
     data class Error(val message: String) : TransferActionState()
+}
+
+// --- Filter Enums ---
+enum class TransferDirectionFilter(val displayName: String) {
+    ALL("All"),
+    INCOMING("Incoming"),
+    OUTGOING("Outgoing")
+}
+
+enum class TransferStatusFilter(val displayName: String, val apiValue: String?) {
+    PENDING("Pending", "PENDING"),
+    ALL("All", null),
+    APPROVED("Approved", "APPROVED"),
+    REJECTED("Rejected", "REJECTED"),
+    CANCELLED("Cancelled", "CANCELLED")
 }
 
 @HiltViewModel
 class TransfersViewModel @Inject constructor(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    // TODO: Inject a way to get the current user ID (e.g., from a SessionManager or AuthRepository)
+    private val currentUserId: UUID? // Placeholder - Needs proper injection
 ) : ViewModel() {
 
-    private val _transfersState = mutableStateOf<TransfersUiState>(TransfersUiState.Loading)
-    val transfersState: State<TransfersUiState> = _transfersState
+    // --- State Flows ---
+    private val _loadingState = MutableStateFlow<TransfersLoadingState>(TransfersLoadingState.Idle)
+    val loadingState: StateFlow<TransfersLoadingState> = _loadingState.asStateFlow()
 
-    // Add state for actions like approve/reject
-    private val _actionState = mutableStateOf<TransferActionState>(TransferActionState.Idle)
-    val actionState: State<TransferActionState> = _actionState
+    private val _actionState = MutableStateFlow<TransferActionState>(TransferActionState.Idle)
+    val actionState: StateFlow<TransferActionState> = _actionState.asStateFlow()
 
-    // Filter States
-    private val _directionFilter = mutableStateOf<String?>(null) // null = All, "incoming", "outgoing"
-    val directionFilter: State<String?> = _directionFilter
+    private val _selectedDirectionFilter = MutableStateFlow(TransferDirectionFilter.ALL)
+    val selectedDirectionFilter: StateFlow<TransferDirectionFilter> = _selectedDirectionFilter.asStateFlow()
+
+    private val _selectedStatusFilter = MutableStateFlow(TransferStatusFilter.PENDING)
+    val selectedStatusFilter: StateFlow<TransferStatusFilter> = _selectedStatusFilter.asStateFlow()
     
-    private val _statusFilter = mutableStateOf<String?>(null) // null = All, "PENDING", "HISTORY"
-    val statusFilter: State<String?> = _statusFilter
+    private val _filteredTransfers = MutableStateFlow<List<Transfer>>(emptyList())
+    val filteredTransfers: StateFlow<List<Transfer>> = _filteredTransfers.asStateFlow()
+    
+    private var clearActionJob: Job? = null
 
     init {
-        fetchTransfers() // Initial fetch
+        // Combine loading state and filters to update filteredTransfers
+        combine(
+            loadingState,
+            selectedDirectionFilter,
+            selectedStatusFilter
+        ) { loadState, direction, status ->
+            if (loadState is TransfersLoadingState.Success) {
+                filterTransfersLocally(loadState.allTransfers, direction, status)
+            } else {
+                emptyList()
+            }
+        }.debounce(50) // Small debounce for filter changes
+         .launchIn(viewModelScope)
+         .also { job -> 
+            job.invokeOnCompletion { _filteredTransfers.value = emptyList() } // Clear on scope cancellation
+        } // Assign to _filteredTransfers indirectly via collect
+        .let { flow -> 
+             viewModelScope.launch { flow.collect { _filteredTransfers.value = it } }
+        }
+
+        // Fetch transfers when filters change
+        combine(selectedDirectionFilter, selectedStatusFilter) { _, _ -> Unit }
+            .debounce(100) // Debounce filter changes before fetching
+            .launchIn(viewModelScope)
+            .let { flow ->
+                viewModelScope.launch { flow.collect { fetchTransfers() } }
+            }
+        
+        // Initial fetch
+        fetchTransfers()
     }
 
-    // Update filter and fetch
-    fun setDirectionFilter(direction: String?) {
-        if (_directionFilter.value != direction) {
-            _directionFilter.value = direction
-            fetchTransfers()
+    // --- Filter Logic ---
+    private fun filterTransfersLocally(
+        allTransfers: List<Transfer>,
+        direction: TransferDirectionFilter,
+        status: TransferStatusFilter
+    ): List<Transfer> {
+        println("Filtering locally: ${allTransfers.size} items, Dir: $direction, Status: $status, User: ${currentUserId?.toString() ?: "N/A"}")
+        return allTransfers.filter { transfer ->
+            val statusMatch = (status == TransferStatusFilter.ALL || transfer.status.name == status.apiValue)
+            val directionMatch = when (direction) {
+                TransferDirectionFilter.ALL -> true
+                TransferDirectionFilter.INCOMING -> transfer.toUserId == currentUserId
+                TransferDirectionFilter.OUTGOING -> transfer.fromUserId == currentUserId
+            }
+            statusMatch && directionMatch
         }
     }
     
-    fun setStatusFilter(status: String?) {
-         if (_statusFilter.value != status) {
-            _statusFilter.value = status
-            fetchTransfers()
-        }
+    fun setDirectionFilter(filter: TransferDirectionFilter) {
+        _selectedDirectionFilter.value = filter
     }
 
-    // Fetch using current filter states
-    private fun fetchTransfers() { 
-        _transfersState.value = TransfersUiState.Loading
-        _actionState.value = TransferActionState.Idle
-        
-        // Convert status filter "HISTORY" to API format if needed
-         val statusQuery = when (_statusFilter.value) {
-            "HISTORY" -> "APPROVED,REJECTED,CANCELLED" // Check backend compatibility
-            else -> _statusFilter.value
-        }
-        
+    fun setStatusFilter(filter: TransferStatusFilter) {
+        _selectedStatusFilter.value = filter
+    }
+
+    // --- API Calls ---
+    fun fetchTransfers() {
+        _loadingState.value = TransfersLoadingState.Loading
+        _actionState.value = TransferActionState.Idle // Clear action state
         viewModelScope.launch {
             try {
-                // Use current filter values
-                val response = apiService.getTransfers(status = statusQuery, direction = _directionFilter.value)
+                println("Fetching transfers from API. Status: ${selectedStatusFilter.apiValue}, Direction: ALL (local filtering)")
+                // Fetch ALL directions, filter locally based on currentUserId
+                // Fetch based on status filter from API
+                val response = apiService.getTransfers(status = selectedStatusFilter.apiValue, direction = null)
                 if (response.isSuccessful && response.body() != null) {
-                    _transfersState.value = TransfersUiState.Success(response.body()!!)
+                    _loadingState.value = TransfersLoadingState.Success(response.body()!!)
+                    println("Fetched ${response.body()!!.size} transfers successfully.")
                 } else {
-                    val errorBody = response.errorBody()?.string() ?: "Unknown error fetching transfers"
-                    _transfersState.value = TransfersUiState.Error("Error ${response.code()}: $errorBody")
+                    val errorMsg = "Error ${response.code()}: ${response.errorBody()?.string() ?: "Failed to load"}"
+                    _loadingState.value = TransfersLoadingState.Error(errorMsg)
+                    println("Error fetching transfers: $errorMsg")
                 }
             } catch (e: HttpException) {
-                _transfersState.value = TransfersUiState.Error("Network error: ${e.message()}")
+                 val errorMsg = "Network error: ${e.message()}"
+                _loadingState.value = TransfersLoadingState.Error(errorMsg)
+                 println("Error fetching transfers: $errorMsg")
             } catch (e: IOException) {
-                _transfersState.value = TransfersUiState.Error("Network connection error.")
+                 val errorMsg = "Connection error. Please check network."
+                _loadingState.value = TransfersLoadingState.Error(errorMsg)
+                 println("Error fetching transfers: $errorMsg")
             } catch (e: Exception) {
-                _transfersState.value = TransfersUiState.Error("An unexpected error occurred: ${e.localizedMessage}")
+                 val errorMsg = "An unexpected error occurred: ${e.localizedMessage}"
+                _loadingState.value = TransfersLoadingState.Error(errorMsg)
+                 println("Error fetching transfers: $errorMsg")
             }
         }
     }
 
-    fun approveTransferAction(transferId: String) {
-         _actionState.value = TransferActionState.Loading
-         viewModelScope.launch {
-            try {
-                // Validate UUID format if necessary before API call
-                // UUID.fromString(transferId)
-                val response = apiService.approveTransfer(transferId)
-                if (response.isSuccessful) {
-                     println("Transfer $transferId approved successfully.")
-                     _actionState.value = TransferActionState.Idle 
-                     fetchTransfers() // Refresh list with current filters
-                 } else {
-                     val errorBody = response.errorBody()?.string() ?: "Unknown error approving transfer"
-                     println("Error approving transfer $transferId: ${response.code()} - $errorBody")
-                     _actionState.value = TransferActionState.Error("Error ${response.code()}: Failed to approve")
-                 }
-             } catch (e: HttpException) {
-                 println("Network error approving transfer $transferId: ${e.message()}")
-                 _actionState.value = TransferActionState.Error("Network error: ${e.message()}")
-             } catch (e: IOException) {
-                 println("Connection error approving transfer $transferId: ${e.message}")
-                 _actionState.value = TransferActionState.Error("Network connection error.")
-             } catch (e: IllegalArgumentException) {
-                 println("Invalid Transfer ID format: $transferId")
-                 _actionState.value = TransferActionState.Error("Invalid Transfer ID.")
-             } catch (e: Exception) {
-                 println("Unexpected error approving transfer $transferId: ${e.localizedMessage}")
-                 _actionState.value = TransferActionState.Error("An unexpected error occurred.")
-             }
-         }
+    fun approveTransfer(transferId: String) {
+        performAction("Approving", transferId) { apiService.approveTransfer(it) }
     }
 
-     fun rejectTransferAction(transferId: String) {
-         _actionState.value = TransferActionState.Loading
-          viewModelScope.launch {
-            try {
-                 val response = apiService.rejectTransfer(transferId)
-                 if (response.isSuccessful) {
-                     println("Transfer $transferId rejected successfully.")
-                     _actionState.value = TransferActionState.Idle 
-                     fetchTransfers() // Refresh list with current filters
-                 } else {
-                     val errorBody = response.errorBody()?.string() ?: "Unknown error rejecting transfer"
-                     println("Error rejecting transfer $transferId: ${response.code()} - $errorBody")
-                      _actionState.value = TransferActionState.Error("Error ${response.code()}: Failed to reject")
-                 }
-             } catch (e: HttpException) {
-                 println("Network error rejecting transfer $transferId: ${e.message()}")
-                 _actionState.value = TransferActionState.Error("Network error: ${e.message()}")
-             } catch (e: IOException) {
-                  println("Connection error rejecting transfer $transferId: ${e.message}")
-                 _actionState.value = TransferActionState.Error("Network connection error.")
-              } catch (e: IllegalArgumentException) {
-                 println("Invalid Transfer ID format: $transferId")
-                 _actionState.value = TransferActionState.Error("Invalid Transfer ID.")
-             } catch (e: Exception) {
-                  println("Unexpected error rejecting transfer $transferId: ${e.localizedMessage}")
-                 _actionState.value = TransferActionState.Error("An unexpected error occurred.")
-             }
-         }
+    fun rejectTransfer(transferId: String) {
+        performAction("Rejecting", transferId) { apiService.rejectTransfer(it) }
     }
-    
-    // TODO: Implement requestTransfer action later
+
+    private fun performAction(actionName: String, transferId: String, apiCall: suspend (String) -> Response<Transfer>) {
+        _actionState.value = TransferActionState.Loading
+        clearActionJob?.cancel()
+        println("$actionName transfer ID: $transferId")
+        viewModelScope.launch {
+            try {
+                val response = apiCall(transferId)
+                if (response.isSuccessful) {
+                    _actionState.value = TransferActionState.Success("Transfer ${actionName.dropLast(3)}ed")
+                    println("Successfully ${actionName.dropLast(3)}ed transfer ID $transferId")
+                    fetchTransfers() // Refresh list
+                    scheduleActionStateClear()
+                } else {
+                    val errorMsg = "Error ${response.code()}: ${response.errorBody()?.string() ?: "Action failed"}"
+                    _actionState.value = TransferActionState.Error(errorMsg)
+                    println("Error ${actionName.dropLast(1)} transfer $transferId: $errorMsg")
+                    scheduleActionStateClear()
+                }
+            } catch (e: HttpException) {
+                val errorMsg = "Network error: ${e.message()}"
+                _actionState.value = TransferActionState.Error(errorMsg)
+                 println("Error ${actionName.dropLast(1)} transfer $transferId: $errorMsg")
+                scheduleActionStateClear()
+            } catch (e: IOException) {
+                 val errorMsg = "Connection error. Please check network."
+                _actionState.value = TransferActionState.Error(errorMsg)
+                 println("Error ${actionName.dropLast(1)} transfer $transferId: $errorMsg")
+                scheduleActionStateClear()
+            } catch (e: Exception) {
+                 val errorMsg = "An unexpected error occurred: ${e.localizedMessage}"
+                _actionState.value = TransferActionState.Error(errorMsg)
+                 println("Error ${actionName.dropLast(1)} transfer $transferId: $errorMsg")
+                scheduleActionStateClear()
+            }
+        }
+    }
+
+    private fun scheduleActionStateClear(delayMillis: Long = 3000) {
+        clearActionJob?.cancel()
+        clearActionJob = viewModelScope.launch {
+            delay(delayMillis)
+            if (_actionState.value !is TransferActionState.Idle && _actionState.value !is TransferActionState.Loading) {
+                _actionState.value = TransferActionState.Idle
+            }
+        }
+    }
 } 

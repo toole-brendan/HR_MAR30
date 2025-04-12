@@ -1,6 +1,8 @@
 import { X } from "lucide-react";
 import Sidebar from "./Sidebar";
-import { useApp } from "@/context/AppContext";
+import { useApp } from "@/contexts/AppContext";
+import { useLocation } from "wouter";
+import { Link } from "wouter";
 
 interface MobileMenuProps {
   isOpen: boolean;

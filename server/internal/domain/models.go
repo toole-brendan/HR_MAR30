@@ -148,3 +148,18 @@ type CorrectionEvent struct {
 	LedgerTransactionID  *int64 `json:"ledgerTransactionId,omitempty"`
 	LedgerSequenceNumber *int64 `json:"ledgerSequenceNumber,omitempty"`
 }
+
+// GeneralLedgerEvent represents a consolidated event from any ledger table,
+// structured for frontend display.
+// NOTE: This struct corresponds to the output of the LedgerService.GetGeneralHistory method.
+// The `Details` field uses `any` for flexibility, but consider more specific types if feasible.
+type GeneralLedgerEvent struct {
+	EventID              string    `json:"eventId"`          // Event ID (UNIQUEIDENTIFIER as string)
+	EventType            string    `json:"eventType"`        // e.g., 'TRANSFER_REQUEST', 'ITEM_VERIFY'
+	Timestamp            time.Time `json:"timestamp"`        // Event timestamp
+	UserID               *uint64   `json:"userId,omitempty"` // User associated (BIGINT)
+	ItemID               *uint64   `json:"itemId,omitempty"` // Item associated (BIGINT)
+	Details              any       `json:"details"`          // JSON object with event-specific details
+	LedgerTransactionID  *int64    `json:"ledgerTransactionId,omitempty"`
+	LedgerSequenceNumber *int64    `json:"ledgerSequenceNumber,omitempty"`
+}

@@ -24,7 +24,7 @@ struct MyPropertiesView: View {
                  if properties.isEmpty {
                      EmptyPropertiesStateView { viewModel.loadProperties() }
                  } else {
-                     PropertyList(properties: properties)
+                     PropertyList(properties: properties, viewModel: viewModel)
                  }
             
             case .error(let message):
@@ -37,6 +37,7 @@ struct MyPropertiesView: View {
 
 struct PropertyList: View {
     let properties: [Property]
+    @StateObject var viewModel: MyPropertiesViewModel
     
     var body: some View {
         List {
@@ -50,8 +51,7 @@ struct PropertyList: View {
         }
         .listStyle(PlainListStyle())
         .refreshable { 
-            // TODO: Add refresh capability to ViewModel if needed
-             print("Refresh action triggered")
+            viewModel.loadProperties()
         }
     }
 }
@@ -203,6 +203,22 @@ class MockAPIService: APIServiceProtocol {
          if let item = mockReferenceItems?.first(where: { $0.id.uuidString == itemId }) { return item }
          throw APIService.APIError.itemNotFound
     }
+    // Add missing methods required by protocol
+     func getPropertyById(propertyId: String) async throws -> Property {
+         try await Task.sleep(nanoseconds: UInt64(simulatedDelay * 1_000_000_000))
+         if shouldThrowError { throw APIService.APIError.itemNotFound }
+         if let prop = mockProperty, prop.id.uuidString == propertyId { return prop }
+         if let prop = mockProperties?.first(where: { $0.id.uuidString == propertyId }) { return prop }
+         throw APIService.APIError.itemNotFound
+     }
+     func logout() async throws {
+         try await Task.sleep(nanoseconds: UInt64(simulatedDelay * 1_000_000_000))
+         if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
+         // No return value needed
+     }
+     // Add baseURLString requirement
+     var baseURLString: String { "http://mock.api" }
+
 }
 
 extension Property {

@@ -26,6 +26,7 @@ import {
   UserCog,
   History,
   FileClock,
+  ShieldCheck,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -132,6 +133,7 @@ const Sidebar = ({
     { path: "/user-management", icon: <UserCog className="sidebar-item-icon" />, label: "User Management" },
     { path: "/audit-log", icon: <History className="sidebar-item-icon" />, label: "Ledger History" },
     { path: "/correction-log", icon: <FileClock className="sidebar-item-icon" />, label: "Correction Log" },
+    { path: "/ledger-verification", icon: <ShieldCheck className="sidebar-item-icon" />, label: "Ledger Verification" },
   ];
   
   // Footer actions
