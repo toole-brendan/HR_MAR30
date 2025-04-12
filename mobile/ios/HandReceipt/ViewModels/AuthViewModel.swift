@@ -51,7 +51,7 @@ class AuthViewModel: ObservableObject {
                 let user = try await apiService.checkSession()
                 self.currentUser = user
                 self.isAuthenticated = true
-                print("AuthViewModel: Session valid for user \(user.username)")
+                print("AuthViewModel: Session valid for user \(user.user.username)")
             } catch let apiError as APIService.APIError where apiError == .unauthorized {
                 print("AuthViewModel: No valid session found or session expired.")
                 self.currentUser = nil
@@ -75,14 +75,14 @@ class AuthViewModel: ObservableObject {
         self.currentUser = user
         self.isAuthenticated = true
         self.errorMessage = nil
-        print("AuthViewModel: User \(user.username) logged in.")
+        print("AuthViewModel: User \(user.user.username) logged in.")
     }
 
     /// Logs the current user out.
     func logout() {
         isLoading = true
         errorMessage = nil
-        print("AuthViewModel: Initiating logout for user \(currentUser?.username ?? "unknown")")
+        print("AuthViewModel: Initiating logout for user \(currentUser?.user.username ?? "unknown")")
 
         Task {
             do {

@@ -65,11 +65,11 @@ struct TransfersView: View {
             Group {
                 switch viewModel.loadingState {
                 case .idle:
-                    Text("Select filters to load transfers.")
-                        .foregroundColor(.gray)
+                    Text("Select status and direction to load transfers.").foregroundColor(.secondary)
                 case .loading:
-                    ProgressView()
-                case .success(let transfers):
+                    ProgressView("Loading transfers...")
+                case .success(_):
+                    // Transfers loaded successfully
                     if viewModel.filteredTransfers.isEmpty {
                         Text("No transfers found matching filters.")
                             .foregroundColor(.gray)

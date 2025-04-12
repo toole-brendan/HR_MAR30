@@ -1,6 +1,9 @@
 import SwiftUI
 import Foundation
 import Darwin
+// Remove these lines
+// @_exported import class HandReceipt.AppColors
+// @_exported import struct HandReceipt.PrimaryButtonStyle
 
 struct ContentView: View {
     // Simple state to track authentication.
@@ -33,6 +36,9 @@ struct ContentView: View {
             }
             #endif
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure ZStack fills the screen
+        .background(Color(white: 0.97).ignoresSafeArea()) // Light industrial gray background
+        .accentColor(Color(red: 0.35, green: 0.40, blue: 0.45)) // Match login button color
         // Detect shake gesture for debug overlay
         .onShake {
             #if DEBUG
@@ -46,7 +52,7 @@ struct ContentView: View {
     
     // Main content view based on authentication state
     private var mainContent: some View {
-        Group {
+        VStack {
             // Show loading indicator while checking session
             if isLoading {
                 VStack {
@@ -87,7 +93,7 @@ struct ContentView: View {
                 LoginView {
                      // This closure is called by LoginView on success
                      loginResponse in
-                     debugPrint("ContentView: Login successful for user \(loginResponse.username)")
+                     debugPrint("ContentView: Login successful for user \(loginResponse.user.username)")
                      // Update state to show the main app content
                      // Use MainActor.run for state updates triggered from background tasks (like login)
                      Task { @MainActor in
@@ -116,7 +122,7 @@ struct ContentView: View {
                     }
                 ))
                 .onAppear {
-                    debugPrint("AuthenticatedTabView appeared - user is authenticated as \(loggedInUser?.username ?? "unknown")")
+                    debugPrint("AuthenticatedTabView appeared - user is authenticated as \(loggedInUser?.user.username ?? "unknown")")
                 }
                  // Pass API service via environment if needed by tabs
                  // .environmentObject(APIService()) 
@@ -155,7 +161,7 @@ struct ContentView: View {
                 Text("Authenticated: \(isAuthenticated ? "Yes" : "No")")
                     .foregroundColor(.white)
                 if let user = loggedInUser {
-                    Text("User: \(user.username) (ID: \(user.userId))")
+                    Text("User: \(user.user.username) (ID: \(user.userId))")
                         .foregroundColor(.white)
                 }
             }
@@ -251,7 +257,7 @@ struct ContentView: View {
                 #endif
                 
                 let user = try await apiService.checkSession()
-                debugPrint("ContentView: Session check successful for user \(user.username)")
+                debugPrint("ContentView: Session check successful for user \(user.user.username)")
                 
                 // Update state on the main thread
                 await MainActor.run {

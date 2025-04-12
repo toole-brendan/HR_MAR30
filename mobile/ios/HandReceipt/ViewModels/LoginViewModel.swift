@@ -14,7 +14,7 @@ enum LoginState: Equatable {
         case (.idle, .idle): return true
         case (.loading, .loading): return true
         case (.success(let lResponse), .success(let rResponse)): 
-            return lResponse.userId == rResponse.userId && lResponse.username == rResponse.username
+            return lResponse.userId == rResponse.userId && lResponse.user.username == rResponse.user.username
         case (.failed(let lMessage), .failed(let rMessage)): 
             return lMessage == rMessage
         default: return false
@@ -102,7 +102,7 @@ class LoginViewModel: ObservableObject {
                 debugPrint("LoginViewModel: Calling API service login method")
                 let response = try await apiService.login(credentials: credentials)
                 // Login successful! Cookie should be stored by URLSession.
-                debugPrint("LoginViewModel: Login Successful: User \(response.username) (ID: \(response.userId))")
+                debugPrint("LoginViewModel: Login Successful: User \(response.user.username) (ID: \(response.userId))")
                 self.loginState = .success(response)
                 debugPrint("LoginViewModel: Login state updated to success")
                 // The View should observe this state change and navigate
@@ -140,13 +140,29 @@ class LoginViewModel: ObservableObject {
     /// Simulates a successful login (for debugging/testing)
     func simulateLoginSuccess() {
         debugPrint("LoginViewModel: Simulating successful login")
-        let mockResponse = LoginResponse(
-            userId: 12345,
-            username: "test_user",
-            message: "Login successful (simulated)"
-        )
-        self.loginState = .success(mockResponse)
-        debugPrint("LoginViewModel: Set mock success state with user: \(mockResponse.username)")
+        
+        // Create a JSON representation of our response
+        let mockResponseData = """
+        {
+            "token": "mock_token_string",
+            "user": {
+                "id": 12345,
+                "username": "test_user",
+                "name": "Test User",
+                "rank": "TST"
+            }
+        }
+        """.data(using: .utf8)!
+        
+        do {
+            // Decode it using the standard decoder
+            let mockResponse = try JSONDecoder().decode(LoginResponse.self, from: mockResponseData)
+            self.loginState = .success(mockResponse)
+            debugPrint("LoginViewModel: Set mock success state with user: \(mockResponse.user.username)")
+        } catch {
+            debugPrint("LoginViewModel: Failed to create mock response: \(error)")
+            self.loginState = .failed("Failed to create mock response")
+        }
     }
     
     /// Simulates a login error (for debugging/testing)

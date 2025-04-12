@@ -1,5 +1,13 @@
 import Foundation
 
+enum HTTPMethod: String {
+    case GET
+    case POST
+    case PUT
+    case DELETE
+    // Add other methods as needed
+}
+
 // Define a protocol for the API service to allow for mocking/testing
 protocol APIServiceProtocol {
     // Function to fetch reference items. Throws errors for network/parsing issues.
@@ -65,7 +73,7 @@ class APIService: APIServiceProtocol {
     private let urlSession: URLSession
 
     // Allow injecting a custom URLSession (e.g., for testing or specific configurations)
-    init(urlSession: URLSession = .shared, baseURLString: String = "http://localhost:8080/api") {
+    init(urlSession: URLSession = .shared, baseURLString: String = "http://127.0.0.1:8000/api") {
         debugPrint("Initializing APIService with baseURL: \(baseURLString)")
         
         if let url = URL(string: baseURLString) {
@@ -73,7 +81,7 @@ class APIService: APIServiceProtocol {
         } else {
             debugPrint("ERROR: Invalid base URL provided: \(baseURLString). Using fallback URL.")
             // Fallback URL in case of invalid string
-            self.baseURL = URL(string: "http://localhost:8080/api")!
+            self.baseURL = URL(string: "http://127.0.0.1:8000/api")!
         }
         
         self.urlSession = urlSession
@@ -95,6 +103,11 @@ class APIService: APIServiceProtocol {
         case itemNotFound
         case unauthorized // Added for login failures (401)
         case unknownError
+        case invalidResponse
+        case badRequest(message: String?)
+        case forbidden(message: String?)
+        case notFound(message: String?)
+        case requestFailed(statusCode: Int, data: Data)
 
         // Implement Equatable manually due to associated values
         static func == (lhs: APIError, rhs: APIError) -> Bool {
@@ -112,6 +125,11 @@ class APIService: APIServiceProtocol {
             case (.itemNotFound, .itemNotFound): return true
             case (.unauthorized, .unauthorized): return true
             case (.unknownError, .unknownError): return true
+            case (.invalidResponse, .invalidResponse): return true
+            case (.badRequest(let lMsg), .badRequest(let rMsg)): return lMsg == rMsg
+            case (.forbidden(let lMsg), .forbidden(let rMsg)): return lMsg == rMsg
+            case (.notFound(let lMsg), .notFound(let rMsg)): return lMsg == rMsg
+            case (.requestFailed(let lCode, _), .requestFailed(let rCode, _)): return lCode == rCode
             default: return false
             }
         }
@@ -127,6 +145,12 @@ class APIService: APIServiceProtocol {
             case .itemNotFound: return "Item not found (404)."
             case .unauthorized: return "Unauthorized (401). Check credentials or session."
             case .unknownError: return "An unknown error occurred."
+            case .invalidResponse: return "Invalid response format."
+            case .badRequest(let message): return "Bad request: \(message ?? "No additional message provided")"
+            case .forbidden(let message): return "Forbidden: \(message ?? "No additional message provided")"
+            case .notFound(let message): return "Not found: \(message ?? "No additional message provided")"
+            case .requestFailed(let statusCode, let data):
+                return "Request failed with status code \(statusCode). Data: \(String(data: data, encoding: .utf8) ?? "No data available")"
             }
         }
     }
@@ -142,7 +166,8 @@ class APIService: APIServiceProtocol {
     private let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601 // Matches Property model
-        debugPrint("Creating JSONDecoder with .iso8601 date decoding strategy")
+        decoder.keyDecodingStrategy = .convertFromSnakeCase // Handle snake_case keys from server
+        debugPrint("Creating JSONDecoder with .iso8601 date strategy and .convertFromSnakeCase key strategy")
         return decoder
     }()
 
@@ -279,7 +304,7 @@ class APIService: APIServiceProtocol {
 
         // Expect LoginResponse object upon success
         let response = try await performRequest(request: request) as LoginResponse
-        debugPrint("Login successful for user: \(response.username)")
+        debugPrint("Login successful for user: \(response.user.username)")
         return response
     }
 
@@ -309,7 +334,7 @@ class APIService: APIServiceProtocol {
         // Perform request, expecting LoginResponse (or a similar User Profile struct)
         // performRequest handles decoding and potential 401 unauthorized errors
         let response = try await performRequest(request: request) as LoginResponse
-        debugPrint("Session check successful, user: \(response.username)")
+        debugPrint("Session check successful, user: \(response.user.username)")
         return response
     }
 
@@ -481,7 +506,123 @@ class APIService: APIServiceProtocol {
         // If using URLSession cookie storage, this might not be needed if cookies are sent automatically.
          debugPrint("Auth header addition skipped (relying on URLSession cookie storage)")
     }
+
+    func performRequest<T: Decodable>(endpoint: String, method: HTTPMethod, body: Data? = nil, token: String? = nil) async throws -> T {
+        guard let url = URL(string: baseURL.absoluteString + endpoint) else {
+            throw APIError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        if let body = body {
+            request.httpBody = body
+            if let bodyString = String(data: body, encoding: .utf8) {
+                debugPrint("Request body: \(bodyString)")
+            }
+        }
+        
+        debugPrint("Request URL: \(url.absoluteString)")
+        debugPrint("Request method: \(method.rawValue)")
+        debugPrint("Request headers: \(request.allHTTPHeaderFields ?? [:])")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        // Print the raw response data for debugging
+        if let responseString = String(data: data, encoding: .utf8) {
+            debugPrint("Response status code: \(httpResponse.statusCode)")
+            debugPrint("Response body: \(responseString)")
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            // Enhanced error handling based on status code
+            switch httpResponse.statusCode {
+            case 400:
+                throw APIError.badRequest(message: try? JSONDecoder().decode(ErrorResponse.self, from: data).message)
+            case 401:
+                throw APIError.unauthorized
+            case 403:
+                throw APIError.forbidden(message: try? JSONDecoder().decode(ErrorResponse.self, from: data).message)
+            case 404:
+                throw APIError.notFound(message: try? JSONDecoder().decode(ErrorResponse.self, from: data).message)
+            case 500...599:
+                throw APIError.serverError(statusCode: httpResponse.statusCode, message: try? JSONDecoder().decode(ErrorResponse.self, from: data).message)
+            default:
+                throw APIError.requestFailed(statusCode: httpResponse.statusCode, data: data)
+            }
+        }
+        
+        do {
+            // Special handling for LoginResponse type to debug the decoding issue
+            if T.self == LoginResponse.self {
+                debugPrint("Attempting to decode LoginResponse...")
+                
+                // Try to parse the JSON to understand its structure
+                do {
+                    let json = try JSONSerialization.jsonObject(with: data)
+                    debugPrint("Raw JSON structure: \(json)")
+                    
+                    if let jsonDict = json as? [String: Any] {
+                        // Check for token
+                        if let token = jsonDict["token"] as? String {
+                            debugPrint("Token found: \(token)")
+                        } else {
+                            debugPrint("Token not found in response or has wrong type")
+                        }
+                        
+                        // Check for user object
+                        if let userDict = jsonDict["user"] as? [String: Any] {
+                            debugPrint("User object found: \(userDict)")
+                            
+                            // Examine user fields
+                            debugPrint("id: \(userDict["id"] ?? "missing")")
+                            debugPrint("username: \(userDict["username"] ?? "missing")")
+                            debugPrint("email: \(userDict["email"] ?? "missing")")
+                        } else {
+                            debugPrint("User object not found in response or has wrong type")
+                        }
+                    }
+                } catch {
+                    debugPrint("JSON parsing error: \(error)")
+                }
+            }
+            
+            let decoder = JSONDecoder()
+            let decodedResponse = try decoder.decode(T.self, from: data)
+            return decodedResponse
+        } catch {
+            debugPrint("Decoding error: \(error)")
+            if let decodingError = error as? DecodingError {
+                switch decodingError {
+                case .typeMismatch(let type, let context):
+                    debugPrint("Type mismatch: Expected \(type) for \(context.codingPath)")
+                case .valueNotFound(let type, let context):
+                    debugPrint("Value not found: Expected \(type) for \(context.codingPath)")
+                case .keyNotFound(let key, let context):
+                    debugPrint("Key not found: \(key) at \(context.codingPath)")
+                case .dataCorrupted(let context):
+                    debugPrint("Data corrupted: \(context)")
+                @unknown default:
+                    debugPrint("Unknown decoding error")
+                }
+            }
+            throw APIError.decodingError(error)
+        }
+    }
 }
 
 // Helper struct for requests expecting no response body (e.g., 204)
-struct EmptyResponse: Decodable {} 
+struct EmptyResponse: Decodable {}
+
+struct ErrorResponse: Decodable {
+    let message: String
+} 

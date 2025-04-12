@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/spf13/viper"
 	"github.com/yourusername/handreceipt/internal/domain"
@@ -14,8 +15,16 @@ import (
 // DB is the database instance
 var DB *gorm.DB
 
-// GetConnectionString returns the database connection string
+// GetConnectionString returns the database connection string (deprecated or for debugging)
 func GetConnectionString() string {
+	// Check for the full connection string environment variable first
+	envDSN := os.Getenv("HANDRECEIPT_DATABASE_URL")
+	if envDSN != "" {
+		log.Printf("Using DSN from HANDRECEIPT_DATABASE_URL environment variable")
+		return envDSN
+	}
+
+	// Fallback to config file if environment variable is not set
 	host := viper.GetString("database.host")
 	port := viper.GetInt("database.port")
 	user := viper.GetString("database.user")
@@ -23,30 +32,36 @@ func GetConnectionString() string {
 	dbname := viper.GetString("database.name")
 	sslMode := viper.GetString("database.ssl_mode")
 
-	// Debug: Print out database configuration
-	log.Printf("Database connection details: host=%s, port=%d, user=%s, dbname=%s, sslmode=%s",
+	log.Printf("Database connection details (from config): host=%s, port=%d, user=%s, dbname=%s, sslmode=%s",
 		host, port, user, dbname, sslMode)
 
-	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		host, port, user, password, dbname, sslMode)
-	log.Printf("Connection string: %s", connStr)
+	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
+		user, password, host, port, dbname, sslMode)
+	log.Printf("Connection string (from config): %s", connStr)
 
 	return connStr
 }
 
 // Connect connects to the database
 func Connect() (*gorm.DB, error) {
-	host := viper.GetString("database.host")
-	port := viper.GetInt("database.port")
-	user := viper.GetString("database.user")
-	password := viper.GetString("database.password")
-	dbname := viper.GetString("database.name")
-	sslMode := viper.GetString("database.ssl_mode")
+	// Prioritize the HANDRECEIPT_DATABASE_URL environment variable
+	dsn := os.Getenv("HANDRECEIPT_DATABASE_URL")
+	if dsn != "" {
+		log.Printf("Attempting to connect using DSN from HANDRECEIPT_DATABASE_URL")
+	} else {
+		// Fallback to constructing DSN from config file if environment variable is not set
+		log.Printf("HANDRECEIPT_DATABASE_URL not set, falling back to config file values.")
+		host := viper.GetString("database.host")
+		port := viper.GetInt("database.port")
+		user := viper.GetString("database.user")
+		password := viper.GetString("database.password")
+		dbname := viper.GetString("database.name")
+		sslMode := viper.GetString("database.ssl_mode")
 
-	// Use direct DSN format
-	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
-		user, password, host, port, dbname, sslMode)
-	log.Printf("Using DSN: %s", dsn)
+		dsn = fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
+			user, password, host, port, dbname, sslMode)
+		log.Printf("Attempting to connect using DSN constructed from config: %s", dsn) // Avoid logging password if possible
+	}
 
 	// Create a custom logger config
 	logConfig := logger.Config{
@@ -64,8 +79,10 @@ func Connect() (*gorm.DB, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		log.Printf("Failed to connect to database using DSN: %s. Error: %v", dsn, err) // Log the DSN used and the error
+		return nil, fmt.Errorf("failed to connect to database: %w", err)               // Wrap the original error
 	}
+	log.Println("Successfully connected to the database")
 
 	// Set global DB
 	DB = db

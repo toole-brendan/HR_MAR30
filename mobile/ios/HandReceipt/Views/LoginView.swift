@@ -1,4 +1,8 @@
 import SwiftUI
+import Foundation
+// Import our custom colors and styles directly by relative file path
+// @_exported import class HandReceipt.AppColors
+// @_exported import struct HandReceipt.PrimaryButtonStyle
 
 struct LoginView: View {
     @StateObject private var viewModel = LoginViewModel()
@@ -35,7 +39,7 @@ struct LoginView: View {
             .onChange(of: viewModel.loginState) { newState in
                 debugPrint("LoginView: Login state changed to \(String(describing: newState))")
                 if case .success(let response) = newState {
-                    debugPrint("LoginView: Login successful for user: \(response.username)")
+                    debugPrint("LoginView: Login successful for user: \(response.user.username)")
                     onLoginSuccess(response)
                 }
             }
@@ -55,19 +59,28 @@ struct LoginView: View {
             Spacer()
             // App Title or Logo
             Text("HandReceipt")
-                .font(.largeTitle)
+                .font(.system(.largeTitle, design: .monospaced))
                 .fontWeight(.bold)
+                .foregroundColor(Color(.darkGray))
             Text("Mobile Access")
-                .font(.headline)
-                .foregroundColor(.secondary)
+                .font(.system(.headline, design: .monospaced))
+                .foregroundColor(Color(.darkGray).opacity(0.6))
+                .padding(.top, 5)
             Spacer()
         }
     }
     
     private var inputFieldsView: some View {
-        VStack(spacing: 15) {
+        VStack(spacing: 20) {
             TextField("Username", text: $viewModel.username)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(12)
+                .background(Color(.systemGray6))
+                .cornerRadius(4) // Sharper corners for industrial look
+                .foregroundColor(Color(.darkGray))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color(.darkGray).opacity(0.3), lineWidth: 1)
+                )
                 .textContentType(.username)
                 .keyboardType(.asciiCapable)
                 .autocapitalization(.none)
@@ -77,7 +90,14 @@ struct LoginView: View {
                 }
             
             SecureField("Password", text: $viewModel.password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(12)
+                .background(Color(.systemGray6))
+                .cornerRadius(4) // Sharper corners for industrial look
+                .foregroundColor(Color(.darkGray))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color(.darkGray).opacity(0.3), lineWidth: 1)
+                )
                 .textContentType(.password)
                 .onChange(of: viewModel.password) { newValue in
                     debugPrint("Password changed: \(newValue.isEmpty ? "[empty]" : "[has value]")")
@@ -90,12 +110,12 @@ struct LoginView: View {
         HStack(spacing: 4) {
             if !errorMessage.isEmpty {
                 Image(systemName: "exclamationmark.circle")
-                   .foregroundColor(.red)
+                   .foregroundColor(.red) // Instead of AppColors.destructive
             }
             Text(errorMessage)
                 .font(.caption)
                 .fontWeight(.medium)
-                .foregroundColor(.red)
+                .foregroundColor(.red) // Instead of AppColors.destructive
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(height: 30, alignment: .leading)
@@ -164,14 +184,22 @@ struct LoginView: View {
                     .frame(height: 20)
             } else {
                 Text("Login")
+                    .font(.system(.headline, design: .monospaced))
+                    .fontWeight(.semibold)
             }
         }
-        .buttonStyle(.borderedProminent)
-        .frame(maxWidth: .infinity)
-        .frame(height: 44)
-        .padding(.horizontal, 40)
-        .disabled(!viewModel.canAttemptLogin || viewModel.loginState == .loading)
+        // Industrial minimalist styling
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+        .foregroundColor(.white)
+        .background(Color(red: 0.35, green: 0.40, blue: 0.45)) // Industrial slate blue-gray
+        .cornerRadius(4) // Sharper corners for industrial look
         .scaleEffect(viewModel.loginState == .loading ? 0.98 : 1.0)
+        .frame(maxWidth: .infinity)
+        .frame(height: 50)
+        .padding(.horizontal, 40)
+        .padding(.top, 20)
+        .disabled(!viewModel.canAttemptLogin || viewModel.loginState == .loading)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: viewModel.loginState == .loading)
     }
     
@@ -189,7 +217,7 @@ struct LoginView: View {
 struct LoginView_Previews: PreviewProvider {
     static var previews: some View {
         LoginView { loginResponse in
-            debugPrint("Preview Login Success: User \(loginResponse.username)")
+            debugPrint("Preview Login Success: User \(loginResponse.user.username)")
         }
         .previewDisplayName("Idle State")
     }

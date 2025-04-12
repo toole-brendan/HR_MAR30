@@ -103,7 +103,7 @@ struct ScanStatusOverlay: View {
                      
                      HStack(spacing: 20) { // Use HStack for buttons
                          Button("Confirm") {
-                            print("Confirm button clicked for: \(property.serialNumber ?? "N/A")")
+                            print("Confirm button clicked for: \(property.serialNumber)")
                             onConfirm(property)
                             // TODO: Implement actual confirmation action
                          }

@@ -87,10 +87,24 @@ func main() {
 	// Setup routes, passing the LedgerService interface and Repository
 	routes.SetupRoutes(router, ledgerService, repo)
 
-	// Get server port from config
-	port := viper.GetInt("server.port")
+	// Get server port, prioritizing environment variable, then config, then default
+	var port int
+	envPortStr := os.Getenv("HANDRECEIPT_SERVER_PORT")
+	if envPortStr != "" {
+		fmt.Sscan(envPortStr, &port) // Simple conversion, assumes valid integer
+		log.Printf("Using server port from HANDRECEIPT_SERVER_PORT environment variable: %d", port)
+	}
+
 	if port == 0 {
-		port = 8000 // Default port changed to 8000 as per config
+		port = viper.GetInt("server.port")
+		if port != 0 {
+			log.Printf("Using server port from config file: %d", port)
+		}
+	}
+
+	if port == 0 {
+		port = 8080 // Default port if not set by env var or config
+		log.Printf("Using default server port: %d", port)
 	}
 
 	// Start server

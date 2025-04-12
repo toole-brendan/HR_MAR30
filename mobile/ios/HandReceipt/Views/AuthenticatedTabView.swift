@@ -49,8 +49,12 @@ struct AuthenticatedTabView: View {
 
             // Settings/Profile Tab (Example)
             NavigationView {
-                VStack {
-                    Text("User: \(authViewModel.currentUser?.username ?? "N/A")")
+                VStack(alignment: .leading) {
+                    Text("Authenticated")
+                        .font(.largeTitle)
+                    Text("User: \(authViewModel.currentUser?.user.username ?? "N/A")")
+                        .font(.caption)
+                    Text("Token: \(authViewModel.currentUser?.token.prefix(10) ?? "N/A")...")
                     Button("Logout") {
                         authViewModel.logout()
                     }

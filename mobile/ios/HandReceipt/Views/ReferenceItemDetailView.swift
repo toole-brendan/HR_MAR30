@@ -62,8 +62,8 @@ struct ItemDetailContent: View {
                     .cornerRadius(8)
                     .padding(.bottom, 8)
 
-                Text(item.itemName ?? "Unknown Item").font(.title2).fontWeight(.semibold)
-                Text("NSN: \(item.nsn ?? "N/A")").font(.subheadline).foregroundColor(.secondary)
+                Text(item.itemName).font(.title2).fontWeight(.semibold)
+                Text("NSN: \(item.nsn)").font(.subheadline).foregroundColor(.secondary)
                 Text("Manufacturer: \(item.manufacturer ?? "N/A")").font(.subheadline).foregroundColor(.secondary)
                 Text("Description:").font(.headline).padding(.top, 8)
                 Text(item.description ?? "No description available.").font(.body)

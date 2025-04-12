@@ -185,6 +185,35 @@ class MockAPIService: APIServiceProtocol {
     var shouldThrowError = false
     var simulatedDelay: TimeInterval = 0.1
 
+    // Helper to create mock LoginResponse
+    private func createMockLoginResponse(userId: Int, username: String, message: String) -> LoginResponse {
+        let mockResponseData = """
+        {
+            "token": "mock_token_\(UUID().uuidString)",
+            "user": {
+                "id": \(userId),
+                "username": "\(username)",
+                "name": "Mock Name",
+                "rank": "MCK"
+            }
+        }
+        """.data(using: .utf8)!
+        
+        do {
+            return try JSONDecoder().decode(LoginResponse.self, from: mockResponseData)
+        } catch {
+            // In a real mock, you might want to handle this error differently,
+            // maybe fatalError or return a specific error response.
+            // For preview purposes, creating a default might be okay,
+            // but it hides potential decoding issues in the main struct.
+            print("Error creating mock LoginResponse: \(error)")
+            // Fallback - This will likely fail if LoginResponse can't be initialized this way
+            // Try creating a very basic default if decoding fails, though this might not be ideal
+            let defaultUser = LoginResponse.User(id: 0, username: "error_user", name: "Error", rank: "ERR")
+            return LoginResponse(token: "error_token", user: defaultUser)
+        }
+    }
+
     func getMyProperties() async throws -> [Property] {
         try await Task.sleep(nanoseconds: UInt64(simulatedDelay * 1_000_000_000))
         if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
@@ -206,12 +235,12 @@ class MockAPIService: APIServiceProtocol {
     func login(credentials: LoginCredentials) async throws -> LoginResponse { 
          try await Task.sleep(nanoseconds: UInt64(simulatedDelay * 1_000_000_000))
         if shouldThrowError { throw APIService.APIError.unauthorized }
-         return mockLoginResponse ?? LoginResponse(userId: 123, username: "mockUser", message: "Mock login successful")
+         return mockLoginResponse ?? createMockLoginResponse(userId: 123, username: credentials.username, message: "Mock login successful")
     }
     func checkSession() async throws -> LoginResponse { 
          try await Task.sleep(nanoseconds: UInt64(simulatedDelay * 1_000_000_000))
          if shouldThrowError { throw APIService.APIError.unauthorized }
-         return mockLoginResponse ?? LoginResponse(userId: 123, username: "mockUser", message: "Mock session")
+         return mockLoginResponse ?? createMockLoginResponse(userId: 456, username: "mockSessionUser", message: "Mock session")
     }
     func fetchReferenceItemById(itemId: String) async throws -> ReferenceItem { 
          try await Task.sleep(nanoseconds: UInt64(simulatedDelay * 1_000_000_000))
@@ -243,19 +272,21 @@ class MockAPIService: APIServiceProtocol {
      func requestTransfer(propertyId: Int, targetUserId: Int) async throws -> Transfer {
          if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
          // Need to create a mock Transfer or throw an error appropriate for previews
-         // Let's create a basic mock transfer for now
+         // Ensure UserSummary and Transfer use the correct initializers or are Decodable
+         let mockFromUser = UserSummary(id: 123, username: "mockFromUser", rank: "PVT", lastName: "Mock")
+         let mockToUser = UserSummary(id: targetUserId, username: "mockToUser", rank: "PVT", lastName: "Target")
          let mockTransfer = Transfer(
-            id: Int.random(in: 1000...9999), // Use Int ID
+            id: Int.random(in: 1000...9999),
             propertyId: propertyId,
             propertySerialNumber: "MOCKSN123",
             propertyName: "Mock Property",
-            fromUserId: 123, // Mock current user ID (assuming)
+            fromUserId: 123,
             toUserId: targetUserId,
             status: .PENDING,
             requestTimestamp: Date(),
             approvalTimestamp: nil,
-            fromUser: UserSummary(id: 123, username: "mockFromUser", rank: "PVT", lastName: "Mock"), // Use Int ID
-            toUser: UserSummary(id: targetUserId, username: "mockToUser", rank: "PVT", lastName: "Target") // Use Int ID
+            fromUser: mockFromUser,
+            toUser: mockToUser
          )
          return mockTransfer
      }
@@ -271,7 +302,11 @@ class MockAPIService: APIServiceProtocol {
      }
      func fetchUsers(searchQuery: String?) async throws -> [UserSummary] {
          if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
-         return [] // Return empty user array
+         // Create mock users ensuring UserSummary initializer is correct
+         return [
+             UserSummary(id: 101, username: "user1", rank: "SGT", lastName: "One"),
+             UserSummary(id: 102, username: "user2", rank: "CPL", lastName: "Two")
+         ]
      }
 
 }

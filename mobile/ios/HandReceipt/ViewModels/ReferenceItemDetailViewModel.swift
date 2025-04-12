@@ -42,9 +42,11 @@ class ReferenceItemDetailViewModel: ObservableObject {
         Task {
             do {
                 let fetchedItem = try await apiService.fetchReferenceItemById(itemId: itemId)
-                loadingState = .success(fetchedItem) // Update state with fetched item
-                item = fetchedItem // Also update the item property
-                print("ReferenceItemDetailViewModel: Successfully fetched \(fetchedItem.itemName ?? "Unknown")")
+                print("ReferenceItemDetailViewModel: Successfully fetched \(fetchedItem.itemName)")
+                DispatchQueue.main.async {
+                    self.item = fetchedItem
+                    self.loadingState = .success(fetchedItem) // Update state with fetched item
+                }
             } catch let apiError as APIService.APIError {
                 print("ReferenceItemDetailViewModel: API Error - \(apiError.localizedDescription)")
                  let specificMessage: String = apiError.localizedDescription // Assign the error message

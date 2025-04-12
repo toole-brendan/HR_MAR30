@@ -89,7 +89,7 @@ class ScanViewModel: ObservableObject {
                 let property = try await apiService.fetchPropertyBySerialNumber(serialNumber: code)
                  // Ensure we are still in loading state before updating (check after await)
                 guard self.scanState == .loading else { return }
-                print("ScanViewModel: Success - Found property \(property.serialNumber ?? "N/A")")
+                print("ScanViewModel: Success - Found property \(property.serialNumber)")
                 self.confirmedProperty = property // Store the property
                 self.scanState = .success(property)
             } catch let error as APIService.APIError where error == .itemNotFound {
