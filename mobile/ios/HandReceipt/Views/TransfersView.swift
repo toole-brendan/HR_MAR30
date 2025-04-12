@@ -1,11 +1,237 @@
-import SwiftUI\n\nstruct TransfersView: View {\n    // Inject AuthViewModel to get current user ID\n    @StateObject private var authViewModel = AuthViewModel()\n    // Initialize TransfersViewModel with the current user ID\n    @StateObject private var viewModel: TransfersViewModel\n    
-    // Initializer to inject current user ID\n    init() {\n        // Temporarily create AuthViewModel here to get ID. Ideally, AuthViewModel would be an EnvironmentObject.\n        let authVM = AuthViewModel()\n        _viewModel = StateObject(wrappedValue: TransfersViewModel(currentUserId: authVM.currentUser?.userId))\n    }\n\n    var body: some View {\n        NavigationView {\n            VStack(spacing: 0) { // Use VStack to hold Pickers and List\n                // Filter Pickers\n                Picker(\"Direction\", selection: $viewModel.selectedDirectionFilter) {\n                    ForEach(TransfersViewModel.FilterDirection.allCases) {\n                        direction in\n                        Text(direction.rawValue).tag(direction)\n                    }\n                }\n                .pickerStyle(.segmented)\n                .padding(.horizontal)\n                .padding(.top) // Add some top padding\n                 \n                Picker(\"Status\", selection: $viewModel.selectedStatusFilter) {\n                     ForEach(TransfersViewModel.FilterStatus.allCases) {\n                        status in\n                        Text(status.rawValue).tag(status)\n                    }\n                }\n                .pickerStyle(.segmented)\n                .padding(.horizontal)\n                .padding(.bottom, 8) // Add padding below status picker\n\n                // List Content with Action State Overlay\n                ZStack {\n                    Group {\n                        switch viewModel.loadingState {\n                        case .idle:\n                            Text(\"Select filters to load transfers.\")\n                                .foregroundColor(.gray)\n                        case .loading:\n                            ProgressView()\n                        case .success(let transfers):\n                            if viewModel.filteredTransfers.isEmpty {\n                                Text(\"No transfers found matching filters.\")\n                                    .foregroundColor(.gray)\n                            } else {\n                                List {\n                                    ForEach(viewModel.filteredTransfers) {\n                                        transfer in\n                                        NavigationLink(destination: TransferDetailView(transfer: transfer, viewModel: viewModel)) {\n                                            TransferListItemView(transfer: transfer)\n                                        }\n                                    }\n                                }\n                                .listStyle(PlainListStyle())\n                                .refreshable {\n                                     viewModel.fetchTransfers()\n                                 }\n                            }\n                        case .error(let message):\n                            ErrorStateView(message: message) {\n                                viewModel.fetchTransfers()\n                            }\n                        }\n                    }\n                    .frame(maxWidth: .infinity, maxHeight: .infinity)\n                     \n                    // Overlay for Action State (Success/Error Messages)\n                    ActionStatusOverlay(state: viewModel.actionState)\n                }\n            }\n            .navigationTitle(\"Transfers\")\n            .toolbar {\n                 ToolbarItem(placement: .navigationBarTrailing) {\n                      Button {\n                          viewModel.fetchTransfers()\n                      } label: {\n                          Label(\"Refresh\", systemImage: \"arrow.clockwise\")\n                      }\n                      .disabled(viewModel.loadingState == .loading)\n                  }\n              }\n        }\n    }\n}\n\n// Separate view for list item presentation\nstruct TransferListItemView: View {\n    let transfer: Transfer\n    \n    // Use a Formatter for dates\n    private static var dateFormatter: DateFormatter = {\n        let formatter = DateFormatter()\n        formatter.dateStyle = .short\n        formatter.timeStyle = .short\n        return formatter\n    }()\n    \n    var body: some View {\n        HStack {\n            VStack(alignment: .leading) {\n                Text(\"Item: \(transfer.propertyName ?? transfer.propertySerialNumber)\")\n                    .font(.headline)\n                Text(\"SN: \(transfer.propertySerialNumber)\")\n                    .font(.subheadline)\n                    .foregroundColor(.gray)\n                 Text(\"From: \(transfer.fromUser?.username ?? \"Unknown\")\")\n                 Text(\"To: \(transfer.toUser?.username ?? \"Unknown\")\")\n                 Text(\"Requested: \(transfer.requestTimestamp, formatter: Self.dateFormatter)\")\n            }\n            Spacer()\n            Text(transfer.status.rawValue)\n                .font(.caption)\n                .padding(4)\n                .background(statusColor(transfer.status))\n                .foregroundColor(.white)\n                .cornerRadius(4)\n        }\n    }\n    \n    // Helper to get status color\n    private func statusColor(_ status: TransferStatus) -> Color {\n        switch status {\n        case .PENDING: return .orange\n        case .APPROVED: return .green\n        case .REJECTED: return .red\n        case .CANCELLED: return .gray\n        case .UNKNOWN: return .purple\n        }\n    }\n}\n\n// Placeholder for the Detail View\nstruct TransferDetailView: View {\n    let transfer: Transfer\n    @ObservedObject var viewModel: TransfersViewModel\n    
-    @Environment(\.dismiss) var dismiss\n\n    var body: some View {\n        VStack(alignment: .leading) {\n            Text(\"Transfer Details\")\n                .font(.title)\n                .padding(.bottom)\n            
-            TransferListItemView(transfer: transfer)\n                .padding(.bottom)\n            
-            Spacer()\n            
-            // Action Buttons Section\n            if transfer.status == .PENDING && transfer.toUserId == viewModel.currentUserId {\n                HStack {\n                     Button(\"Approve\") {\n                        viewModel.approveTransfer(transferId: transfer.id)\n                     }\n                     .buttonStyle(.borderedProminent)\n                     .tint(.green)\n                     .disabled(viewModel.actionState == .loading)\n                     
-                     Button(\"Reject\") {\n                         viewModel.rejectTransfer(transferId: transfer.id)\n                     }\n                     .buttonStyle(.borderedProminent)\n                     .tint(.red)\n                     .disabled(viewModel.actionState == .loading)\n                 }\n                 .padding()\n                 
-                 // Show loading specifically for actions\n                if viewModel.actionState == .loading {\n                    ProgressView()\n                        .padding(.top)\n                }\n             }\n             
-            Spacer()\n        }\n        .padding()\n        .navigationTitle(\"Transfer #\(transfer.id.uuidString.prefix(8))\")
-            .navigationBarTitleDisplayMode(.inline)\n    }\n}\n\n// New Overlay View for Action Status\nstruct ActionStatusOverlay: View {\n    let state: TransfersViewModel.ActionState\n    
-    var body: some View {\n        VStack {\n             Spacer() // Push to bottom or center as desired\n             Group {\n                switch state {\n                case .idle, .loading:\n                    EmptyView()\n                case .success(let message):\n                    HStack {\n                        Image(systemName: \"checkmark.circle.fill\")\n                            .foregroundColor(.green)\n                        Text(message)\n                    }\n                    .padding()\n                    .background(.thinMaterial)\n                    .cornerRadius(10)\n                    .transition(.opacity.combined(with: .scale(scale: 0.8)))\n                case .error(let message):\n                    HStack {\n                        Image(systemName: \"exclamationmark.triangle.fill\")\n                            .foregroundColor(.red)\n                        Text(message)\n                            .lineLimit(2)\n                    }\n                    .padding()\n                    .background(.thinMaterial)\n                    .cornerRadius(10)\n                    .transition(.opacity.combined(with: .scale(scale: 0.8)))\n                }\n             }\n             .padding(.bottom, 30) // Adjust position\n         }\n         .animation(.spring(), value: state)\n    }\n}\n\nstruct TransfersView_Previews: PreviewProvider {\n    static var previews: some View {\n        // Adjust previews if needed, potentially mocking AuthViewModel or currentUserId\n        TransfersView()\n    }\n} 
+import SwiftUI
+
+struct TransfersView: View {
+    // Inject AuthViewModel to get current user ID
+    @StateObject private var authViewModel = AuthViewModel()
+    // Initialize TransfersViewModel with the current user ID
+    @StateObject private var viewModel: TransfersViewModel
+
+    // Initializer to inject current user ID
+    init() {
+        // Temporarily create AuthViewModel here to get ID. Ideally, AuthViewModel would be an EnvironmentObject.
+        let authVM = AuthViewModel()
+        _viewModel = StateObject(wrappedValue: TransfersViewModel(currentUserId: authVM.currentUser?.userId))
+    }
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) { // Use VStack to hold Pickers and List
+                // Filter Pickers
+                Picker("Direction", selection: $viewModel.selectedDirectionFilter) {
+                    ForEach(TransfersViewModel.FilterDirection.allCases) {
+                        direction in
+                        Text(direction.rawValue).tag(direction)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.top) // Add some top padding
+
+                Picker("Status", selection: $viewModel.selectedStatusFilter) {
+                     ForEach(TransfersViewModel.FilterStatus.allCases) {
+                        status in
+                        Text(status.rawValue).tag(status)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.bottom, 8) // Add padding below status picker
+
+                // List Content with Action State Overlay
+                ZStack {
+                    Group {
+                        switch viewModel.loadingState {
+                        case .idle:
+                            Text("Select filters to load transfers.")
+                                .foregroundColor(.gray)
+                        case .loading:
+                            ProgressView()
+                        case .success(let transfers):
+                            if viewModel.filteredTransfers.isEmpty {
+                                Text("No transfers found matching filters.")
+                                    .foregroundColor(.gray)
+                            } else {
+                                List {
+                                    ForEach(viewModel.filteredTransfers) {
+                                        transfer in
+                                        NavigationLink(destination: TransferDetailView(transfer: transfer, viewModel: viewModel)) {
+                                            TransferListItemView(transfer: transfer)
+                                        }
+                                    }
+                                }
+                                .listStyle(PlainListStyle())
+                                .refreshable {
+                                     viewModel.fetchTransfers()
+                                 }
+                            }
+                        case .error(let message):
+                            ErrorStateView(message: message) {
+                                viewModel.fetchTransfers()
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    // Overlay for Action State (Success/Error Messages)
+                    ActionStatusOverlay(state: viewModel.actionState)
+                }
+            }
+            .navigationTitle("Transfers")
+            .toolbar {
+                 ToolbarItem(placement: .navigationBarTrailing) {
+                      Button {
+                          viewModel.fetchTransfers()
+                      } label: {
+                          Label("Refresh", systemImage: "arrow.clockwise")
+                      }
+                      .disabled(viewModel.loadingState == .loading)
+                  }
+              }
+        }
+    }
+}
+
+// Separate view for list item presentation
+struct TransferListItemView: View {
+    let transfer: Transfer
+
+    // Use a Formatter for dates
+    private static var dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading) {
+                Text("Item: \(transfer.propertyName ?? transfer.propertySerialNumber)")
+                    .font(.headline)
+                Text("SN: \(transfer.propertySerialNumber)")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                 Text("From: \(transfer.fromUser?.username ?? "Unknown")")
+                 Text("To: \(transfer.toUser?.username ?? "Unknown")")
+                 Text("Requested: \(transfer.requestTimestamp, formatter: Self.dateFormatter)")
+            }
+            Spacer()
+            Text(transfer.status.rawValue)
+                .font(.caption)
+                .padding(4)
+                .background(statusColor(transfer.status))
+                .foregroundColor(.white)
+                .cornerRadius(4)
+        }
+    }
+
+    // Helper to get status color
+    private func statusColor(_ status: TransferStatus) -> Color {
+        switch status {
+        case .PENDING: return .orange
+        case .APPROVED: return .green
+        case .REJECTED: return .red
+        case .CANCELLED: return .gray
+        case .UNKNOWN: return .purple
+        }
+    }
+}
+
+// Placeholder for the Detail View
+struct TransferDetailView: View {
+    let transfer: Transfer
+    @ObservedObject var viewModel: TransfersViewModel
+
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Transfer Details")
+                .font(.title)
+                .padding(.bottom)
+
+            TransferListItemView(transfer: transfer)
+                .padding(.bottom)
+
+            Spacer()
+
+            // Action Buttons Section
+            if transfer.status == .PENDING && transfer.toUserId == viewModel.currentUserId {
+                HStack {
+                     Button("Approve") {
+                        viewModel.approveTransfer(transferId: transfer.id)
+                     }
+                     .buttonStyle(.borderedProminent)
+                     .tint(.green)
+                     .disabled(viewModel.actionState == .loading)
+
+                     Button("Reject") {
+                         viewModel.rejectTransfer(transferId: transfer.id)
+                     }
+                     .buttonStyle(.borderedProminent)
+                     .tint(.red)
+                     .disabled(viewModel.actionState == .loading)
+                 }
+                 .padding()
+
+                 // Show loading specifically for actions
+                if viewModel.actionState == .loading {
+                    ProgressView()
+                        .padding(.top)
+                }
+             }
+
+            Spacer()
+        }
+        .padding()
+        .navigationTitle("Transfer #\(transfer.id.uuidString.prefix(8))")
+            .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// New Overlay View for Action Status
+struct ActionStatusOverlay: View {
+    let state: TransfersViewModel.ActionState
+
+    var body: some View {
+        VStack {
+             Spacer() // Push to bottom or center as desired
+             Group {
+                switch state {
+                case .idle, .loading:
+                    EmptyView()
+                case .success(let message):
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text(message)
+                    }
+                    .padding()
+                    .background(.thinMaterial)
+                    .cornerRadius(10)
+                    .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                case .error(let message):
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.red)
+                        Text(message)
+                            .lineLimit(2)
+                    }
+                    .padding()
+                    .background(.thinMaterial)
+                    .cornerRadius(10)
+                    .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                }
+             }
+             .padding(.bottom, 30) // Adjust position
+         }
+         .animation(.spring(), value: state)
+    }
+}
+
+struct TransfersView_Previews: PreviewProvider {
+    static var previews: some View {
+        // Adjust previews if needed, potentially mocking AuthViewModel or currentUserId
+        TransfersView()
+    }
+} 

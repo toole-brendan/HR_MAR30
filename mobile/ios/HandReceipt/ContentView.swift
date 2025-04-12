@@ -37,15 +37,17 @@ struct ContentView: View {
             // .environmentObject(apiService) // Example if using EnvironmentObject
         } else {
             // Use TabView for the main authenticated view
-            AuthenticatedTabView(loggedInUser: loggedInUser) {
-                // Logout callback
-                print("ContentView: Received logout request")
-                Task { @MainActor in
-                    self.isAuthenticated = false
-                    self.loggedInUser = nil
+            AuthenticatedTabView(authViewModel: AuthViewModel(
+                currentUser: loggedInUser,
+                logoutCallback: {
+                    // Logout callback
+                    print("ContentView: Received logout request")
+                    Task { @MainActor in
+                        self.isAuthenticated = false
+                        self.loggedInUser = nil
+                    }
                 }
-                // Optional: API logout call
-            }
+            ))
              // Pass API service via environment if needed by tabs
              // .environmentObject(APIService()) 
         }
@@ -85,56 +87,6 @@ struct ContentView: View {
                 }
             }
         }
-    }
-}
-
-// New View for the Authenticated Tab Structure
-struct AuthenticatedTabView: View {
-    let loggedInUser: LoginResponse?
-    let onLogout: () -> Void
-    
-    @State private var selectedTab: Tab = .properties 
-
-    enum Tab {
-        case properties
-        case referenceDb
-        case scan
-        case transfers
-    }
-
-    var body: some View {
-        TabView(selection: $selectedTab) {
-            // Tab 1: My Properties
-            MyPropertiesView()
-                .tabItem { Label("My Properties", systemImage: "list.bullet.rectangle.portrait") }
-                .tag(Tab.properties)
-            
-            // Tab 2: Reference DB Browser
-            ReferenceDatabaseBrowserView()
-                .tabItem { Label("Reference DB", systemImage: "book.closed") }
-                .tag(Tab.referenceDb)
-
-            // Tab 3: Scan View (Placeholder)
-             ScanView()
-                 .tabItem { Label("Scan", systemImage: "barcode.viewfinder") }
-                 .tag(Tab.scan)
-
-            // Tab 4: Transfers View (Placeholder)
-             TransfersView()
-                 .tabItem { Label("Transfers", systemImage: "arrow.right.arrow.left.square") }
-                 .tag(Tab.transfers)
-        }
-         // Optional: Add a common toolbar if needed across all tabs
-         // This would require removing NavigationViews from child views
-         // and managing navigation state differently.
-         // For now, each tab has its own NavigationView.
-         
-         // Example of adding a global logout (maybe less ideal UX than profile screen)
-         // .toolbar {
-         //     ToolbarItem(placement: .navigationBarTrailing) {
-         //         Button("Logout") { onLogout() }.foregroundColor(.red)
-         //     }
-         // }
     }
 }
 

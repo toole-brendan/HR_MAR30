@@ -86,9 +86,6 @@ struct ReferenceDatabaseBrowserView: View {
                             // Handle confirmed item if needed (e.g., show confirmation)
                              print("Item confirmed from sheet: \(property.serialNumber)")
                             showingManualSNEntry = false // Dismiss sheet
-                        }, 
-                        onCancel: { 
-                            showingManualSNEntry = false // Dismiss sheet on cancel
                         }
                      )
                  }
@@ -136,74 +133,10 @@ struct ReferenceItemRow: View {
     }
 }
 
-// Keep Placeholder Detail View (ensure it uses the correct ReferenceItem model properties)
-struct ReferenceItemDetailView: View {
-    let itemId: String
-
-    var body: some View {
-        ScrollView { // Use ScrollView for potentially long content
-            VStack(alignment: .leading) {
-                // TODO: Add Image loading using item.imageUrl if available
-                 if let imageUrlString = item.imageUrl, let url = URL(string: imageUrlString) {
-                     AsyncImage(url: url) { phase in
-                         switch phase {
-                         case .empty:
-                             ProgressView()
-                                 .frame(height: 200)
-                         case .success(let image):
-                             image.resizable()
-                                  .aspectRatio(contentMode: .fit)
-                                  .frame(maxWidth: .infinity) // Adjust frame as needed
-                                  .padding(.bottom)
-                         case .failure:
-                             Image(systemName: "photo.fill") // Placeholder for failure
-                                 .resizable()
-                                 .aspectRatio(contentMode: .fit)
-                                 .frame(maxWidth: .infinity, maxHeight: 200)
-                                 .foregroundColor(.gray)
-                                 .padding(.bottom)
-                         @unknown default:
-                             EmptyView()
-                         }
-                     }
-                      .frame(height: 200) // Give AsyncImage a frame
-                 } else {
-                      Image(systemName: "photo.fill") // Placeholder if no URL
-                         .resizable()
-                         .aspectRatio(contentMode: .fit)
-                         .frame(maxWidth: .infinity, maxHeight: 200)
-                         .foregroundColor(.gray)
-                         .padding(.bottom)
-                 }
-
-                Text(item.itemName).font(.largeTitle).padding(.bottom, 5) // Use itemName
-                Text("NSN: \(item.nsn)").font(.title2).foregroundColor(.secondary)
-
-                Divider().padding(.vertical)
-
-                // Display optional fields safely
-                if let description = item.description, !description.isEmpty {
-                    Text("Description").font(.headline).padding(.bottom, 2)
-                    Text(description)
-                    Divider().padding(.vertical)
-                }
-
-                if let manufacturer = item.manufacturer, !manufacturer.isEmpty {
-                    Text("Manufacturer").font(.headline).padding(.bottom, 2)
-                    Text(manufacturer)
-                    Divider().padding(.vertical)
-                }
-
-                // Add more fields from ReferenceItem model here as needed
-
-                Spacer() // Push content to top
-            }
-            .padding()
-        }
-        .navigationTitle(item.itemName) // Use itemName
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
+// Keep Placeholder Detail View (ensure it uses the correct ReferenceItem model properties) - DEFINITION REMOVED
+// struct ReferenceItemDetailView: View {
+//     // ... Contents removed ... 
+// }
 
 struct ReferenceDatabaseBrowserView_Previews: PreviewProvider {
     static var previews: some View {

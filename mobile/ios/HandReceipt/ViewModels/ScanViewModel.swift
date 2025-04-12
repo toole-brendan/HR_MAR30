@@ -1,12 +1,24 @@
 import Foundation
 import Combine
 
-enum ScanState {
+enum ScanState: Equatable {
     case scanning
     case loading
     case success(Property)
     case notFound
     case error(String)
+
+    // Implement == manually since Property might not be Equatable yet
+    static func == (lhs: ScanState, rhs: ScanState) -> Bool {
+        switch (lhs, rhs) {
+        case (.scanning, .scanning): return true
+        case (.loading, .loading): return true
+        case (.success(let lProp), .success(let rProp)): return lProp.id == rProp.id // Compare by ID
+        case (.notFound, .notFound): return true
+        case (.error(let lMsg), .error(let rMsg)): return lMsg == rMsg
+        default: return false
+        }
+    }
 }
 
 @MainActor // Ensure UI updates happen on the main thread
@@ -18,19 +30,31 @@ class ScanViewModel: ObservableObject {
     @Published var confirmedProperty: Property? = nil
     @Published var transferRequestState: TransferRequestState = .idle // State for the transfer request itself
     
-    private let apiService = APIService.shared // Assuming singleton, adjust if using DI
+    private let apiService: APIServiceProtocol // Use protocol for flexibility
     private var cancellables = Set<AnyCancellable>()
     private var clearStateTimer: AnyCancellable? // Timer to clear success/error message
 
     // Nested enum for transfer request status
-    enum TransferRequestState {
+    enum TransferRequestState: Equatable {
         case idle
         case loading
         case success(Transfer) // Return the created transfer record
         case error(String)
+        
+        // Implement Equatable manually
+        static func == (lhs: TransferRequestState, rhs: TransferRequestState) -> Bool {
+            switch (lhs, rhs) {
+            case (.idle, .idle): return true
+            case (.loading, .loading): return true
+            case (.success(let lTransfer), .success(let rTransfer)): return lTransfer.id == rTransfer.id
+            case (.error(let lMsg), .error(let rMsg)): return lMsg == rMsg
+            default: return false
+            }
+        }
     }
 
-    init() {
+    init(apiService: APIServiceProtocol = APIService()) { // Inject or use default
+        self.apiService = apiService
         // Observe changes from the CameraView's binding
         $scannedCodeFromCamera
             .compactMap { $0 } // Ignore nil values
@@ -59,27 +83,23 @@ class ScanViewModel: ObservableObject {
         confirmedProperty = nil // Clear previous property
         transferRequestState = .idle // Reset transfer state
 
-        apiService.fetchPropertyBySerial(serialNumber: code) { [weak self] result in
-            // Ensure updates are on the main thread
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                // Ensure we are still in loading state before updating
+        // Use Task for async call
+        Task {
+            do {
+                let property = try await apiService.fetchPropertyBySerialNumber(serialNumber: code)
+                 // Ensure we are still in loading state before updating (check after await)
                 guard self.scanState == .loading else { return }
-                
-                switch result {
-                case .success(let property):
-                    print("ScanViewModel: Success - Found property \(property.serialNumber ?? "N/A")")
-                    self.confirmedProperty = property // Store the property
-                    self.scanState = .success(property)
-                case .failure(let error):
-                    if let apiError = error as? APIError, apiError == .notFound { // Check for specific 404 error
-                         print("ScanViewModel: Error - Property not found for code \(code)")
-                        self.scanState = .notFound
-                    } else {
-                        print("ScanViewModel: Error - \(error.localizedDescription) for code \(code)")
-                        self.scanState = .error(error.localizedDescription)
-                    }
-                }
+                print("ScanViewModel: Success - Found property \(property.serialNumber ?? "N/A")")
+                self.confirmedProperty = property // Store the property
+                self.scanState = .success(property)
+            } catch let error as APIService.APIError where error == .itemNotFound {
+                guard self.scanState == .loading else { return } // Check state again
+                print("ScanViewModel: Error - Property not found for code \(code)")
+                self.scanState = .notFound
+            } catch {
+                guard self.scanState == .loading else { return } // Check state again
+                print("ScanViewModel: Error - \(error.localizedDescription) for code \(code)")
+                self.scanState = .error(error.localizedDescription)
             }
         }
     }
@@ -93,7 +113,7 @@ class ScanViewModel: ObservableObject {
     }
     
     // Function to call after user selection
-    func initiateTransfer(targetUser: User) {
+    func initiateTransfer(targetUser: UserSummary) {
         guard let propertyToTransfer = confirmedProperty else {
             transferRequestState = .error("Cannot initiate transfer: Property not confirmed.")
             print("ScanViewModel Error: initiateTransfer called without confirmed property.")
@@ -104,24 +124,20 @@ class ScanViewModel: ObservableObject {
         transferRequestState = .loading
         clearStateTimer?.cancel() // Cancel previous timer if any
         
-        apiService.requestTransfer(propertyId: propertyToTransfer.id, targetUserId: targetUser.id) { [weak self] result in
-             DispatchQueue.main.async {
-                 guard let self = self else { return }
-                 switch result {
-                 case .success(let newTransfer):
-                     print("ScanViewModel: Transfer request successful - ID \(newTransfer.id)")
-                     self.transferRequestState = .success(newTransfer)
-                     // Schedule state reset after delay
-                     self.scheduleTransferStateReset(delay: 3.0) 
-                     // Don't call scanAgain immediately, let message show
-                     // self.scanAgain() 
-                 case .failure(let error):
-                      print("ScanViewModel: Transfer request failed - \(error.localizedDescription)")
-                     self.transferRequestState = .error("Transfer failed: \(error.localizedDescription)")
-                      // Schedule state reset after delay
-                     self.scheduleTransferStateReset(delay: 5.0) // Longer delay for errors
-                 }
-             }
+        // Use Task for async call
+        Task {
+            do {
+                let newTransfer = try await apiService.requestTransfer(propertyId: propertyToTransfer.id, targetUserId: targetUser.id)
+                print("ScanViewModel: Transfer request successful - ID \(newTransfer.id)")
+                self.transferRequestState = .success(newTransfer)
+                // Schedule state reset after delay
+                self.scheduleTransferStateReset(delay: 3.0)
+            } catch {
+                print("ScanViewModel: Transfer request failed - \(error.localizedDescription)")
+                self.transferRequestState = .error("Transfer failed: \(error.localizedDescription)")
+                // Schedule state reset after delay
+                self.scheduleTransferStateReset(delay: 5.0) // Longer delay for errors
+            }
         }
     }
     

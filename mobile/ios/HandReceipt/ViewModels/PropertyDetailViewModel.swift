@@ -2,11 +2,22 @@ import Foundation
 import Combine
 
 // Enum to represent the state of the data loading
-enum PropertyDetailLoadingState {
+enum PropertyDetailLoadingState: Equatable {
     case idle
     case loading
     case success(Property) // Hold the fetched property
     case error(String)
+    
+    // Implement Equatable manually
+    static func == (lhs: PropertyDetailLoadingState, rhs: PropertyDetailLoadingState) -> Bool {
+        switch (lhs, rhs) {
+        case (.idle, .idle): return true
+        case (.loading, .loading): return true
+        case (.success(let lProp), .success(let rProp)): return lProp.id == rProp.id
+        case (.error(let lMsg), .error(let rMsg)): return lMsg == rMsg
+        default: return false
+        }
+    }
 }
 
 // Reuse TransferRequestState from ScanViewModel or define locally
@@ -36,11 +47,10 @@ class PropertyDetailViewModel: ObservableObject {
         self.propertyId = propertyId
         self.apiService = apiService
         print("PropertyDetailViewModel initialized for property ID: \(propertyId)")
-        fetchDetails()
     }
 
-    func fetchDetails() {
-        guard loadingState != .loading else { return }
+    func loadProperty() {
+        if case .loading = loadingState { return }
         print("Attempting to fetch details for property: \(propertyId)")
         
         loadingState = .loading
@@ -48,25 +58,26 @@ class PropertyDetailViewModel: ObservableObject {
         Task {
             do {
                 let fetchedProperty = try await apiService.getPropertyById(propertyId: propertyId)
+                self.property = fetchedProperty
                 loadingState = .success(fetchedProperty)
                 print("Successfully fetched details for property: \(fetchedProperty.itemName)")
             } catch let apiError as APIService.APIError {
-                 print("API Error fetching property details: \(apiError.localizedDescription)")
-                 let message: String
-                 switch apiError {
-                 case .itemNotFound:
-                     message = "Property not found."
-                 case .unauthorized:
-                     message = "Unauthorized. Please check login status."
-                 case .networkError, .serverError:
-                     message = "A network or server error occurred."
-                 default:
-                     message = apiError.localizedDescription
-                 }
-                 loadingState = .error(message)
+                print("API Error fetching property details: \(apiError.localizedDescription)")
+                let message: String
+                switch apiError {
+                case .itemNotFound:
+                    message = "Property not found."
+                case .unauthorized:
+                    message = "Unauthorized. Please check login status."
+                case .networkError, .serverError:
+                    message = "A network or server error occurred."
+                default:
+                    message = apiError.localizedDescription
+                }
+                loadingState = .error(message)
             } catch {
-                 print("Unexpected error fetching property details: \(error.localizedDescription)")
-                 loadingState = .error("An unexpected error occurred.")
+                print("Unexpected error fetching property details: \(error.localizedDescription)")
+                loadingState = .error("An unexpected error occurred.")
             }
         }
     }
@@ -82,7 +93,7 @@ class PropertyDetailViewModel: ObservableObject {
         showingUserSelection = true
     }
     
-    func initiateTransfer(targetUser: User) {
+    func initiateTransfer(targetUser: UserSummary) {
         // showingUserSelection = false // Dismiss sheet implicitly handled by sheet modifier - no need to set here
         guard let propertyToTransfer = property else {
              transferRequestState = .error("Property details not available.")
@@ -110,17 +121,17 @@ class PropertyDetailViewModel: ObservableObject {
         }
     }
     
-    // Helper to reset transfer state after a delay (copied from ScanViewModel for now)
-     private func scheduleTransferStateReset(delay: TimeInterval) {
-         clearStateTimer?.cancel()
-         clearStateTimer = Just(()) 
-             .delay(for: .seconds(delay), scheduler: RunLoop.main)
-             .sink { [weak self] _ in
-                 self?.transferRequestState = .idle
-             }
-     }
+    // Helper to reset transfer state after a delay
+    private func scheduleTransferStateReset(delay: TimeInterval) {
+        clearStateTimer?.cancel()
+        clearStateTimer = Just(()) 
+            .delay(for: .seconds(delay), scheduler: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.transferRequestState = .idle
+            }
+    }
      
-      deinit {
-          clearStateTimer?.cancel()
-      }
+    deinit {
+        clearStateTimer?.cancel()
+    }
 } 

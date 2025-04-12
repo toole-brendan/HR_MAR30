@@ -6,7 +6,7 @@ struct UserSelectionView: View {
     @StateObject private var viewModel = UserSelectionViewModel()
     
     // Callback to parent view when user is selected
-    let onUserSelected: (User) -> Void 
+    let onUserSelected: (UserSummary) -> Void
     // Callback to dismiss the view
     @Environment(\.dismiss) var dismiss 
 
@@ -58,11 +58,11 @@ struct UserSelectionView: View {
 
 // Simple view for displaying a user in the list
 struct UserListItemView: View {
-    let user: User
+    let user: UserSummary
 
     var body: some View {
         VStack(alignment: .leading) {
-             Text("\(user.rank ?? "") \(user.lastName ?? ""), \(user.firstName ?? "")".trimmingCharacters(in: .whitespaces))
+             Text("\(user.rank ?? "") \(user.lastName ?? "")".trimmingCharacters(in: .whitespaces))
                  .font(.headline)
              Text("@\(user.username)")
                  .font(.subheadline)

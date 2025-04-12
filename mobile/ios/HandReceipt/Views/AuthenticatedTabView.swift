@@ -70,10 +70,7 @@ struct AuthenticatedTabView: View {
 // Preview needs adjustment if AuthViewModel requires initialization
 struct AuthenticatedTabView_Previews: PreviewProvider {
     static var previews: some View {
-        // Create a dummy AuthViewModel for the preview
-        let previewAuthViewModel = AuthViewModel()
-        // You might need to manually set a dummy user for preview purposes
-        // previewAuthViewModel.currentUser = User(...) 
-        AuthenticatedTabView(authViewModel: previewAuthViewModel)
+        // Create a default AuthViewModel for the preview
+        AuthenticatedTabView(authViewModel: AuthViewModel())
     }
 } 

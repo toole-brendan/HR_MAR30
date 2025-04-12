@@ -2,12 +2,24 @@ import Foundation
 import Combine
 
 // Enum to represent the state of the property lookup
-enum PropertyLookupState {
+enum PropertyLookupState: Equatable {
     case idle // Initial state, nothing entered or searched yet
     case loading // Currently fetching data for the entered serial number
     case success(Property) // Successfully found the property
     case notFound // Serial number was searched, but no property found (404)
     case error(String) // An error occurred during the lookup
+
+    // Add Equatable conformance
+    static func == (lhs: PropertyLookupState, rhs: PropertyLookupState) -> Bool {
+        switch (lhs, rhs) {
+        case (.idle, .idle): return true
+        case (.loading, .loading): return true
+        case (.success(let lProp), .success(let rProp)): return lProp.id == rProp.id // Compare by ID or relevant fields
+        case (.notFound, .notFound): return true
+        case (.error(let lMsg), .error(let rMsg)): return lMsg == rMsg
+        default: return false
+        }
+    }
 }
 
 @MainActor // Ensure UI updates happen on the main thread

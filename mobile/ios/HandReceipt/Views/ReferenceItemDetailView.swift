@@ -18,13 +18,8 @@ struct ReferenceItemDetailView: View {
             case .idle, .loading:
                 ProgressView("Loading item details...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            case .success:
-                if let item = viewModel.item {
-                    ItemDetailContent(item: item)
-                } else {
-                    // Should not happen in success state, but handle defensively
-                    Text("Item data is unavailable.")
-                }
+            case .success(let item):
+                ItemDetailContent(item: item)
             case .error(let message):
                  ErrorView(message: message) {
                      // Provide a retry action
@@ -69,7 +64,7 @@ struct ItemDetailContent: View {
 
                 Text(item.itemName ?? "Unknown Item").font(.title2).fontWeight(.semibold)
                 Text("NSN: \(item.nsn ?? "N/A")").font(.subheadline).foregroundColor(.secondary)
-                Text("Model: \(item.model ?? "N/A")").font(.subheadline).foregroundColor(.secondary)
+                Text("Manufacturer: \(item.manufacturer ?? "N/A")").font(.subheadline).foregroundColor(.secondary)
                 Text("Description:").font(.headline).padding(.top, 8)
                 Text(item.description ?? "No description available.").font(.body)
                 

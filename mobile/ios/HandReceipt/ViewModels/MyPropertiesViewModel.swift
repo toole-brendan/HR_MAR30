@@ -2,11 +2,22 @@ import Foundation
 import Combine // For ObservableObject
 
 // Enum to represent the state of loading user properties
-enum MyPropertiesLoadingState {
+enum MyPropertiesLoadingState: Equatable {
     case idle
     case loading
     case success([Property]) // Hold the fetched properties on success
     case error(String) // Hold the error message on failure
+
+    // Implement == manually since Property might not be Equatable yet
+    static func == (lhs: MyPropertiesLoadingState, rhs: MyPropertiesLoadingState) -> Bool {
+        switch (lhs, rhs) {
+        case (.idle, .idle): return true
+        case (.loading, .loading): return true
+        case (.success(let lProps), .success(let rProps)): return lProps.map { $0.id } == rProps.map { $0.id } // Compare by IDs
+        case (.error(let lMsg), .error(let rMsg)): return lMsg == rMsg
+        default: return false
+        }
+    }
 }
 
 @MainActor

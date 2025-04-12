@@ -1,10 +1,15 @@
 import SwiftUI
 
 struct MyPropertiesView: View {
-    @StateObject private var viewModel = MyPropertiesViewModel()
+    @StateObject private var viewModel: MyPropertiesViewModel
     
     // TODO: Define navigation action for property detail
      // var navigateToPropertyDetail: (String) -> Void
+
+    init(viewModel: MyPropertiesViewModel? = nil) {
+        let vm = viewModel ?? MyPropertiesViewModel(apiService: APIService())
+        self._viewModel = StateObject(wrappedValue: vm)
+    }
 
     var body: some View {
         NavigationView { // Add NavigationView for title and potential toolbar
@@ -143,19 +148,30 @@ struct ErrorStateView: View {
 struct MyPropertiesView_Previews: PreviewProvider {
     static var previews: some View {
         // Example with success state
-         let successVM = MyPropertiesViewModel(apiService: MockAPIService(mockProperties: Property.mockList))
-        MyPropertiesView(viewModel: successVM)
+        Group {
+            MyPropertiesView(viewModel: {
+                let vm = MyPropertiesViewModel(apiService: MockAPIService())
+                vm.loadingState = .success(Property.mockList)
+                return vm
+            }())
             .previewDisplayName("Success State")
 
-        // Example with empty state
-         let emptyVM = MyPropertiesViewModel(apiService: MockAPIService(mockProperties: []))
-        MyPropertiesView(viewModel: emptyVM)
+            // Example with empty state
+            MyPropertiesView(viewModel: {
+                let vm = MyPropertiesViewModel(apiService: MockAPIService())
+                vm.loadingState = .success([])
+                return vm
+            }())
             .previewDisplayName("Empty State")
 
-        // Example with error state
-         let errorVM = MyPropertiesViewModel(apiService: MockAPIService(shouldThrowError: true))
-         MyPropertiesView(viewModel: errorVM)
+            // Example with error state
+            MyPropertiesView(viewModel: {
+                let vm = MyPropertiesViewModel(apiService: MockAPIService())
+                vm.loadingState = .error("An error occurred while loading properties.")
+                return vm
+            }())
             .previewDisplayName("Error State")
+        }
     }
 }
 
@@ -190,12 +206,12 @@ class MockAPIService: APIServiceProtocol {
     func login(credentials: LoginCredentials) async throws -> LoginResponse { 
          try await Task.sleep(nanoseconds: UInt64(simulatedDelay * 1_000_000_000))
         if shouldThrowError { throw APIService.APIError.unauthorized }
-         return mockLoginResponse ?? LoginResponse(userId: UUID(), username: "mockUser", role: "user")
+         return mockLoginResponse ?? LoginResponse(userId: 123, username: "mockUser", message: "Mock login successful")
     }
     func checkSession() async throws -> LoginResponse { 
          try await Task.sleep(nanoseconds: UInt64(simulatedDelay * 1_000_000_000))
          if shouldThrowError { throw APIService.APIError.unauthorized }
-         return mockLoginResponse ?? LoginResponse(userId: UUID(), username: "mockUser", role: "user")
+         return mockLoginResponse ?? LoginResponse(userId: 123, username: "mockUser", message: "Mock session")
     }
     func fetchReferenceItemById(itemId: String) async throws -> ReferenceItem { 
          try await Task.sleep(nanoseconds: UInt64(simulatedDelay * 1_000_000_000))
@@ -219,13 +235,36 @@ class MockAPIService: APIServiceProtocol {
      // Add baseURLString requirement
      var baseURLString: String { "http://mock.api" }
 
+     // Add missing stubs for protocol conformance
+     func fetchTransfers(status: String?, direction: String?) async throws -> [Transfer] {
+         if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
+         return [] // Return empty array for mock
+     }
+     func requestTransfer(propertyId: UUID, targetUserId: UUID) async throws -> Transfer {
+         if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
+         // Need to create a mock Transfer or throw an error appropriate for previews
+         throw APIService.APIError.unknownError // Placeholder: Or return a mock Transfer
+     }
+     func approveTransfer(transferId: UUID) async throws -> Transfer {
+         if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
+         throw APIService.APIError.unknownError // Placeholder
+     }
+     func rejectTransfer(transferId: UUID) async throws -> Transfer {
+         if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
+         throw APIService.APIError.unknownError // Placeholder
+     }
+     func fetchUsers(searchQuery: String?) async throws -> [UserSummary] {
+         if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
+         return [] // Return empty user array
+     }
+
 }
 
 extension Property {
     static let mockList = [
-        Property(id: UUID(), serialNumber: "SN123", itemName: "Test Prop 1", nsn: "1111-11-111-1111", status: "Operational", location: "Bldg 1", lastInventoryDate: Date()),
-        Property(id: UUID(), serialNumber: "SN456", itemName: "Test Prop 2", nsn: "2222-22-222-2222", status: "Maintenance", location: "Bldg 2", lastInventoryDate: Calendar.current.date(byAdding: .day, value: -10, to: Date())),
-        Property(id: UUID(), serialNumber: "SN789", itemName: "Test Prop 3", nsn: "3333-33-333-3333", status: "Operational", location: "Bldg 1", lastInventoryDate: Calendar.current.date(byAdding: .month, value: -1, to: Date()))
+        Property(id: UUID(), serialNumber: "SN123", nsn: "1111-11-111-1111", itemName: "Test Prop 1", description: "Mock Description 1", manufacturer: "Mock Manu", imageUrl: nil, status: "Operational", assignedToUserId: nil, location: "Bldg 1", lastInventoryDate: Date(), acquisitionDate: nil, notes: nil),
+        Property(id: UUID(), serialNumber: "SN456", nsn: "2222-22-222-2222", itemName: "Test Prop 2", description: "Mock Description 2", manufacturer: "Mock Manu", imageUrl: nil, status: "Maintenance", assignedToUserId: nil, location: "Bldg 2", lastInventoryDate: Calendar.current.date(byAdding: .day, value: -10, to: Date()), acquisitionDate: nil, notes: nil),
+        Property(id: UUID(), serialNumber: "SN789", nsn: "3333-33-333-3333", itemName: "Test Prop 3", description: "Mock Description 3", manufacturer: "Mock Manu", imageUrl: nil, status: "Operational", assignedToUserId: nil, location: "Bldg 1", lastInventoryDate: Calendar.current.date(byAdding: .month, value: -1, to: Date()), acquisitionDate: nil, notes: nil)
     ]
 }
 #endif 

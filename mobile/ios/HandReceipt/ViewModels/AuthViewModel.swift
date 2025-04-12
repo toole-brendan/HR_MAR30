@@ -22,6 +22,21 @@ class AuthViewModel: ObservableObject {
         self.apiService = apiService
         checkExistingSession() // Check for session on initialization
     }
+    
+    // Convenience initializer for direct login state
+    init(currentUser: LoginResponse?, logoutCallback: (() -> Void)? = nil, apiService: APIServiceProtocol = APIService()) {
+        self.apiService = apiService
+        self.currentUser = currentUser
+        self.isAuthenticated = currentUser != nil
+        
+        // Store the logout callback if provided
+        if let callback = logoutCallback {
+            self.logoutCallback = callback
+        }
+    }
+    
+    // Optional logout callback that can be set by parent views
+    private var logoutCallback: (() -> Void)?
 
     // MARK: - Authentication Actions
 
@@ -82,13 +97,23 @@ class AuthViewModel: ObservableObject {
                 clearCookies()
                 print("AuthViewModel: Local state cleared, user logged out.")
 
+                // Call the logout callback if it's set
+                DispatchQueue.main.async {
+                    self.logoutCallback?()
+                }
+
             } catch {
                 // Even if API logout fails, log the error but still log the user out locally
                 print("AuthViewModel: Error calling logout API - \(error.localizedDescription). Still logging out locally.")
                 self.currentUser = nil
                 self.isAuthenticated = false
-                 clearCookies() // Ensure cookies are cleared even on error
+                clearCookies() // Ensure cookies are cleared even on error
                 self.errorMessage = "Logout failed on server, but logged out locally."
+                
+                // Call the logout callback if it's set, even on error
+                DispatchQueue.main.async {
+                    self.logoutCallback?()
+                }
             }
             isLoading = false
         }

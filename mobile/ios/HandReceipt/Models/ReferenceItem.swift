@@ -9,8 +9,11 @@ struct ReferenceItem: Identifiable, Decodable {
     let description: String?
     let manufacturer: String?
     let imageUrl: String? // Optional URL for an image
+    let category: String? // Added missing property
+    let lin: String? // Added missing property
+    let partNumber: String? // Added missing property
 
-    // Add other relevant fields like category, unit price, etc.
+    // Add other relevant fields like unit price, etc.
 
     // Example mapping if your API uses different key names (e.g., "item_name")
     /*
@@ -21,6 +24,9 @@ struct ReferenceItem: Identifiable, Decodable {
         case description
         case manufacturer
         case imageUrl = "image_url"
+        case category
+        case lin
+        case partNumber = "part_number"
     }
     */
 
@@ -31,6 +37,9 @@ struct ReferenceItem: Identifiable, Decodable {
         itemName: "Example Item",
         description: "This is a sample description for the example item.",
         manufacturer: "Example Corp",
-        imageUrl: nil
+        imageUrl: nil,
+        category: "Equipment",
+        lin: "A12345",
+        partNumber: "PART-123"
     )
 } 

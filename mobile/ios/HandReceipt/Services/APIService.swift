@@ -63,7 +63,7 @@ class APIService: APIServiceProtocol {
     }
 
     // Error enum for specific API related errors
-    enum APIError: Error, LocalizedError {
+    enum APIError: Error, LocalizedError, Equatable {
         case invalidURL
         case networkError(Error)
         case decodingError(Error)
@@ -71,6 +71,24 @@ class APIService: APIServiceProtocol {
         case itemNotFound
         case unauthorized // Added for login failures (401)
         case unknownError
+
+        // Implement Equatable manually due to associated values
+        static func == (lhs: APIError, rhs: APIError) -> Bool {
+            switch (lhs, rhs) {
+            case (.invalidURL, .invalidURL): return true
+            case (.networkError(let lError), .networkError(let rError)): 
+                // Comparing underlying Error objects can be tricky. Often compare by localizedDescription.
+                return lError.localizedDescription == rError.localizedDescription
+            case (.decodingError(let lError), .decodingError(let rError)):
+                return lError.localizedDescription == rError.localizedDescription
+            case (.serverError(let lCode, let lMsg), .serverError(let rCode, let rMsg)):
+                return lCode == rCode && lMsg == rMsg
+            case (.itemNotFound, .itemNotFound): return true
+            case (.unauthorized, .unauthorized): return true
+            case (.unknownError, .unknownError): return true
+            default: return false
+            }
+        }
 
         var errorDescription: String? {
             switch self {
@@ -258,21 +276,21 @@ class APIService: APIServiceProtocol {
     }
 
     // Fetch Property Detail
-    func fetchPropertyDetail(propertyId: String, completion: @escaping (Result<Property, Error>) -> Void) {
-        let urlString = baseURL.appendingPathComponent("/api/inventory/\(propertyId)").absoluteString
-        performRequest(urlString: urlString, method: "GET", completion: completion)
-    }
+    // func fetchPropertyDetail(propertyId: String, completion: @escaping (Result<Property, Error>) -> Void) {
+    //     let urlString = baseURL.appendingPathComponent("/api/inventory/\(propertyId)").absoluteString
+    //     performRequest(urlString: urlString, method: "GET", completion: completion)
+    // }
 
     // Fetch Property by Serial Number
-    func fetchPropertyBySerial(serialNumber: String, completion: @escaping (Result<Property, Error>) -> Void) {
-        // Ensure serialNumber is URL encoded if it might contain special characters
-        guard let encodedSerial = serialNumber.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
-            completion(.failure(APIError.invalidURL))
-            return
-        }
-        let urlString = baseURL.appendingPathComponent("/api/inventory/serial/\(encodedSerial)").absoluteString
-        performRequest(urlString: urlString, method: "GET", completion: completion)
-    }
+    // func fetchPropertyBySerial(serialNumber: String, completion: @escaping (Result<Property, Error>) -> Void) {
+    //     // Ensure serialNumber is URL encoded if it might contain special characters
+    //     guard let encodedSerial = serialNumber.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+    //         completion(.failure(APIError.invalidURL))
+    //         return
+    //     }
+    //     let urlString = baseURL.appendingPathComponent("/api/inventory/serial/\(encodedSerial)").absoluteString
+    //     performRequest(urlString: urlString, method: "GET", completion: completion)
+    // }
 
     // --- Transfer Functions (Async/Await) ---
     

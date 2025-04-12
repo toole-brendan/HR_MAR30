@@ -5,7 +5,7 @@ import SwiftUI // For UUID
 enum UserListState {
     case idle
     case loading
-    case success([User])
+    case success([UserSummary])
     case error(String)
 }
 

@@ -155,10 +155,10 @@ struct PropertyDetailsCard: View {
             Text("Item Found")
                 .font(.headline)
             Divider()
-            Text("NSN: \(property.referenceItem?.nsn ?? "N/A")")
-            Text("Name: \(property.referenceItem?.itemName ?? "N/A")")
-            Text("Serial Number: \(property.serialNumber ?? "N/A")")
-            Text("Status: \(property.status ?? "N/A")")
+            Text("NSN: \(property.nsn)")
+            Text("Name: \(property.itemName)")
+            Text("Serial Number: \(property.serialNumber)")
+            Text("Status: \(property.status)")
             // Add more details...
         }
         .padding()

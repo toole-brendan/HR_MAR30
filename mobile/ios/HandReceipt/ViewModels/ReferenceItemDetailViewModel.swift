@@ -5,7 +5,7 @@ import SwiftUI // Needed for @Published
 enum LoadingState {
     case idle
     case loading
-    case success
+    case success(ReferenceItem)
     case error(String)
 }
 
@@ -32,38 +32,28 @@ class ReferenceItemDetailViewModel: ObservableObject {
 
     // Function to fetch item details from the API
     func fetchDetails() {
-        guard loadingState != .loading else { return } // Prevent multiple concurrent loads
-        print("Attempting to fetch details for item: \(itemId)")
+        // Prevent multiple concurrent loads using pattern matching
+        if case .loading = loadingState { return }
         
         loadingState = .loading
-        errorMessage = nil // Clear previous errors
-
+        item = nil // Clear previous item
+        print("ReferenceItemDetailViewModel: Fetching details for \(itemId)")
+        
         Task {
             do {
                 let fetchedItem = try await apiService.fetchReferenceItemById(itemId: itemId)
-                self.item = fetchedItem
-                self.loadingState = .success
-                print("Successfully fetched details for item: \(fetchedItem.itemName ?? "Unnamed")")
+                loadingState = .success(fetchedItem) // Update state with fetched item
+                item = fetchedItem // Also update the item property
+                print("ReferenceItemDetailViewModel: Successfully fetched \(fetchedItem.itemName ?? "Unknown")")
             } catch let apiError as APIService.APIError {
-                 print("API Error fetching details: \(apiError.localizedDescription)")
-                 let specificMessage:
-                 switch apiError {
-                 case .itemNotFound:
-                     specificMessage = "Reference item not found."
-                 case .unauthorized:
-                     specificMessage = "Unauthorized. Please check login status."
-                 case .networkError, .serverError:
-                     specificMessage = "A network or server error occurred."
-                 default:
-                     specificMessage = apiError.localizedDescription
-                 }
-                 self.errorMessage = specificMessage
-                 self.loadingState = .error(specificMessage)
+                print("ReferenceItemDetailViewModel: API Error - \(apiError.localizedDescription)")
+                 let specificMessage: String = apiError.localizedDescription // Assign the error message
+                loadingState = .error(specificMessage)
             } catch {
-                 print("Unexpected error fetching details: \(error.localizedDescription)")
-                 let genericMessage = "An unexpected error occurred."
-                 self.errorMessage = genericMessage
-                 self.loadingState = .error(genericMessage)
+                print("ReferenceItemDetailViewModel: Unknown Error - \(error.localizedDescription)")
+                let genericMessage = "An unexpected error occurred."
+                self.errorMessage = genericMessage
+                self.loadingState = .error(genericMessage)
             }
         }
     }

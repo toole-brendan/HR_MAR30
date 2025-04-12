@@ -1,3 +1,5 @@
+import Foundation
+
 // ... existing Property model ...
 
 // --- Transfer Models --- 
