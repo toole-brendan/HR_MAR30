@@ -21,7 +21,7 @@ protocol APIServiceProtocol {
     func getMyProperties() async throws -> [Property] // Expect a list of Property objects
 
     // Add function to fetch specific property by ID
-    func getPropertyById(propertyId: String) async throws -> Property
+    func getPropertyById(propertyId: Int) async throws -> Property
 
     // Function to logout the user.
     func logout() async throws
@@ -31,9 +31,9 @@ protocol APIServiceProtocol {
     
     // --- Transfer Functions ---
     func fetchTransfers(status: String?, direction: String?) async throws -> [Transfer]
-    func requestTransfer(propertyId: UUID, targetUserId: UUID) async throws -> Transfer
-    func approveTransfer(transferId: UUID) async throws -> Transfer
-    func rejectTransfer(transferId: UUID) async throws -> Transfer
+    func requestTransfer(propertyId: Int, targetUserId: Int) async throws -> Transfer
+    func approveTransfer(transferId: Int) async throws -> Transfer
+    func rejectTransfer(transferId: Int) async throws -> Transfer
 
     // --- User Functions ---
     func fetchUsers(searchQuery: String?) async throws -> [UserSummary] // Expect UserSummary for selection
@@ -42,24 +42,47 @@ protocol APIServiceProtocol {
     var baseURLString: String { get }
 }
 
+// Debug print function to avoid cluttering 
+func debugPrint(_ items: Any..., function: String = #function, file: String = #file, line: Int = #line) {
+    #if DEBUG
+    let fileName = (file as NSString).lastPathComponent
+    print("DEBUG: [\(fileName):\(line)] \(function) - ", terminator: "")
+    for item in items {
+        print(item, terminator: " ")
+    }
+    print()
+    #endif
+}
+
 // Concrete implementation of the API service
 class APIService: APIServiceProtocol {
 
     // Replace with your actual backend base URL
-    private let baseURL = URL(string: "http://localhost:8080/api")! // Example URL
+    private let baseURL: URL
     var baseURLString: String { baseURL.absoluteString } // Conform to protocol
 
     // Use URLSession.shared by default, which handles cookies automatically via HTTPCookieStorage
     private let urlSession: URLSession
 
     // Allow injecting a custom URLSession (e.g., for testing or specific configurations)
-    init(urlSession: URLSession = .shared) {
+    init(urlSession: URLSession = .shared, baseURLString: String = "http://localhost:8080/api") {
+        debugPrint("Initializing APIService with baseURL: \(baseURLString)")
+        
+        if let url = URL(string: baseURLString) {
+            self.baseURL = url
+        } else {
+            debugPrint("ERROR: Invalid base URL provided: \(baseURLString). Using fallback URL.")
+            // Fallback URL in case of invalid string
+            self.baseURL = URL(string: "http://localhost:8080/api")!
+        }
+        
         self.urlSession = urlSession
-         // Optional: Verify cookie policy if needed
-         // print("Using Cookie Storage: \(urlSession.configuration.httpCookieStorage?.description ?? "nil")")
-         // print("Cookie Accept Policy: \(urlSession.configuration.httpCookieAcceptPolicy.rawValue)")
-         // Default is .onlyFromMainDocumentDomain which might be too strict if API is on different subdomain.
-         // Consider setting urlSession.configuration.httpCookieAcceptPolicy = .always if needed, but be careful.
+        
+        // Debug URLSession configuration
+        debugPrint("URLSession configuration: \(urlSession.configuration)")
+        debugPrint("Cookie storage: \(String(describing: urlSession.configuration.httpCookieStorage))")
+        debugPrint("Cookie accept policy: \(urlSession.configuration.httpCookieAcceptPolicy.rawValue)")
+        debugPrint("Timeout interval: \(urlSession.configuration.timeoutIntervalForRequest)")
     }
 
     // Error enum for specific API related errors
@@ -67,6 +90,7 @@ class APIService: APIServiceProtocol {
         case invalidURL
         case networkError(Error)
         case decodingError(Error)
+        case encodingError(Error)
         case serverError(statusCode: Int, message: String? = nil)
         case itemNotFound
         case unauthorized // Added for login failures (401)
@@ -80,6 +104,8 @@ class APIService: APIServiceProtocol {
                 // Comparing underlying Error objects can be tricky. Often compare by localizedDescription.
                 return lError.localizedDescription == rError.localizedDescription
             case (.decodingError(let lError), .decodingError(let rError)):
+                return lError.localizedDescription == rError.localizedDescription
+            case (.encodingError(let lError), .encodingError(let rError)):
                 return lError.localizedDescription == rError.localizedDescription
             case (.serverError(let lCode, let lMsg), .serverError(let rCode, let rMsg)):
                 return lCode == rCode && lMsg == rMsg
@@ -95,6 +121,7 @@ class APIService: APIServiceProtocol {
             case .invalidURL: return "Invalid request URL."
             case .networkError(let error): return "Network error: \(error.localizedDescription)"
             case .decodingError(let error): return "Failed to decode response: \(error.localizedDescription)"
+            case .encodingError(let error): return "Failed to encode request: \(error.localizedDescription)"
             case .serverError(let statusCode, let message):
                 return "Server error \(statusCode)\(message != nil ? ": \(message!)" : ".")"
             case .itemNotFound: return "Item not found (404)."
@@ -108,42 +135,75 @@ class APIService: APIServiceProtocol {
     private let encoder: JSONEncoder = {
         let encoder = JSONEncoder()
         // Configure encoder if needed (e.g., date strategy)
+        debugPrint("Creating JSONEncoder with default configuration")
         return encoder
     }()
+    
     private let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601 // Matches Property model
+        debugPrint("Creating JSONDecoder with .iso8601 date decoding strategy")
         return decoder
     }()
 
     // Helper function to handle common request logic
     private func performRequest<T: Decodable>(request: URLRequest) async throws -> T {
-        print("(\(request.httpMethod ?? "?")) Performing request to: \(request.url?.absoluteString ?? "invalid URL")")
-        // Log cookies being sent (for debugging)
-        // if let cookies = urlSession.configuration.httpCookieStorage?.cookies(for: request.url!) {
-        //     let headers = HTTPCookie.requestHeaderFields(with: cookies)
-        //     print("Sending Cookies: \(headers["Cookie"] ?? "None")")
-        // }
+        debugPrint(">>> REQUEST (\(request.httpMethod ?? "?")): \(request.url?.absoluteString ?? "invalid URL")")
+        
+        // Log request headers
+        if let headers = request.allHTTPHeaderFields {
+            debugPrint("Request headers: \(headers)")
+        }
+        
+        // Log request body if present
+        if let httpBody = request.httpBody, let bodyString = String(data: httpBody, encoding: .utf8) {
+            debugPrint("Request body: \(bodyString)")
+        }
+        
+        // Log cookies being sent
+        if let cookies = urlSession.configuration.httpCookieStorage?.cookies(for: request.url!) {
+            let cookieStrings = cookies.map { "\($0.name)=\($0.value)" }
+            debugPrint("Sending cookies: \(cookieStrings.joined(separator: "; "))")
+        }
 
         do {
-             // Use the instance's urlSession
+            // Capture start time for timing metrics
+            let startTime = Date()
+            
+            // Use the instance's urlSession
             let (data, response) = try await urlSession.data(for: request)
+            
+            // Calculate request duration
+            let duration = Date().timeIntervalSince(startTime)
+            debugPrint("Request completed in \(String(format: "%.3f", duration))s")
 
             guard let httpResponse = response as? HTTPURLResponse else {
+                debugPrint("ERROR: Response is not an HTTPURLResponse")
                 throw APIError.unknownError
             }
 
-            print("Received status code: \(httpResponse.statusCode) from \(request.url?.path ?? "?")")
-            // Log cookies received (for debugging)
-            // if let headers = httpResponse.allHeaderFields as? [String: String], let url = request.url {
-            //     let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: url)
-            //     HTTPCookieStorage.shared.setCookies(cookies, for: url, mainDocumentURL: nil)
-            //     print("Received Set-Cookie: \(cookies.map { $0.name + "=" + $0.value }).joined(separator: "; "))")
-            // }
+            debugPrint("<<< RESPONSE: Status \(httpResponse.statusCode) from \(request.url?.path ?? "?")")
+            
+            // Log response headers
+            debugPrint("Response headers: \(httpResponse.allHeaderFields)")
+            
+            // Log cookies received
+            if let headers = httpResponse.allHeaderFields as? [String: String], let url = request.url {
+                let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: url)
+                if !cookies.isEmpty {
+                    let cookieStrings = cookies.map { "\($0.name)=\($0.value)" }
+                    debugPrint("Received cookies: \(cookieStrings.joined(separator: "; "))")
+                }
+            }
+            
+            // Log response body for debugging
+            let responseBody = String(data: data, encoding: .utf8) ?? "nil/binary"
+            debugPrint("Response body (\(data.count) bytes): \(responseBody.prefix(1000))\(responseBody.count > 1000 ? "..." : "")")
 
             guard (200...299).contains(httpResponse.statusCode) else {
+                debugPrint("ERROR: Server returned non-success status code: \(httpResponse.statusCode)")
                 let errorMessage = String(data: data, encoding: .utf8)
-                print("Server error body: \(errorMessage ?? "nil")")
+                debugPrint("Server error body: \(errorMessage ?? "nil")")
                 
                 if httpResponse.statusCode == 404 {
                     throw APIError.itemNotFound
@@ -155,32 +215,55 @@ class APIService: APIServiceProtocol {
             }
 
             // Handle cases with no expected response body (e.g., 204)
-             if T.self == EmptyResponse.self { // Assuming an EmptyResponse struct for clarity
-                 // Check if data is empty or handle as needed for 204
-                 if data.isEmpty {
+            if T.self == EmptyResponse.self { // Assuming an EmptyResponse struct for clarity
+                // Check if data is empty or handle as needed for 204
+                if data.isEmpty {
+                    debugPrint("Empty response body as expected for EmptyResponse")
                     return EmptyResponse() as! T
-                 }
-             }
+                }
+            }
 
             do {
+                debugPrint("Attempting to decode response as \(T.self)")
                 let decodedObject = try decoder.decode(T.self, from: data)
-                print("Successfully decoded response of type \(T.self)")
+                debugPrint("Successfully decoded response of type \(T.self)")
                 return decodedObject
             } catch {
-                print("Decoding error: \(error) - Raw Data: \(String(data: data, encoding: .utf8) ?? "Invalid UTF8")")
+                debugPrint("ERROR: Decoding failed with error: \(error)")
+                debugPrint("Raw data being decoded: \(String(data: data, encoding: .utf8) ?? "Invalid UTF8")")
+                
+                // More detailed decoding error information
+                if let decodingError = error as? DecodingError {
+                    switch decodingError {
+                    case .typeMismatch(let type, let context):
+                        debugPrint("Type mismatch: Expected \(type) but got something else. Path: \(context.codingPath.map { $0.stringValue })")
+                    case .valueNotFound(let type, let context):
+                        debugPrint("Value not found: Expected \(type) but found nil. Path: \(context.codingPath.map { $0.stringValue })")
+                    case .keyNotFound(let key, let context):
+                        debugPrint("Key '\(key.stringValue)' not found. Path: \(context.codingPath.map { $0.stringValue })")
+                    case .dataCorrupted(let context):
+                        debugPrint("Data corrupted: \(context.debugDescription). Path: \(context.codingPath.map { $0.stringValue })")
+                    @unknown default:
+                        debugPrint("Unknown decoding error type: \(decodingError)")
+                    }
+                }
+                
                 throw APIError.decodingError(error)
             }
 
         } catch let error as APIError {
+            debugPrint("Caught APIError: \(error.localizedDescription)")
             throw error // Re-throw known API errors
         } catch {
-            print("Network/URLSession error: \(error)")
+            debugPrint("ERROR: Network/URLSession error: \(error)")
+            debugPrint("Error details: \(error.localizedDescription)")
             throw APIError.networkError(error)
         }
     }
 
     // Login function implementation
     func login(credentials: LoginCredentials) async throws -> LoginResponse {
+        debugPrint("Attempting to login user: \(credentials.username)")
         let endpoint = baseURL.appendingPathComponent("/auth/login")
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
@@ -188,17 +271,21 @@ class APIService: APIServiceProtocol {
 
         do {
             request.httpBody = try encoder.encode(credentials)
+            debugPrint("Successfully encoded login credentials")
         } catch {
-            print("Failed to encode login credentials: \(error)")
+            debugPrint("ERROR: Failed to encode login credentials: \(error)")
             throw APIError.encodingError(error) // Add encodingError case if needed
         }
 
         // Expect LoginResponse object upon success
-        return try await performRequest(request: request)
+        let response = try await performRequest(request: request) as LoginResponse
+        debugPrint("Login successful for user: \(response.username)")
+        return response
     }
 
     // Logout function implementation
     func logout() async throws {
+        debugPrint("Attempting to logout")
         let endpoint = baseURL.appendingPathComponent("/auth/logout")
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
@@ -208,11 +295,12 @@ class APIService: APIServiceProtocol {
         // performRequest handles status code checks and throws errors.
         // Since logout doesn't usually return data, we can expect EmptyResponse.
         let _: EmptyResponse = try await performRequest(request: request)
-        print("APIService: Logout successful on server.")
+        debugPrint("Logout successful on server")
     }
 
     // Check session function implementation
     func checkSession() async throws -> LoginResponse {
+        debugPrint("Checking current session status")
         let endpoint = baseURL.appendingPathComponent("/users/me") // Correct endpoint path
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
@@ -220,82 +308,83 @@ class APIService: APIServiceProtocol {
 
         // Perform request, expecting LoginResponse (or a similar User Profile struct)
         // performRequest handles decoding and potential 401 unauthorized errors
-        return try await performRequest(request: request)
+        let response = try await performRequest(request: request) as LoginResponse
+        debugPrint("Session check successful, user: \(response.username)")
+        return response
     }
 
     func fetchReferenceItems() async throws -> [ReferenceItem] {
+        debugPrint("Fetching all reference items")
         let endpoint = baseURL.appendingPathComponent("/reference-db/items")
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         // Cookies are handled automatically by URLSession/HTTPCookieStorage
-        return try await performRequest(request: request)
+        let items = try await performRequest(request: request) as [ReferenceItem]
+        debugPrint("Successfully fetched \(items.count) reference items")
+        return items
     }
 
     func fetchPropertyBySerialNumber(serialNumber: String) async throws -> Property {
+        debugPrint("Fetching property with serial number: \(serialNumber)")
         guard let encodedSerialNumber = serialNumber.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            debugPrint("ERROR: Failed to percent encode serial number: \(serialNumber)")
             throw APIError.invalidURL
         }
         let endpoint = baseURL.appendingPathComponent("/inventory/serial/\(encodedSerialNumber)")
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         // Cookies are handled automatically by URLSession/HTTPCookieStorage
-        return try await performRequest(request: request)
+        let property = try await performRequest(request: request) as Property
+        debugPrint("Successfully fetched property with serial: \(serialNumber), ID: \(property.id)")
+        return property
     }
 
     // Function to fetch a specific reference item by ID
     func fetchReferenceItemById(itemId: String) async throws -> ReferenceItem {
+        debugPrint("Fetching reference item with ID: \(itemId)")
         guard let encodedItemId = itemId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            debugPrint("ERROR: Failed to percent encode item ID: \(itemId)")
             throw APIError.invalidURL
         }
         let endpoint = baseURL.appendingPathComponent("/reference-db/items/\(encodedItemId)")
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         // Cookies are handled automatically by URLSession/HTTPCookieStorage
-        return try await performRequest(request: request)
+        let item = try await performRequest(request: request) as ReferenceItem
+        debugPrint("Successfully fetched reference item: \(item.itemName)")
+        return item
     }
 
     // Function to fetch current user's properties
     func getMyProperties() async throws -> [Property] {
-        let endpoint = baseURL.appendingPathComponent("/users/me/inventory") // Assumed endpoint
+        debugPrint("Fetching current user's properties")
+        let endpoint = baseURL.appendingPathComponent("/users/me/inventory")
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         // Cookies are handled automatically by URLSession/HTTPCookieStorage
-        return try await performRequest(request: request)
+        let properties = try await performRequest(request: request) as [Property]
+        debugPrint("Successfully fetched \(properties.count) properties for current user")
+        return properties
     }
 
     // Function to fetch specific property by ID
-    func getPropertyById(propertyId: String) async throws -> Property {
-        guard let encodedPropertyId = propertyId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
-            throw APIError.invalidURL
-        }
-        let endpoint = baseURL.appendingPathComponent("/inventory/id/\(encodedPropertyId)") // Assumed endpoint
+    func getPropertyById(propertyId: Int) async throws -> Property {
+        debugPrint("Fetching property with ID: \(propertyId)")
+        // No need to encode Int for path component
+        let endpoint = baseURL.appendingPathComponent("/inventory/id/\(propertyId)") // Use Int directly
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         // Cookies handled automatically
-        return try await performRequest(request: request)
+        let property = try await performRequest(request: request) as Property
+        debugPrint("Successfully fetched property: \(property.itemName)")
+        return property
     }
-
-    // Fetch Property Detail
-    // func fetchPropertyDetail(propertyId: String, completion: @escaping (Result<Property, Error>) -> Void) {
-    //     let urlString = baseURL.appendingPathComponent("/api/inventory/\(propertyId)").absoluteString
-    //     performRequest(urlString: urlString, method: "GET", completion: completion)
-    // }
-
-    // Fetch Property by Serial Number
-    // func fetchPropertyBySerial(serialNumber: String, completion: @escaping (Result<Property, Error>) -> Void) {
-    //     // Ensure serialNumber is URL encoded if it might contain special characters
-    //     guard let encodedSerial = serialNumber.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
-    //         completion(.failure(APIError.invalidURL))
-    //         return
-    //     }
-    //     let urlString = baseURL.appendingPathComponent("/api/inventory/serial/\(encodedSerial)").absoluteString
-    //     performRequest(urlString: urlString, method: "GET", completion: completion)
-    // }
 
     // --- Transfer Functions (Async/Await) ---
     
     // Fetch Transfers (with optional filters)
     func fetchTransfers(status: String? = nil, direction: String? = nil) async throws -> [Transfer] {
+        debugPrint("Fetching transfers with status: \(status ?? "any"), direction: \(direction ?? "any")")
         var components = URLComponents(url: baseURL.appendingPathComponent("/transfers"), resolvingAgainstBaseURL: false)!
         var queryItems = [URLQueryItem]()
         if let status = status, !status.isEmpty { queryItems.append(URLQueryItem(name: "status", value: status)) }
@@ -303,73 +392,96 @@ class APIService: APIServiceProtocol {
         if !queryItems.isEmpty { components.queryItems = queryItems }
         
         guard let url = components.url else {
+            debugPrint("ERROR: Failed to construct URL for fetchTransfers")
             throw APIError.invalidURL
         }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        return try await performRequest(request: request)
+        let transfers = try await performRequest(request: request) as [Transfer]
+        debugPrint("Successfully fetched \(transfers.count) transfers")
+        return transfers
     }
     
     // Request Transfer
-    func requestTransfer(propertyId: UUID, targetUserId: UUID) async throws -> Transfer {
+    func requestTransfer(propertyId: Int, targetUserId: Int) async throws -> Transfer {
+        debugPrint("Requesting transfer of property \(propertyId) to user \(targetUserId)")
         let endpoint = baseURL.appendingPathComponent("/transfers")
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAuthHeader(to: &request)
         let requestBody = TransferRequest(propertyId: propertyId, targetUserId: targetUserId)
-        
+
         do {
             request.httpBody = try encoder.encode(requestBody)
+            debugPrint("Successfully encoded transfer request body")
         } catch {
-            print("Failed to encode transfer request: \(error)")
+            debugPrint("ERROR: Failed to encode transfer request: \(error)")
             throw APIError.encodingError(error)
         }
-        return try await performRequest(request: request)
+        let transfer = try await performRequest(request: request) as Transfer
+        debugPrint("Successfully created transfer request: \(transfer.id)")
+        return transfer
     }
     
     // Approve Transfer
-    func approveTransfer(transferId: UUID) async throws -> Transfer {
-        let endpoint = baseURL.appendingPathComponent("/transfers/\(transferId.uuidString)/approve")
-        var request = URLRequest(url: endpoint)
+    func approveTransfer(transferId: Int) async throws -> Transfer {
+        debugPrint("Approving transfer: \(transferId)")
+        guard let url = URL(string: "\(baseURLString)/transfers/\(transferId)/approve") else {
+            throw APIError.invalidURL
+        }
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        // No body needed
-        return try await performRequest(request: request)
+        addAuthHeader(to: &request)
+        
+        let transfer = try await performRequest(request: request) as Transfer
+        debugPrint("Successfully approved transfer: \(transfer.id)")
+        return transfer
     }
     
     // Reject Transfer
-    func rejectTransfer(transferId: UUID) async throws -> Transfer {
-        let endpoint = baseURL.appendingPathComponent("/transfers/\(transferId.uuidString)/reject")
-        var request = URLRequest(url: endpoint)
+    func rejectTransfer(transferId: Int) async throws -> Transfer {
+        debugPrint("Rejecting transfer: \(transferId)")
+        guard let url = URL(string: "\(baseURLString)/transfers/\(transferId)/reject") else {
+            throw APIError.invalidURL
+        }
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        // No body needed
-        return try await performRequest(request: request)
+        addAuthHeader(to: &request)
+        
+        let transfer = try await performRequest(request: request) as Transfer
+        debugPrint("Successfully rejected transfer: \(transfer.id)")
+        return transfer
     }
 
     // --- User Functions (Async/Await) ---
 
     // Fetch Users (with optional search)
     func fetchUsers(searchQuery: String? = nil) async throws -> [UserSummary] {
+        debugPrint("Fetching users with search query: \(searchQuery ?? "none")")
         var components = URLComponents(url: baseURL.appendingPathComponent("/users"), resolvingAgainstBaseURL: false)!
         if let query = searchQuery, !query.isEmpty {
             components.queryItems = [URLQueryItem(name: "search", value: query)]
         }
         
         guard let url = components.url else {
+            debugPrint("ERROR: Failed to construct URL for fetchUsers")
             throw APIError.invalidURL
         }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        return try await performRequest(request: request)
+        let users = try await performRequest(request: request) as [UserSummary]
+        debugPrint("Successfully fetched \(users.count) users")
+        return users
+    }
+
+    // Helper function to add authentication header (adjust if needed)
+    private func addAuthHeader(to request: inout URLRequest) {
+        // Implementation depends on your auth mechanism (e.g., Bearer token, session cookie)
+        // If using URLSession cookie storage, this might not be needed if cookies are sent automatically.
+         debugPrint("Auth header addition skipped (relying on URLSession cookie storage)")
     }
 }
 
 // Helper struct for requests expecting no response body (e.g., 204)
-struct EmptyResponse: Decodable {}
-
-// Add encodingError to APIError enum if needed
-extension APIService.APIError {
-     static func encodingError(_ error: Error) -> APIService.APIError {
-         // Define how you want to represent encoding errors
-         return .unknownError // Or a new specific case
-     }
-} 
+struct EmptyResponse: Decodable {} 

@@ -14,7 +14,7 @@ struct PropertyDetailView: View {
     }
 
     // Initialize the view with a propertyId that will be used to fetch details
-    init(propertyId: String, apiService: APIServiceProtocol = APIService()) {
+    init(propertyId: Int, apiService: APIServiceProtocol = APIService()) {
         // Create the ViewModel with the provided ID
         let vm = PropertyDetailViewModel(propertyId: propertyId, apiService: apiService)
         self._viewModel = StateObject(wrappedValue: vm)
@@ -150,7 +150,8 @@ struct PropertyDetailView_Previews: PreviewProvider {
     static var previews: some View {
         // Preview needs adjustment to work with new VM states and potentially MockAPIService
         NavigationView { // Wrap in NavigationView for Title
-            PropertyDetailView(propertyId: Property.mockList[0].id.uuidString, 
+            // Use Int ID for preview
+            PropertyDetailView(propertyId: Property.mockList[0].id,
                                apiService: MockAPIService())
             .previewDisplayName("Property Details")
         }

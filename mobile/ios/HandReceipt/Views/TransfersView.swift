@@ -10,71 +10,15 @@ struct TransfersView: View {
     init() {
         // Temporarily create AuthViewModel here to get ID. Ideally, AuthViewModel would be an EnvironmentObject.
         let authVM = AuthViewModel()
-        _viewModel = StateObject(wrappedValue: TransfersViewModel(currentUserId: authVM.currentUser?.userId))
+        let initialViewModel = TransfersViewModel(currentUserId: authVM.currentUser?.userId)
+        _viewModel = StateObject(wrappedValue: initialViewModel)
     }
 
     var body: some View {
         NavigationView {
             VStack(spacing: 0) { // Use VStack to hold Pickers and List
-                // Filter Pickers
-                Picker("Direction", selection: $viewModel.selectedDirectionFilter) {
-                    ForEach(TransfersViewModel.FilterDirection.allCases) {
-                        direction in
-                        Text(direction.rawValue).tag(direction)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .padding(.top) // Add some top padding
-
-                Picker("Status", selection: $viewModel.selectedStatusFilter) {
-                     ForEach(TransfersViewModel.FilterStatus.allCases) {
-                        status in
-                        Text(status.rawValue).tag(status)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .padding(.bottom, 8) // Add padding below status picker
-
-                // List Content with Action State Overlay
-                ZStack {
-                    Group {
-                        switch viewModel.loadingState {
-                        case .idle:
-                            Text("Select filters to load transfers.")
-                                .foregroundColor(.gray)
-                        case .loading:
-                            ProgressView()
-                        case .success(let transfers):
-                            if viewModel.filteredTransfers.isEmpty {
-                                Text("No transfers found matching filters.")
-                                    .foregroundColor(.gray)
-                            } else {
-                                List {
-                                    ForEach(viewModel.filteredTransfers) {
-                                        transfer in
-                                        NavigationLink(destination: TransferDetailView(transfer: transfer, viewModel: viewModel)) {
-                                            TransferListItemView(transfer: transfer)
-                                        }
-                                    }
-                                }
-                                .listStyle(PlainListStyle())
-                                .refreshable {
-                                     viewModel.fetchTransfers()
-                                 }
-                            }
-                        case .error(let message):
-                            ErrorStateView(message: message) {
-                                viewModel.fetchTransfers()
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                    // Overlay for Action State (Success/Error Messages)
-                    ActionStatusOverlay(state: viewModel.actionState)
-                }
+                filterControls // Extracted filter controls
+                listContent // Extracted list content
             }
             .navigationTitle("Transfers")
             .toolbar {
@@ -84,9 +28,75 @@ struct TransfersView: View {
                       } label: {
                           Label("Refresh", systemImage: "arrow.clockwise")
                       }
-                      .disabled(viewModel.loadingState == .loading)
+                      .disabled(viewModel.loadingState == TransfersViewModel.LoadingState.loading)
                   }
               }
+        }
+    }
+
+    // Extracted view for filter controls
+    private var filterControls: some View {
+        VStack {
+            Picker("Direction", selection: $viewModel.selectedDirectionFilter) {
+                ForEach(TransfersViewModel.FilterDirection.allCases) {
+                    direction in
+                    Text(direction.rawValue).tag(direction)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.top)
+
+            Picker("Status", selection: $viewModel.selectedStatusFilter) {
+                 ForEach(TransfersViewModel.FilterStatus.allCases) {
+                    status in
+                    Text(status.rawValue).tag(status)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.bottom, 8)
+        }
+    }
+
+    // Extracted view for the main list content or status messages
+    private var listContent: some View {
+        ZStack {
+            Group {
+                switch viewModel.loadingState {
+                case .idle:
+                    Text("Select filters to load transfers.")
+                        .foregroundColor(.gray)
+                case .loading:
+                    ProgressView()
+                case .success(let transfers):
+                    if viewModel.filteredTransfers.isEmpty {
+                        Text("No transfers found matching filters.")
+                            .foregroundColor(.gray)
+                    } else {
+                        List {
+                            ForEach(viewModel.filteredTransfers) {
+                                transfer in
+                                NavigationLink(destination: TransferDetailView(transfer: transfer, viewModel: viewModel)) {
+                                    TransferListItemView(transfer: transfer)
+                                }
+                            }
+                        }
+                        .listStyle(PlainListStyle())
+                        .refreshable {
+                             viewModel.fetchTransfers()
+                         }
+                    }
+                case .error(let message):
+                    ErrorStateView(message: message) {
+                        viewModel.fetchTransfers()
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            // Overlay for Action State (Success/Error Messages)
+            ActionStatusOverlay(state: viewModel.actionState)
         }
     }
 }
@@ -184,7 +194,7 @@ struct TransferDetailView: View {
             Spacer()
         }
         .padding()
-        .navigationTitle("Transfer #\(transfer.id.uuidString.prefix(8))")
+        .navigationTitle("Transfer #\(transfer.id)")
             .navigationBarTitleDisplayMode(.inline)
     }
 }

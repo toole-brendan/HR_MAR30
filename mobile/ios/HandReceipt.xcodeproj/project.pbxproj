@@ -25,6 +25,7 @@
 		746506184194C32049616F45 /* PropertyDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 097C24F1EA75B2E56BCBCC08 /* PropertyDetailView.swift */; };
 		902492E2AE615BA4C6ACC792 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEE26AF958DBCB601C895CD /* ContentView.swift */; };
 		9CAA7907B48AF7D46F77FB02 /* UserSelectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE530B592D095523725035D /* UserSelectionViewModel.swift */; };
+		BFC223CA2DAABB1800ACF884 /* HandReceiptApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC223C92DAABB1800ACF884 /* HandReceiptApp.swift */; };
 		C526252D6D118A5CBCF1BF28 /* Property.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4051F5A67B8C0D943FCF1495 /* Property.swift */; };
 		D05A7634F0941E129237A9DB /* AuthenticatedTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8322A1CD58E045E33629F8B1 /* AuthenticatedTabView.swift */; };
 		D8EA460483AC0CF32381B58C /* ScanViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFCA76AFBC288D30DF9958F /* ScanViewModel.swift */; };
@@ -58,6 +59,7 @@
 		B28E9A92DD3453473BE10961 /* UserSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSelectionView.swift; sourceTree = "<group>"; };
 		B32078152333561CB10233BA /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		BBE530B592D095523725035D /* UserSelectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSelectionViewModel.swift; sourceTree = "<group>"; };
+		BFC223C92DAABB1800ACF884 /* HandReceiptApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HandReceiptApp.swift; path = HandReceipt/HandReceiptApp.swift; sourceTree = "<group>"; };
 		C37BF832688655C2779378AF /* ReferenceItemDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceItemDetailViewModel.swift; sourceTree = "<group>"; };
 		C52EB4A99772C5B2A7DDA9EF /* MyPropertiesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPropertiesViewModel.swift; sourceTree = "<group>"; };
 		CDEC488299CE976110299615 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 		D7EC13D32EB8262CFB36F9BF = {
 			isa = PBXGroup;
 			children = (
+				BFC223C92DAABB1800ACF884 /* HandReceiptApp.swift */,
 				FDCDCC68F23010E36445F051 /* HandReceipt */,
 				F6880E8AF15CFD4D9E0CB031 /* Products */,
 			);
@@ -201,6 +204,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BFC223CA2DAABB1800ACF884 /* HandReceiptApp.swift in Sources */,
 				F42AD7F3D920075A1FAC101E /* APIService.swift in Sources */,
 				26AA81A70A773FCEDA22BF5E /* AuthModels.swift in Sources */,
 				0DA6EB357E621AF6A54CF8F5 /* AuthViewModel.swift in Sources */,

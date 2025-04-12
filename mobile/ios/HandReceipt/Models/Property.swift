@@ -5,7 +5,7 @@ import Foundation
 // Adjust properties based on your actual backend API response for the
 // /api/inventory/serial/:serialNumber endpoint.
 struct Property: Identifiable, Decodable {
-    let id: UUID // Or Int/String depending on your primary key
+    let id: Int // Changed from UUID
     let serialNumber: String
     let nsn: String // National Stock Number (links to ReferenceItem potentially)
     let itemName: String // Often derived from Reference DB via NSN
@@ -42,7 +42,7 @@ struct Property: Identifiable, Decodable {
 
     // Provide an example for previews or testing
     static let example = Property(
-        id: UUID(),
+        id: 999, // Changed from UUID()
         serialNumber: "SN123456789",
         nsn: "1005-01-584-1079",
         itemName: "M4A1 Carbine",

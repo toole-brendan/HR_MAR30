@@ -175,7 +175,7 @@ struct TransferStatusMessage: View {
     var body: some View {
         VStack {
             Spacer() // Push to bottom
-            Group { // Group content for transition
+            Group { // Remove <AnyView> and internal AnyView wrappers
                  switch state {
                  case .loading:
                       ProgressView("Requesting Transfer...")
@@ -183,7 +183,7 @@ struct TransferStatusMessage: View {
                          .background(.regularMaterial)
                          .cornerRadius(10)
                  case .success(let transfer):
-                     Text("Transfer Requested Successfully! (ID: ...\(transfer.id.uuidString.suffix(6)))")
+                     Text("Transfer Requested Successfully! (ID: \(transfer.id))")
                          .padding()
                          .background(Color.green.opacity(0.8))
                          .foregroundColor(.white)

@@ -6,11 +6,24 @@ import SwiftUI // Needed for UUID
 class TransfersViewModel: ObservableObject {
     
     // MARK: - State Enums
-    enum LoadingState {
+    enum LoadingState: Equatable { // Add Equatable conformance
         case idle
         case loading
         case success([Transfer])
         case error(String)
+
+        // Manually implement Equatable for enums with associated values
+        static func == (lhs: LoadingState, rhs: LoadingState) -> Bool {
+            switch (lhs, rhs) {
+            case (.idle, .idle): return true
+            case (.loading, .loading): return true
+            // For success, we might compare based on content if needed, but for simple state checking,
+            // just checking if both are .success might be enough. Comparing arrays can be complex.
+            case (.success(let lTransfers), .success(let rTransfers)): return lTransfers == rTransfers // Compare transfer arrays
+            case (.error(let lMsg), .error(let rMsg)): return lMsg == rMsg
+            default: return false // Different cases are not equal
+            }
+        }
     }
     
     enum ActionState: Equatable { // Conform to Equatable for easier state comparison/animation
@@ -49,7 +62,7 @@ class TransfersViewModel: ObservableObject {
     // TODO: We need access to the current user's ID to implement direction filtering correctly.
     // This might come from an injected AuthViewModel or a shared session manager.
     // For now, the computed property will ignore the direction filter.
-    private var currentUserId: UUID? = nil // Placeholder - Needs to be set
+    var currentUserId: Int? = nil // Changed from UUID?
     
     // Computed property for filtered transfers
     var filteredTransfers: [Transfer] {
@@ -74,10 +87,10 @@ class TransfersViewModel: ObservableObject {
     }
 
     // MARK: - Initialization
-    init(apiService: APIServiceProtocol = APIService(), currentUserId: UUID? = nil) { // Allow DI and passing user ID
+    init(apiService: APIServiceProtocol = APIService(), currentUserId: Int? = nil) { // Changed from UUID?
         self.apiService = apiService
         self.currentUserId = currentUserId // Set the current user ID
-        print("TransfersViewModel initialized. Current User ID: \(currentUserId?.uuidString ?? "N/A")")
+        print("TransfersViewModel initialized. Current User ID: \(currentUserId?.description ?? "N/A")") // Use .description for Int?
         
         // Reload transfers when filters change
         Publishers.CombineLatest($selectedDirectionFilter, $selectedStatusFilter)
@@ -114,14 +127,14 @@ class TransfersViewModel: ObservableObject {
         }
     }
     
-    func approveTransfer(transferId: UUID) {
+    func approveTransfer(transferId: Int) { // Changed from UUID
         print("TransfersViewModel: Approving transfer ID \(transferId)")
         actionState = .loading
         clearActionTimer?.cancel() // Cancel any pending clear timer
         
         Task {
             do {
-                _ = try await apiService.approveTransfer(transferId: transferId)
+                _ = try await apiService.approveTransfer(transferId: transferId) // Pass Int
                 print("TransfersViewModel: Successfully approved transfer ID \(transferId)")
                 actionState = .success("Transfer Approved")
                 // Refresh the list to show updated status
@@ -136,14 +149,14 @@ class TransfersViewModel: ObservableObject {
         }
     }
     
-    func rejectTransfer(transferId: UUID) {
+    func rejectTransfer(transferId: Int) { // Changed from UUID
         print("TransfersViewModel: Rejecting transfer ID \(transferId)")
         actionState = .loading
         clearActionTimer?.cancel()
         
         Task {
             do {
-                _ = try await apiService.rejectTransfer(transferId: transferId)
+                _ = try await apiService.rejectTransfer(transferId: transferId) // Pass Int
                 print("TransfersViewModel: Successfully rejected transfer ID \(transferId)")
                 actionState = .success("Transfer Rejected")
                 // Refresh the list to show updated status

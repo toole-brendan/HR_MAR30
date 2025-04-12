@@ -48,7 +48,7 @@ struct PropertyList: View {
         List {
             ForEach(properties) { property in
                 NavigationLink {
-                    PropertyDetailView(propertyId: property.id.uuidString)
+                    PropertyDetailView(propertyId: property.id)
                 } label: {
                     PropertyRow(property: property)
                 }
@@ -220,11 +220,11 @@ class MockAPIService: APIServiceProtocol {
          throw APIService.APIError.itemNotFound
     }
     // Add missing methods required by protocol
-     func getPropertyById(propertyId: String) async throws -> Property {
+     func getPropertyById(propertyId: Int) async throws -> Property {
          try await Task.sleep(nanoseconds: UInt64(simulatedDelay * 1_000_000_000))
          if shouldThrowError { throw APIService.APIError.itemNotFound }
-         if let prop = mockProperty, prop.id.uuidString == propertyId { return prop }
-         if let prop = mockProperties?.first(where: { $0.id.uuidString == propertyId }) { return prop }
+         if let prop = mockProperty, prop.id == propertyId { return prop }
+         if let prop = mockProperties?.first(where: { $0.id == propertyId }) { return prop }
          throw APIService.APIError.itemNotFound
      }
      func logout() async throws {
@@ -240,17 +240,33 @@ class MockAPIService: APIServiceProtocol {
          if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
          return [] // Return empty array for mock
      }
-     func requestTransfer(propertyId: UUID, targetUserId: UUID) async throws -> Transfer {
+     func requestTransfer(propertyId: Int, targetUserId: Int) async throws -> Transfer {
          if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
          // Need to create a mock Transfer or throw an error appropriate for previews
-         throw APIService.APIError.unknownError // Placeholder: Or return a mock Transfer
+         // Let's create a basic mock transfer for now
+         let mockTransfer = Transfer(
+            id: Int.random(in: 1000...9999), // Use Int ID
+            propertyId: propertyId,
+            propertySerialNumber: "MOCKSN123",
+            propertyName: "Mock Property",
+            fromUserId: 123, // Mock current user ID (assuming)
+            toUserId: targetUserId,
+            status: .PENDING,
+            requestTimestamp: Date(),
+            approvalTimestamp: nil,
+            fromUser: UserSummary(id: 123, username: "mockFromUser", rank: "PVT", lastName: "Mock"), // Use Int ID
+            toUser: UserSummary(id: targetUserId, username: "mockToUser", rank: "PVT", lastName: "Target") // Use Int ID
+         )
+         return mockTransfer
      }
-     func approveTransfer(transferId: UUID) async throws -> Transfer {
+     func approveTransfer(transferId: Int) async throws -> Transfer {
          if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
+         // TODO: Return a mock transfer based on the ID if needed for previews
          throw APIService.APIError.unknownError // Placeholder
      }
-     func rejectTransfer(transferId: UUID) async throws -> Transfer {
+     func rejectTransfer(transferId: Int) async throws -> Transfer {
          if shouldThrowError { throw APIService.APIError.serverError(statusCode: 500) }
+         // TODO: Return a mock transfer based on the ID if needed for previews
          throw APIService.APIError.unknownError // Placeholder
      }
      func fetchUsers(searchQuery: String?) async throws -> [UserSummary] {
@@ -262,9 +278,9 @@ class MockAPIService: APIServiceProtocol {
 
 extension Property {
     static let mockList = [
-        Property(id: UUID(), serialNumber: "SN123", nsn: "1111-11-111-1111", itemName: "Test Prop 1", description: "Mock Description 1", manufacturer: "Mock Manu", imageUrl: nil, status: "Operational", assignedToUserId: nil, location: "Bldg 1", lastInventoryDate: Date(), acquisitionDate: nil, notes: nil),
-        Property(id: UUID(), serialNumber: "SN456", nsn: "2222-22-222-2222", itemName: "Test Prop 2", description: "Mock Description 2", manufacturer: "Mock Manu", imageUrl: nil, status: "Maintenance", assignedToUserId: nil, location: "Bldg 2", lastInventoryDate: Calendar.current.date(byAdding: .day, value: -10, to: Date()), acquisitionDate: nil, notes: nil),
-        Property(id: UUID(), serialNumber: "SN789", nsn: "3333-33-333-3333", itemName: "Test Prop 3", description: "Mock Description 3", manufacturer: "Mock Manu", imageUrl: nil, status: "Operational", assignedToUserId: nil, location: "Bldg 1", lastInventoryDate: Calendar.current.date(byAdding: .month, value: -1, to: Date()), acquisitionDate: nil, notes: nil)
+        Property(id: 1, serialNumber: "SN123", nsn: "1111-11-111-1111", itemName: "Test Prop 1", description: "Mock Description 1", manufacturer: "Mock Manu", imageUrl: nil, status: "Operational", assignedToUserId: nil, location: "Bldg 1", lastInventoryDate: Date(), acquisitionDate: nil, notes: nil),
+        Property(id: 2, serialNumber: "SN456", nsn: "2222-22-222-2222", itemName: "Test Prop 2", description: "Mock Description 2", manufacturer: "Mock Manu", imageUrl: nil, status: "Maintenance", assignedToUserId: nil, location: "Bldg 2", lastInventoryDate: Calendar.current.date(byAdding: .day, value: -10, to: Date()), acquisitionDate: nil, notes: nil),
+        Property(id: 3, serialNumber: "SN789", nsn: "3333-33-333-3333", itemName: "Test Prop 3", description: "Mock Description 3", manufacturer: "Mock Manu", imageUrl: nil, status: "Operational", assignedToUserId: nil, location: "Bldg 1", lastInventoryDate: Calendar.current.date(byAdding: .month, value: -1, to: Date()), acquisitionDate: nil, notes: nil)
     ]
 }
 #endif 

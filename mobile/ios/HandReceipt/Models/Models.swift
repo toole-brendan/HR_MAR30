@@ -5,7 +5,7 @@ import Foundation
 // --- Transfer Models --- 
 
 struct UserSummary: Codable, Identifiable, Hashable {
-    let id: UUID
+    let id: Int
     let username: String
     let rank: String?
     let lastName: String?
@@ -21,28 +21,43 @@ enum TransferStatus: String, Codable, CaseIterable {
 }
 
 struct Transfer: Codable, Identifiable, Hashable {
-    let id: UUID
-    let propertyId: UUID
+    let id: Int
+    let propertyId: Int
     let propertySerialNumber: String // Included for display
     let propertyName: String? // Included for display
-    let fromUserId: UUID
-    let toUserId: UUID
+    let fromUserId: Int
+    let toUserId: Int
     let status: TransferStatus
     let requestTimestamp: Date
     let approvalTimestamp: Date?
     let fromUser: UserSummary? // Optionally populated
     let toUser: UserSummary? // Optionally populated
     
+    // Add memberwise initializer for direct creation (e.g., in mocks)
+    init(id: Int, propertyId: Int, propertySerialNumber: String, propertyName: String?, fromUserId: Int, toUserId: Int, status: TransferStatus, requestTimestamp: Date, approvalTimestamp: Date?, fromUser: UserSummary?, toUser: UserSummary?) {
+        self.id = id
+        self.propertyId = propertyId
+        self.propertySerialNumber = propertySerialNumber
+        self.propertyName = propertyName
+        self.fromUserId = fromUserId
+        self.toUserId = toUserId
+        self.status = status
+        self.requestTimestamp = requestTimestamp
+        self.approvalTimestamp = approvalTimestamp
+        self.fromUser = fromUser
+        self.toUser = toUser
+    }
+    
     // Custom initializer if backend status string needs mapping
     // Or handle in JSONDecoder configuration
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        propertyId = try container.decode(UUID.self, forKey: .propertyId)
+        id = try container.decode(Int.self, forKey: .id)
+        propertyId = try container.decode(Int.self, forKey: .propertyId)
         propertySerialNumber = try container.decode(String.self, forKey: .propertySerialNumber)
         propertyName = try container.decodeIfPresent(String.self, forKey: .propertyName)
-        fromUserId = try container.decode(UUID.self, forKey: .fromUserId)
-        toUserId = try container.decode(UUID.self, forKey: .toUserId)
+        fromUserId = try container.decode(Int.self, forKey: .fromUserId)
+        toUserId = try container.decode(Int.self, forKey: .toUserId)
         // Decode status safely, defaulting to UNKNOWN
         status = (try? container.decode(TransferStatus.self, forKey: .status)) ?? .UNKNOWN
         requestTimestamp = try container.decode(Date.self, forKey: .requestTimestamp)
@@ -59,8 +74,8 @@ struct Transfer: Codable, Identifiable, Hashable {
 
 // Model for initiating a transfer request
 struct TransferRequest: Codable {
-    let propertyId: UUID
-    let targetUserId: UUID
+    let propertyId: Int
+    let targetUserId: Int
 }
 
 // Model for approving/rejecting a transfer (if needed)

@@ -39,11 +39,11 @@ class PropertyDetailViewModel: ObservableObject {
     @Published var transferRequestState: TransferRequestState = .idle
 
     private let apiService: APIServiceProtocol
-    private let propertyId: String
+    private let propertyId: Int
     private var cancellables = Set<AnyCancellable>()
     private var clearStateTimer: AnyCancellable? // Timer for transfer status message
 
-    init(propertyId: String, apiService: APIServiceProtocol = APIService()) {
+    init(propertyId: Int, apiService: APIServiceProtocol = APIService()) {
         self.propertyId = propertyId
         self.apiService = apiService
         print("PropertyDetailViewModel initialized for property ID: \(propertyId)")
