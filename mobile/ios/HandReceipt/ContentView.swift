@@ -37,8 +37,8 @@ struct ContentView: View {
             #endif
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure ZStack fills the screen
-        .background(Color(white: 0.97).ignoresSafeArea()) // Light industrial gray background
-        .accentColor(Color(red: 0.35, green: 0.40, blue: 0.45)) // Match login button color
+        .background(AppColors.appBackground.ignoresSafeArea()) // Use dark theme background
+        .accentColor(AppColors.accent) // Use theme accent color
         // Detect shake gesture for debug overlay
         .onShake {
             #if DEBUG
@@ -56,18 +56,23 @@ struct ContentView: View {
             // Show loading indicator while checking session
             if isLoading {
                 VStack {
-                    ProgressView("Checking session...")
+                    ProgressView {
+                        Text("Checking session...")
+                            .font(AppFonts.body)
+                            .foregroundColor(AppColors.primaryText)
+                    }
+                    .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
                     
                     // Display error details if there was a loading error
                     if let error = loadingError {
                         VStack(spacing: 10) {
                             Text("Debug: Session check error")
-                                .font(.headline)
-                                .foregroundColor(.red)
+                                .font(AppFonts.headline)
+                                .foregroundColor(AppColors.destructive) // Use destructive color for errors
                             
                             Text(error.localizedDescription)
-                                .font(.caption)
-                                .foregroundColor(.red)
+                                .font(AppFonts.caption)
+                                .foregroundColor(AppColors.destructive) // Use destructive color for errors
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                             
@@ -76,6 +81,7 @@ struct ContentView: View {
                                 debugPrint("Manual retry of session check")
                                 checkSessionStatus()
                             }
+                            .buttonStyle(.primary) // Apply primary button style
                             .padding()
                             
                             // Skip login button for debugging
@@ -83,6 +89,7 @@ struct ContentView: View {
                                 debugPrint("Debug: Manually forcing login screen")
                                 isLoading = false
                             }
+                            .buttonStyle(.primary) // Apply primary button style
                             .padding()
                         }
                         .padding()
@@ -135,8 +142,8 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("DEBUG INFORMATION")
-                    .font(.headline)
-                    .foregroundColor(.white)
+                    .font(AppFonts.headline)
+                    .foregroundColor(AppColors.primaryText)
                 
                 Spacer()
                 
@@ -146,48 +153,55 @@ struct ContentView: View {
                     }
                 }) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.primaryText)
                 }
             }
             
-            Divider().background(Color.white)
+            Divider().background(AppColors.secondaryText)
             
             Group {
                 Text("App State:")
-                    .font(.subheadline)
-                    .foregroundColor(.white)
+                    .font(AppFonts.subheadlineBold)
+                    .foregroundColor(AppColors.primaryText)
                 Text("Loading: \(isLoading ? "Yes" : "No")")
-                    .foregroundColor(.white)
+                    .font(AppFonts.caption)
+                    .foregroundColor(AppColors.primaryText)
                 Text("Authenticated: \(isAuthenticated ? "Yes" : "No")")
-                    .foregroundColor(.white)
+                    .font(AppFonts.caption)
+                    .foregroundColor(AppColors.primaryText)
                 if let user = loggedInUser {
                     Text("User: \(user.user.username) (ID: \(user.userId))")
-                        .foregroundColor(.white)
+                        .font(AppFonts.caption)
+                        .foregroundColor(AppColors.primaryText)
                 }
             }
             
-            Divider().background(Color.white)
+            Divider().background(AppColors.secondaryText)
             
             Group {
                 Text("System:")
-                    .font(.subheadline)
-                    .foregroundColor(.white)
+                    .font(AppFonts.subheadlineBold)
+                    .foregroundColor(AppColors.primaryText)
                 Text("iOS Version: \(UIDevice.current.systemVersion)")
-                    .foregroundColor(.white)
+                    .font(AppFonts.caption)
+                    .foregroundColor(AppColors.primaryText)
                 Text("Device: \(UIDevice.current.model)")
-                    .foregroundColor(.white)
+                    .font(AppFonts.caption)
+                    .foregroundColor(AppColors.primaryText)
                 Text("Memory: \(getMemoryUsage())")
-                    .foregroundColor(.white)
+                    .font(AppFonts.caption)
+                    .foregroundColor(AppColors.primaryText)
             }
             
-            Divider().background(Color.white)
+            Divider().background(AppColors.secondaryText)
             
             Group {
                 Text("Network:")
-                    .font(.subheadline)
-                    .foregroundColor(.white)
+                    .font(AppFonts.subheadlineBold)
+                    .foregroundColor(AppColors.primaryText)
                 Text("API Base URL: \(apiService.baseURLString)")
-                    .foregroundColor(.white)
+                    .font(AppFonts.caption)
+                    .foregroundColor(AppColors.primaryText)
                 
                 // Debug action buttons
                 HStack {
@@ -195,32 +209,34 @@ struct ContentView: View {
                         debugPrint("Test connection button tapped")
                         testNetworkConnection()
                     }
+                    .font(AppFonts.captionMedium)
                     .padding(6)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .background(AppColors.accent) // Use theme accent
+                    .foregroundColor(AppColors.primaryText) // Use light text
                     .cornerRadius(6)
                     
                     Button("Clear Cookies") {
                         debugPrint("Clear cookies button tapped")
                         clearCookies()
                     }
+                    .font(AppFonts.captionMedium)
                     .padding(6)
-                    .background(Color.red)
-                    .foregroundColor(.white)
+                    .background(AppColors.destructive) // Use theme destructive
+                    .foregroundColor(AppColors.primaryText) // Use light text
                     .cornerRadius(6)
                 }
             }
             
             if let error = loadingError {
-                Divider().background(Color.white)
+                Divider().background(AppColors.secondaryText)
                 
                 Group {
                     Text("Last Error:")
-                        .font(.subheadline)
-                        .foregroundColor(.white)
+                        .font(AppFonts.subheadlineBold)
+                        .foregroundColor(AppColors.primaryText)
                     Text(error.localizedDescription)
-                        .font(.caption)
-                        .foregroundColor(.orange)
+                        .font(AppFonts.caption)
+                        .foregroundColor(AppColors.destructive) // Use destructive color for error
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -229,7 +245,7 @@ struct ContentView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black.opacity(0.8))
+        .background(AppColors.secondaryBackground.opacity(0.9)) // Use slightly lighter dark bg
         .cornerRadius(10)
         .padding()
         .transition(.move(edge: .bottom))

@@ -2,17 +2,19 @@ import SwiftUI
 
 // Make the struct public so it can be accessed across the module
 public struct AppColors {
-    // Background Colors
-    public static let appBackground = Color(hex: "F2F2F7") ?? Color(.systemGray6)
-    public static let secondaryBackground = Color(hex: "E5E5EA") ?? Color(.systemGray5)
+    // Background Colors (Dark)
+    public static let appBackground = Color(hex: "1C1C1E") ?? Color(.black) // Very dark gray, near black
+    public static let secondaryBackground = Color(hex: "2C2C2E") ?? Color(.systemGray6) // Slightly lighter dark gray
 
-    // Text Colors
-    public static let primaryText = Color(hex: "1C1C1E") ?? Color(.label) // Provide fallback for potential init failure
-    public static let secondaryText = Color(hex: "8E8E93") ?? Color(.secondaryLabel)
+    // Text Colors (Light)
+    public static let primaryText = Color(hex: "E5E5EA") ?? Color(.white) // Light gray / off-white
+    public static let secondaryText = Color(hex: "8E8E93") ?? Color(.systemGray) // Medium gray
 
-    // Accent Colors
-    public static let accent = Color(hex: "587FA8") ?? Color.blue // Fallback to system blue
-    public static let destructive = Color.red
+    // Accent Colors (Industrial/Minimalist)
+    // Using Muted Blue/Teal option:
+    public static let accent = Color(hex: "4A90E2") ?? Color.blue // A less saturated blue
+
+    public static let destructive = Color(hex: "D9534F") ?? Color.red // Slightly desaturated red
 }
 
 // Helper extension to initialize Color from hex string

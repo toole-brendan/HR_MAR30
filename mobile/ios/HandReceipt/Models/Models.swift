@@ -20,6 +20,11 @@ enum TransferStatus: String, Codable, CaseIterable {
     case UNKNOWN
 }
 
+// Response wrapper for the transfers endpoint
+struct TransfersResponse: Codable {
+    let transfers: [Transfer]
+}
+
 struct Transfer: Codable, Identifiable, Hashable {
     let id: Int
     let propertyId: Int

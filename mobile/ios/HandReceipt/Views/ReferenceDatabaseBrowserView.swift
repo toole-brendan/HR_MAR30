@@ -12,124 +12,153 @@ struct ReferenceDatabaseBrowserView: View {
     @State private var showingManualSNEntry = false
 
     var body: some View {
-         // Wrap the content in a NavigationView to enable navigation links
-         NavigationView {
+        // No need for explicit NavigationView here if it's already in a Tab
+        // The NavigationView is added in AuthenticatedTabView
+        // NavigationView {
             VStack {
                 // Search Bar (Optional - can be added later)
                 // TextField("Search...", text: $viewModel.searchQuery)
+                //    .textFieldStyle(.industrial) // Use themed text field style
+                //    .padding(.horizontal)
 
                 if viewModel.isLoading {
-                    ProgressView("Loading Items...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ProgressView {
+                        Text("Loading Items...")
+                            .font(AppFonts.body)
+                            .foregroundColor(AppColors.primaryText)
+                    }
+                    .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(AppColors.appBackground.ignoresSafeArea())
                 } else if let errorMessage = viewModel.errorMessage {
                     VStack {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 50, height: 50)
-                            .foregroundColor(.orange)
+                            .frame(width: 40, height: 40) // Slightly smaller icon
+                            .foregroundColor(AppColors.destructive) // Use destructive color
                         Text("Error Loading Data")
-                            .font(.headline)
+                            .font(AppFonts.headline)
+                            .foregroundColor(AppColors.primaryText)
                             .padding(.top, 5)
                         Text(errorMessage)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(AppFonts.caption)
+                            .foregroundColor(AppColors.secondaryText)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                         Button("Retry") {
                             viewModel.loadReferenceItems()
                         }
+                        .buttonStyle(.primary) // Use themed button style
                         .padding(.top)
-                        .buttonStyle(.bordered)
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding()
+                    .background(AppColors.appBackground.ignoresSafeArea())
                 } else {
                     List {
                         if viewModel.referenceItems.isEmpty {
                             Text("No reference items found.")
-                                .foregroundColor(.gray)
+                                .font(AppFonts.body)
+                                .foregroundColor(AppColors.secondaryText)
+                                .listRowBackground(AppColors.appBackground) // Match background
                         } else {
                             ForEach(viewModel.referenceItems) { item in
-                                // NavigationLink now points to the new detail view
                                 NavigationLink {
-                                    // Pass the item's ID (assuming it's a String)
                                      ReferenceItemDetailView(itemId: item.id.uuidString)
                                 } label: {
                                      ReferenceItemRow(item: item)
                                 }
+                                // Apply row background color
+                                .listRowBackground(AppColors.secondaryBackground)
+                                .listRowSeparatorTint(AppColors.secondaryText.opacity(0.3))
                             }
                         }
                     }
-                    .listStyle(PlainListStyle())
+                    .listStyle(.plain)
+                    .background(AppColors.appBackground.ignoresSafeArea()) // Set overall background
                     .refreshable {
                         viewModel.loadReferenceItems()
                     }
                 }
-                 Spacer()
+                 // Removed Spacer() - List should fill available space
             }
-            .navigationTitle("Reference Database")
-            .toolbar { // Add toolbar items here
+            .navigationTitle("Reference Database") // This is handled by the NavigationView in AuthenticatedTabView
+            .toolbar { 
                  ToolbarItem(placement: .navigationBarTrailing) {
                      Button {
-                         showingManualSNEntry = true // Show the Manual SN Entry sheet
+                         showingManualSNEntry = true 
                      } label: {
-                         Image(systemName: "plus.magnifyingglass")
-                         Text("Enter SN")
+                         // Label should pick up global tint color
+                         Label("Enter SN", systemImage: "plus.magnifyingglass")
+                             // .font(AppFonts.body) // Font applied via global appearance
                      }
                  }
-                 // Add other toolbar items if needed (e.g., Filter)
             }
-            .sheet(isPresented: $showingManualSNEntry) { // Present Manual SN Entry as a sheet
-                 NavigationView { // Embed ManualSNEntryView in its own NavigationView for title/toolbar
+            .sheet(isPresented: $showingManualSNEntry) { 
+                 NavigationView { 
                      ManualSNEntryView(
                         onItemConfirmed: { property in
-                            // Handle confirmed item if needed (e.g., show confirmation)
                              print("Item confirmed from sheet: \(property.serialNumber)")
-                            showingManualSNEntry = false // Dismiss sheet
+                            showingManualSNEntry = false
                         }
                      )
+                     // Apply theme colors to the sheet's nav bar explicitly if needed
+                     // .navigationBarTitleDisplayMode(.inline)
+                     // .toolbarBackground(AppColors.secondaryBackground, for: .navigationBar)
+                     // .toolbarBackground(.visible, for: .navigationBar)
                  }
+                 .accentColor(AppColors.accent)
             }
             .onAppear {
-                // Load items only if the list is currently empty
                 if viewModel.referenceItems.isEmpty {
                     viewModel.loadReferenceItems()
                 }
             }
-         } // End NavigationView
+        // } // End NavigationView - Removed
     }
 }
 
 // Row View for the Reference Item List
 struct ReferenceItemRow: View {
     let item: ReferenceItem
-    
+
     var body: some View {
-        HStack {
-             // Optional: Thumbnail Image using AsyncImage
+        HStack(spacing: 12) { // Added spacing
              AsyncImage(url: URL(string: item.imageUrl ?? "")) { phase in
                  if let image = phase.image {
                      image.resizable()
                           .aspectRatio(contentMode: .fill)
-                          .frame(width: 40, height: 40)
+                          .frame(width: 44, height: 44) // Slightly larger image
                           .clipShape(RoundedRectangle(cornerRadius: 4))
                  } else if phase.error != nil {
-                     Image(systemName: "photo.fill") // Error placeholder
-                          .foregroundColor(.gray)
-                         .frame(width: 40, height: 40)
+                     Image(systemName: "photo.fill.on.rectangle.fill") // More indicative error placeholder
+                          .font(.title3)
+                          .foregroundColor(AppColors.secondaryText)
+                          .frame(width: 44, height: 44, alignment: .center)
+                          .background(AppColors.secondaryBackground.opacity(0.5))
+                          .cornerRadius(4)
                  } else {
                      Image(systemName: "photo") // Loading placeholder
-                         .foregroundColor(.secondary)
-                         .frame(width: 40, height: 40)
+                         .font(.title3)
+                         .foregroundColor(AppColors.secondaryText)
+                         .frame(width: 44, height: 44, alignment: .center)
+                         .background(AppColors.secondaryBackground.opacity(0.5))
+                         .cornerRadius(4)
                  }
              }
-             .padding(.trailing, 5)
-            
+
             VStack(alignment: .leading) {
-                Text(item.itemName).font(.headline)
-                Text("NSN: \(item.nsn)").font(.subheadline).foregroundColor(.gray)
+                Text(item.itemName)
+                    .font(AppFonts.bodyBold) // Use bold body font
+                    .foregroundColor(AppColors.primaryText)
+                Text("NSN: \(item.nsn)")
+                    .font(AppFonts.caption) // Use caption font
+                    .foregroundColor(AppColors.secondaryText)
             }
+            Spacer() // Push content to the left
         }
+        .padding(.vertical, 6) // Add some vertical padding to the row
     }
 }
 
@@ -140,11 +169,12 @@ struct ReferenceItemRow: View {
 
 struct ReferenceDatabaseBrowserView_Previews: PreviewProvider {
     static var previews: some View {
+        // Wrap preview in NavigationView to see title/toolbar
         NavigationView {
-            // Remove callbacks from preview initializer
              ReferenceDatabaseBrowserView()
         }
-        .previewDisplayName("Browser View")
+        .preferredColorScheme(.dark) // Ensure preview uses dark scheme
+        .previewDisplayName("Browser View - Dark")
     }
 }
 

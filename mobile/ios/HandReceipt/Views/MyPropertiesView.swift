@@ -9,52 +9,96 @@ struct MyPropertiesView: View {
     init(viewModel: MyPropertiesViewModel? = nil) {
         let vm = viewModel ?? MyPropertiesViewModel(apiService: APIService())
         self._viewModel = StateObject(wrappedValue: vm)
+        // Configure list appearance if needed (might be handled globally or per-list)
+        // configureListAppearance()
     }
 
     var body: some View {
-        NavigationView { // Add NavigationView for title and potential toolbar
-             content
-             .navigationTitle("My Properties")
-        }
+        // Remove the redundant NavigationView wrapper
+        // The NavigationView is provided by AuthenticatedTabView
+        content
+             // Apply navigation title directly to the content
+            .navigationTitle("My Properties")
+            // Background is handled within content's ZStack
     }
 
     @ViewBuilder
     private var content: some View {
-        switch viewModel.loadingState {
+        ZStack { 
+            AppColors.appBackground.ignoresSafeArea() // Apply background to ZStack, ignore safe area
+
+            switch viewModel.loadingState {
             case .idle, .loading:
-                 ProgressView("Loading Properties...")
-                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
+                VStack {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent)) // Use accent color
+                    Text("Loading Properties...")
+                        .font(AppFonts.body) // Use theme font
+                        .foregroundColor(AppColors.secondaryText)
+                        .padding(.top, 8)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
             case .success(let properties):
-                 if properties.isEmpty {
-                     EmptyPropertiesStateView { viewModel.loadProperties() }
-                 } else {
-                     PropertyList(properties: properties, viewModel: viewModel)
-                 }
-            
+                if properties.isEmpty {
+                    // Pass themed colors/fonts into EmptyStateView if needed, or apply inside
+                    EmptyPropertiesStateView { viewModel.loadProperties() }
+                } else {
+                    // Pass themed colors/fonts into PropertyList if needed, or apply inside
+                    PropertyList(properties: properties, viewModel: viewModel)
+                }
+
             case .error(let message):
-                 ErrorStateView(message: message) { viewModel.loadProperties() }
+                 // Pass themed colors/fonts into ErrorStateView if needed, or apply inside
+                ErrorStateView(message: message) { viewModel.loadProperties() }
+            }
         }
+        // Ignore safe area on the ZStack level
+        // .ignoresSafeArea() - Applied above
     }
+    
+    // Optional: Helper for specific list config if needed
+    // private func configureListAppearance() {
+    //     List {}.listStyle(.plain) // example
+    // }
 }
 
 // MARK: - Subviews
 
 struct PropertyList: View {
     let properties: [Property]
-    @StateObject var viewModel: MyPropertiesViewModel
-    
+    @ObservedObject var viewModel: MyPropertiesViewModel
+
+    init(properties: [Property], viewModel: MyPropertiesViewModel) {
+        self.properties = properties
+        self.viewModel = viewModel
+        // REMOVED: UITableView.appearance() modifications
+    }
+
     var body: some View {
         List {
             ForEach(properties) { property in
-                NavigationLink {
-                    PropertyDetailView(propertyId: property.id)
-                } label: {
+                ZStack {
+                    NavigationLink {
+                        PropertyDetailView(propertyId: property.id)
+                            .navigationBarTitleDisplayMode(.inline)
+                    } label: {
+                        EmptyView()
+                    }
+                    .opacity(0)
+
                     PropertyRow(property: property)
                 }
+                .listRowInsets(EdgeInsets()) 
+                .padding(.horizontal) 
+                .padding(.vertical, 8) 
+                .listRowBackground(AppColors.secondaryBackground) // Use secondary background for rows
+                .listRowSeparator(.hidden) // Hide default separators, rely on spacing/background
             }
         }
-        .listStyle(PlainListStyle())
+        .listStyle(.plain)
+        // .scrollContentBackground(.hidden) // Make list background transparent - Removed for iOS < 16 compatibility
+        // .background(AppColors.appBackground) // Background provided by parent ZStack
         .refreshable { 
             viewModel.loadProperties()
         }
@@ -64,29 +108,71 @@ struct PropertyList: View {
 struct PropertyRow: View {
     let property: Property
     
-    // TODO: Consider Date Formatter as a shared utility
-    private var dateFormatter: DateFormatter {
+    // Shared Date Formatter
+    private static var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
         formatter.timeStyle = .none
         return formatter
-    }
+    }()
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text(property.itemName).font(.headline)
-                Text("SN: \(property.serialNumber)").font(.subheadline).foregroundColor(.gray)
+        HStack(alignment: .center, spacing: 12) { // Added spacing
+            VStack(alignment: .leading, spacing: 4) {
+                Text(property.itemName)
+                    .font(AppFonts.bodyBold) // Use themed font
+                    .foregroundColor(AppColors.primaryText)
+                Text("SN: \(property.serialNumber)")
+                    .font(AppFonts.caption) // Use themed font
+                    .foregroundColor(AppColors.secondaryText)
                  if let lastInv = property.lastInventoryDate {
-                     Text("Last Inv: \(lastInv, formatter: dateFormatter)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                     Text("Last Inv: \(lastInv, formatter: Self.dateFormatter)")
+                        .font(AppFonts.caption) // Use themed font
+                        .foregroundColor(AppColors.secondaryText.opacity(0.8))
                  }
             }
+            
             Spacer()
-            Text(property.status).font(.caption).padding(.horizontal, 6).padding(.vertical, 2).background(Color.gray.opacity(0.2)).cornerRadius(4)
+            
+            // Status Badge
+            Text(property.status.capitalized)
+                .font(AppFonts.captionMedium) // Use themed font
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .foregroundColor(statusTextColor(property.status)) // Use helper for text color
+                .background(statusBackgroundColor(property.status)) // Use helper for background
+                .clipShape(Capsule())
         }
-        .padding(.vertical, 4) // Add some vertical padding within the row
+        // No need for background here, handled by listRowBackground
+        // .background(AppColors.appBackground)
+    }
+
+    // Helper to determine status BACKGROUND color (themed)
+    private func statusBackgroundColor(_ status: String) -> Color {
+        switch status.lowercased() {
+        case "operational", "available":
+            return AppColors.accent.opacity(0.2) // Muted accent
+        case "maintenance", "repair", "non-operational":
+            return Color.orange.opacity(0.2) // Muted orange
+        case "transfer pending", "pending":
+            return Color.blue.opacity(0.2) // Muted blue (or another distinct color)
+        default:
+            return AppColors.secondaryText.opacity(0.2) // Muted gray
+        }
+    }
+    
+    // Helper to determine status TEXT color (themed)
+    private func statusTextColor(_ status: String) -> Color {
+         switch status.lowercased() {
+        case "operational", "available":
+            return AppColors.accent
+        case "maintenance", "repair", "non-operational":
+            return Color.orange
+        case "transfer pending", "pending":
+            return Color.blue
+        default:
+            return AppColors.secondaryText
+        }
     }
 }
 
@@ -95,24 +181,29 @@ struct EmptyPropertiesStateView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: "tray.fill")
+            Image(systemName: "archivebox.fill")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 60, height: 60)
-                .foregroundColor(.secondary)
+                .frame(width: 40, height: 40) // Slightly smaller
+                .foregroundColor(AppColors.secondaryText)
             Text("No Properties Assigned")
-                .font(.title2)
+                .font(AppFonts.headline) // Use themed font
                 .fontWeight(.semibold)
+                .foregroundColor(AppColors.primaryText)
             Text("Your assigned property list is currently empty.")
-                .font(.body)
-                .foregroundColor(.secondary)
+                .font(AppFonts.body) // Use themed font
+                .foregroundColor(AppColors.secondaryText)
                 .multilineTextAlignment(.center)
+                .padding(.horizontal) // Add horizontal padding for text
+            
             Button("Refresh", action: onRefresh)
-                .buttonStyle(.bordered)
+                .buttonStyle(.primary) // Use primary button style
                 .padding(.top)
         }
-        .padding()
+        .padding() 
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Background is handled by parent ZStack
+        // .background(AppColors.appBackground.ignoresSafeArea())
     }
 }
 
@@ -122,24 +213,28 @@ struct ErrorStateView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: "exclamationmark.triangle.fill")
+            Image(systemName: "wifi.exclamationmark")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 60, height: 60)
-                .foregroundColor(.red)
+                .frame(width: 40, height: 40) // Slightly smaller
+                .foregroundColor(AppColors.destructive)
             Text("Error Loading Data")
-                .font(.title2)
+                .font(AppFonts.headline) // Use themed font
                 .fontWeight(.semibold)
+                .foregroundColor(AppColors.primaryText)
             Text(message)
-                .font(.body)
-                .foregroundColor(.secondary)
+                .font(AppFonts.body) // Use themed font
+                .foregroundColor(AppColors.secondaryText)
                 .multilineTextAlignment(.center)
+                .padding(.horizontal) // Add horizontal padding for text
+            
             Button("Retry", action: onRetry)
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.primary) // Use primary button style
                 .padding(.top)
         }
-        .padding()
+        .padding(.horizontal) 
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Background handled by parent ZStack
     }
 }
 
@@ -149,28 +244,35 @@ struct MyPropertiesView_Previews: PreviewProvider {
     static var previews: some View {
         // Example with success state
         Group {
-            MyPropertiesView(viewModel: {
-                let vm = MyPropertiesViewModel(apiService: MockAPIService())
-                vm.loadingState = .success(Property.mockList)
-                return vm
-            }())
-            .previewDisplayName("Success State")
+            NavigationView { // Wrap preview in NavigationView for realistic context
+                MyPropertiesView(viewModel: {
+                    let vm = MyPropertiesViewModel(apiService: MockAPIService())
+                    vm.loadingState = .success(Property.mockList)
+                    return vm
+                }())
+            }
+            .preferredColorScheme(.dark) // Apply dark mode
+            .previewDisplayName("Success State - Dark")
 
-            // Example with empty state
-            MyPropertiesView(viewModel: {
-                let vm = MyPropertiesViewModel(apiService: MockAPIService())
-                vm.loadingState = .success([])
-                return vm
-            }())
-            .previewDisplayName("Empty State")
+            NavigationView {
+                MyPropertiesView(viewModel: {
+                    let vm = MyPropertiesViewModel(apiService: MockAPIService())
+                    vm.loadingState = .success([])
+                    return vm
+                }())
+            }
+            .preferredColorScheme(.dark)
+            .previewDisplayName("Empty State - Dark")
 
-            // Example with error state
-            MyPropertiesView(viewModel: {
-                let vm = MyPropertiesViewModel(apiService: MockAPIService())
-                vm.loadingState = .error("An error occurred while loading properties.")
-                return vm
-            }())
-            .previewDisplayName("Error State")
+            NavigationView {
+                MyPropertiesView(viewModel: {
+                    let vm = MyPropertiesViewModel(apiService: MockAPIService())
+                    vm.loadingState = .error("Network connection lost. Please try again.")
+                    return vm
+                }())
+            }
+            .preferredColorScheme(.dark)
+            .previewDisplayName("Error State - Dark")
         }
     }
 }

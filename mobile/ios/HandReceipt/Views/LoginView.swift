@@ -33,9 +33,11 @@ struct LoginView: View {
                 
                 Spacer()
             }
-            .padding(.bottom, 30)
+            .standardContainerPadding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(AppColors.appBackground.ignoresSafeArea())
             .navigationTitle("Login")
-            .navigationBarHidden(true) // Hide nav bar for a cleaner login screen
+            .navigationBarHidden(true)
             .onChange(of: viewModel.loginState) { newState in
                 debugPrint("LoginView: Login state changed to \(String(describing: newState))")
                 if case .success(let response) = newState {
@@ -50,37 +52,34 @@ struct LoginView: View {
                 debugPrint("LoginView disappeared")
             }
         }
+        .navigationViewStyle(.stack)
     }
     
     // MARK: - View Components
     
     private var headerView: some View {
         VStack {
-            Spacer()
-            // App Title or Logo
+            // Replicate the web sidebar logo style
             Text("HandReceipt")
-                .font(.system(.largeTitle, design: .monospaced))
-                .fontWeight(.bold)
-                .foregroundColor(Color(.darkGray))
-            Text("Mobile Access")
-                .font(.system(.headline, design: .monospaced))
-                .foregroundColor(Color(.darkGray).opacity(0.6))
-                .padding(.top, 5)
-            Spacer()
+                .font(.custom("Georgia", size: 20)) // Use Georgia font, adjust size as needed
+                .fontWeight(.light) // Use light weight if available, otherwise regular
+                .kerning(3.0) // Add letter spacing (kerning), adjust value for desired 'widest' look
+                .foregroundColor(AppColors.primaryText)
+                .padding(.horizontal, 16) // Approximate px-4
+                .padding(.vertical, 6)   // Approximate py-1.5
+                .overlay(
+                    // Add the border matching the web style (using primary text with opacity)
+                    Rectangle() // Use sharp rectangle, not rounded
+                        .stroke(AppColors.primaryText.opacity(0.7), lineWidth: 1)
+                )
         }
+        .frame(height: 150) // Keep existing frame or adjust as needed
     }
     
     private var inputFieldsView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 15) {
             TextField("Username", text: $viewModel.username)
-                .padding(12)
-                .background(Color(.systemGray6))
-                .cornerRadius(4) // Sharper corners for industrial look
-                .foregroundColor(Color(.darkGray))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color(.darkGray).opacity(0.3), lineWidth: 1)
-                )
+                .textFieldStyle(.industrial)
                 .textContentType(.username)
                 .keyboardType(.asciiCapable)
                 .autocapitalization(.none)
@@ -90,53 +89,44 @@ struct LoginView: View {
                 }
             
             SecureField("Password", text: $viewModel.password)
-                .padding(12)
-                .background(Color(.systemGray6))
-                .cornerRadius(4) // Sharper corners for industrial look
-                .foregroundColor(Color(.darkGray))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color(.darkGray).opacity(0.3), lineWidth: 1)
-                )
+                .textFieldStyle(.industrial)
                 .textContentType(.password)
                 .onChange(of: viewModel.password) { newValue in
                     debugPrint("Password changed: \(newValue.isEmpty ? "[empty]" : "[has value]")")
                 }
         }
-        .padding(.horizontal, 40)
     }
     
     private var errorMessageView: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 5) {
             if !errorMessage.isEmpty {
-                Image(systemName: "exclamationmark.circle")
-                   .foregroundColor(.red) // Instead of AppColors.destructive
+                Image(systemName: "exclamationmark.triangle.fill")
+                   .foregroundColor(AppColors.destructive)
             }
             Text(errorMessage)
-                .font(.caption)
+                .font(AppFonts.caption)
                 .fontWeight(.medium)
-                .foregroundColor(.red) // Instead of AppColors.destructive
+                .foregroundColor(AppColors.destructive)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(height: 30, alignment: .leading)
-        .padding(.horizontal, 40)
+        .frame(height: 25)
+        .opacity(errorMessage.isEmpty ? 0 : 1)
     }
     
     #if DEBUG
     private var debugInfoView: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("DEBUG INFO")
-                .font(.caption)
-                .fontWeight(.bold)
-                .foregroundColor(.orange)
+                .font(AppFonts.captionBold)
+                .foregroundColor(AppColors.accent)
             
             Text("Login State: \(String(describing: viewModel.loginState))")
-                .font(.caption)
-                .foregroundColor(.gray)
+                .font(AppFonts.caption)
+                .foregroundColor(AppColors.secondaryText)
             
             Text("Can Login: \(viewModel.canAttemptLogin ? "Yes" : "No")")
-                .font(.caption)
-                .foregroundColor(.gray)
+                .font(AppFonts.caption)
+                .foregroundColor(AppColors.secondaryText)
             
             HStack {
                 Button("Debug: Quick Login") {
@@ -144,32 +134,40 @@ struct LoginView: View {
                     viewModel.username = "testuser"
                     viewModel.password = "password"
                 }
-                .font(.caption)
+                .font(AppFonts.captionMedium)
                 .padding(4)
-                .background(Color.blue.opacity(0.2))
+                .background(AppColors.accent.opacity(0.3))
+                .foregroundColor(AppColors.primaryText)
                 .cornerRadius(4)
                 
                 Button("Simulate Success") {
                     debugPrint("Debug: Simulating login success")
                     viewModel.simulateLoginSuccess()
                 }
-                .font(.caption)
+                .font(AppFonts.captionMedium)
                 .padding(4)
-                .background(Color.green.opacity(0.2))
+                .background(Color.green.opacity(0.3))
+                .foregroundColor(AppColors.primaryText)
                 .cornerRadius(4)
                 
                 Button("Simulate Error") {
                     debugPrint("Debug: Simulating login error")
                     viewModel.simulateLoginError("Debug simulated error")
                 }
-                .font(.caption)
+                .font(AppFonts.captionMedium)
                 .padding(4)
-                .background(Color.red.opacity(0.2))
+                .background(AppColors.destructive.opacity(0.3))
+                .foregroundColor(AppColors.primaryText)
                 .cornerRadius(4)
             }
         }
-        .padding(.horizontal, 40)
-        .padding(.vertical, 10)
+        .padding(8)
+        .background(AppColors.secondaryBackground)
+        .cornerRadius(4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(AppColors.secondaryText.opacity(0.3), lineWidth: 1)
+        )
     }
     #endif
     
@@ -178,29 +176,22 @@ struct LoginView: View {
             debugPrint("Login button tapped - attempting login")
             viewModel.attemptLogin()
         } label: {
-            if case .loading = viewModel.loginState {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .frame(height: 20)
-            } else {
+            ZStack {
                 Text("Login")
-                    .font(.system(.headline, design: .monospaced))
-                    .fontWeight(.semibold)
+                    .opacity(viewModel.loginState == .loading ? 0 : 1)
+                
+                if case .loading = viewModel.loginState {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: AppColors.primaryText))
+                        .frame(height: 20)
+                }
             }
+            .frame(maxWidth: .infinity)
+            .frame(height: 20)
         }
-        // Industrial minimalist styling
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
-        .foregroundColor(.white)
-        .background(Color(red: 0.35, green: 0.40, blue: 0.45)) // Industrial slate blue-gray
-        .cornerRadius(4) // Sharper corners for industrial look
-        .scaleEffect(viewModel.loginState == .loading ? 0.98 : 1.0)
-        .frame(maxWidth: .infinity)
-        .frame(height: 50)
-        .padding(.horizontal, 40)
-        .padding(.top, 20)
+        .buttonStyle(.primary)
         .disabled(!viewModel.canAttemptLogin || viewModel.loginState == .loading)
-        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: viewModel.loginState == .loading)
+        .padding(.top, 10)
     }
     
     // Helper to get the error message text from the state
@@ -219,6 +210,15 @@ struct LoginView_Previews: PreviewProvider {
         LoginView { loginResponse in
             debugPrint("Preview Login Success: User \(loginResponse.user.username)")
         }
-        .previewDisplayName("Idle State")
+        .preferredColorScheme(.dark)
+        .previewDisplayName("Idle State - Dark")
+
+        LoginView { _ in }
+            .onAppear {
+                let viewModel = LoginViewModel()
+                viewModel.loginState = .loading
+            }
+             .preferredColorScheme(.dark)
+            .previewDisplayName("Loading State - Dark")
     }
 } 

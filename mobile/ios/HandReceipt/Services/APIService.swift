@@ -422,9 +422,10 @@ class APIService: APIServiceProtocol {
         }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        let transfers = try await performRequest(request: request) as [Transfer]
-        debugPrint("Successfully fetched \(transfers.count) transfers")
-        return transfers
+        // Use the new TransfersResponse wrapper to decode the response
+        let response = try await performRequest(request: request) as TransfersResponse
+        debugPrint("Successfully fetched \(response.transfers.count) transfers")
+        return response.transfers
     }
     
     // Request Transfer
@@ -505,118 +506,6 @@ class APIService: APIServiceProtocol {
         // Implementation depends on your auth mechanism (e.g., Bearer token, session cookie)
         // If using URLSession cookie storage, this might not be needed if cookies are sent automatically.
          debugPrint("Auth header addition skipped (relying on URLSession cookie storage)")
-    }
-
-    func performRequest<T: Decodable>(endpoint: String, method: HTTPMethod, body: Data? = nil, token: String? = nil) async throws -> T {
-        guard let url = URL(string: baseURL.absoluteString + endpoint) else {
-            throw APIError.invalidURL
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = method.rawValue
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        if let token = token {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-        
-        if let body = body {
-            request.httpBody = body
-            if let bodyString = String(data: body, encoding: .utf8) {
-                debugPrint("Request body: \(bodyString)")
-            }
-        }
-        
-        debugPrint("Request URL: \(url.absoluteString)")
-        debugPrint("Request method: \(method.rawValue)")
-        debugPrint("Request headers: \(request.allHTTPHeaderFields ?? [:])")
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-        
-        // Print the raw response data for debugging
-        if let responseString = String(data: data, encoding: .utf8) {
-            debugPrint("Response status code: \(httpResponse.statusCode)")
-            debugPrint("Response body: \(responseString)")
-        }
-        
-        guard (200...299).contains(httpResponse.statusCode) else {
-            // Enhanced error handling based on status code
-            switch httpResponse.statusCode {
-            case 400:
-                throw APIError.badRequest(message: try? JSONDecoder().decode(ErrorResponse.self, from: data).message)
-            case 401:
-                throw APIError.unauthorized
-            case 403:
-                throw APIError.forbidden(message: try? JSONDecoder().decode(ErrorResponse.self, from: data).message)
-            case 404:
-                throw APIError.notFound(message: try? JSONDecoder().decode(ErrorResponse.self, from: data).message)
-            case 500...599:
-                throw APIError.serverError(statusCode: httpResponse.statusCode, message: try? JSONDecoder().decode(ErrorResponse.self, from: data).message)
-            default:
-                throw APIError.requestFailed(statusCode: httpResponse.statusCode, data: data)
-            }
-        }
-        
-        do {
-            // Special handling for LoginResponse type to debug the decoding issue
-            if T.self == LoginResponse.self {
-                debugPrint("Attempting to decode LoginResponse...")
-                
-                // Try to parse the JSON to understand its structure
-                do {
-                    let json = try JSONSerialization.jsonObject(with: data)
-                    debugPrint("Raw JSON structure: \(json)")
-                    
-                    if let jsonDict = json as? [String: Any] {
-                        // Check for token
-                        if let token = jsonDict["token"] as? String {
-                            debugPrint("Token found: \(token)")
-                        } else {
-                            debugPrint("Token not found in response or has wrong type")
-                        }
-                        
-                        // Check for user object
-                        if let userDict = jsonDict["user"] as? [String: Any] {
-                            debugPrint("User object found: \(userDict)")
-                            
-                            // Examine user fields
-                            debugPrint("id: \(userDict["id"] ?? "missing")")
-                            debugPrint("username: \(userDict["username"] ?? "missing")")
-                            debugPrint("email: \(userDict["email"] ?? "missing")")
-                        } else {
-                            debugPrint("User object not found in response or has wrong type")
-                        }
-                    }
-                } catch {
-                    debugPrint("JSON parsing error: \(error)")
-                }
-            }
-            
-            let decoder = JSONDecoder()
-            let decodedResponse = try decoder.decode(T.self, from: data)
-            return decodedResponse
-        } catch {
-            debugPrint("Decoding error: \(error)")
-            if let decodingError = error as? DecodingError {
-                switch decodingError {
-                case .typeMismatch(let type, let context):
-                    debugPrint("Type mismatch: Expected \(type) for \(context.codingPath)")
-                case .valueNotFound(let type, let context):
-                    debugPrint("Value not found: Expected \(type) for \(context.codingPath)")
-                case .keyNotFound(let key, let context):
-                    debugPrint("Key not found: \(key) at \(context.codingPath)")
-                case .dataCorrupted(let context):
-                    debugPrint("Data corrupted: \(context)")
-                @unknown default:
-                    debugPrint("Unknown decoding error")
-                }
-            }
-            throw APIError.decodingError(error)
-        }
     }
 }
 

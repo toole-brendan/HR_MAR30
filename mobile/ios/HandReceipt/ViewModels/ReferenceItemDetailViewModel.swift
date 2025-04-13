@@ -46,11 +46,13 @@ class ReferenceItemDetailViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     self.item = fetchedItem
                     self.loadingState = .success(fetchedItem) // Update state with fetched item
+                    self.errorMessage = nil // Clear error on success
                 }
             } catch let apiError as APIService.APIError {
                 print("ReferenceItemDetailViewModel: API Error - \(apiError.localizedDescription)")
                  let specificMessage: String = apiError.localizedDescription // Assign the error message
-                loadingState = .error(specificMessage)
+                self.errorMessage = specificMessage // Set the error message
+                self.loadingState = .error(specificMessage) // Update state
             } catch {
                 print("ReferenceItemDetailViewModel: Unknown Error - \(error.localizedDescription)")
                 let genericMessage = "An unexpected error occurred."
