@@ -70,4 +70,23 @@ struct LoginResponse: Decodable {
     var message: String { "Login successful" } // Provide a default value
 }
 
+// New struct for /auth/me endpoint response which doesn't include token
+struct UserResponse: Decodable {
+    let user: LoginResponse.User
+    
+    enum CodingKeys: String, CodingKey {
+        case user
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        user = try container.decode(LoginResponse.User.self, forKey: .user)
+    }
+    
+    // Helper to convert to LoginResponse for code compatibility
+    func toLoginResponse(token: String = "") -> LoginResponse {
+        return LoginResponse(token: token, user: user)
+    }
+}
+
 // Define other auth-related structs (e.g., for registration) if needed 

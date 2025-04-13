@@ -134,7 +134,7 @@ struct LoginView: View {
                     viewModel.username = "testuser"
                     viewModel.password = "password"
                 }
-                .font(AppFonts.captionMedium)
+                .font(AppFonts.captionBold)
                 .padding(4)
                 .background(AppColors.accent.opacity(0.3))
                 .foregroundColor(AppColors.primaryText)
@@ -144,7 +144,7 @@ struct LoginView: View {
                     debugPrint("Debug: Simulating login success")
                     viewModel.simulateLoginSuccess()
                 }
-                .font(AppFonts.captionMedium)
+                .font(AppFonts.captionBold)
                 .padding(4)
                 .background(Color.green.opacity(0.3))
                 .foregroundColor(AppColors.primaryText)
@@ -154,7 +154,7 @@ struct LoginView: View {
                     debugPrint("Debug: Simulating login error")
                     viewModel.simulateLoginError("Debug simulated error")
                 }
-                .font(AppFonts.captionMedium)
+                .font(AppFonts.captionBold)
                 .padding(4)
                 .background(AppColors.destructive.opacity(0.3))
                 .foregroundColor(AppColors.primaryText)

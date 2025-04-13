@@ -42,4 +42,9 @@ struct ReferenceItem: Identifiable, Decodable {
         lin: "A12345",
         partNumber: "PART-123"
     )
+}
+
+// Wrapper for the reference models endpoint response
+struct ReferenceItemsResponse: Decodable {
+    let models: [ReferenceItem]
 } 

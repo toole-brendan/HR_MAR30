@@ -209,7 +209,7 @@ struct ContentView: View {
                         debugPrint("Test connection button tapped")
                         testNetworkConnection()
                     }
-                    .font(AppFonts.captionMedium)
+                    .font(AppFonts.captionBold)
                     .padding(6)
                     .background(AppColors.accent) // Use theme accent
                     .foregroundColor(AppColors.primaryText) // Use light text
@@ -219,7 +219,7 @@ struct ContentView: View {
                         debugPrint("Clear cookies button tapped")
                         clearCookies()
                     }
-                    .font(AppFonts.captionMedium)
+                    .font(AppFonts.captionBold)
                     .padding(6)
                     .background(AppColors.destructive) // Use theme destructive
                     .foregroundColor(AppColors.primaryText) // Use light text

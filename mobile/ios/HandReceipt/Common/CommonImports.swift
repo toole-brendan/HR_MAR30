@@ -1,11 +1,10 @@
 import Foundation
 import SwiftUI
 
-// This file ensures all Common components are explicitly included in the build
-// and can be imported by other files in the project.
-// It doesn't need to contain any actual code.
+// This file contains common utility functions and extensions
+// to be used by other parts of the application.
 
-// Re-export all Color extension functionality
+// Color extension for hex string initialization
 public extension Color {
     init?(hexString: String) {
         var hexSanitized = hexString.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -22,4 +21,6 @@ public extension Color {
         
         self.init(red: red, green: green, blue: blue)
     }
-} 
+}
+
+// Additional utility extensions can be added here 

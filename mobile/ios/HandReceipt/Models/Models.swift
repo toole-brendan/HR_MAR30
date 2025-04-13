@@ -37,9 +37,10 @@ struct Transfer: Codable, Identifiable, Hashable {
     let approvalTimestamp: Date?
     let fromUser: UserSummary? // Optionally populated
     let toUser: UserSummary? // Optionally populated
+    let notes: String? // Added notes property
     
     // Add memberwise initializer for direct creation (e.g., in mocks)
-    init(id: Int, propertyId: Int, propertySerialNumber: String, propertyName: String?, fromUserId: Int, toUserId: Int, status: TransferStatus, requestTimestamp: Date, approvalTimestamp: Date?, fromUser: UserSummary?, toUser: UserSummary?) {
+    init(id: Int, propertyId: Int, propertySerialNumber: String, propertyName: String?, fromUserId: Int, toUserId: Int, status: TransferStatus, requestTimestamp: Date, approvalTimestamp: Date?, fromUser: UserSummary?, toUser: UserSummary?, notes: String?) {
         self.id = id
         self.propertyId = propertyId
         self.propertySerialNumber = propertySerialNumber
@@ -51,6 +52,7 @@ struct Transfer: Codable, Identifiable, Hashable {
         self.approvalTimestamp = approvalTimestamp
         self.fromUser = fromUser
         self.toUser = toUser
+        self.notes = notes // Initialize notes
     }
     
     // Custom initializer if backend status string needs mapping
@@ -69,11 +71,12 @@ struct Transfer: Codable, Identifiable, Hashable {
         approvalTimestamp = try container.decodeIfPresent(Date.self, forKey: .approvalTimestamp)
         fromUser = try container.decodeIfPresent(UserSummary.self, forKey: .fromUser)
         toUser = try container.decodeIfPresent(UserSummary.self, forKey: .toUser)
+        notes = try container.decodeIfPresent(String.self, forKey: .notes) // Decode notes
     }
     
     // Add CodingKeys if property names differ from JSON keys (optional here if they match)
      private enum CodingKeys: String, CodingKey {
-         case id, propertyId, propertySerialNumber, propertyName, fromUserId, toUserId, status, requestTimestamp, approvalTimestamp, fromUser, toUser
+         case id, propertyId, propertySerialNumber, propertyName, fromUserId, toUserId, status, requestTimestamp, approvalTimestamp, fromUser, toUser, notes // Added notes key
      }
 }
 

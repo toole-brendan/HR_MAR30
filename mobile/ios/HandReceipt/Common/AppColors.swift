@@ -2,19 +2,35 @@ import SwiftUI
 
 // Make the struct public so it can be accessed across the module
 public struct AppColors {
-    // Background Colors (Dark)
-    public static let appBackground = Color(hex: "1C1C1E") ?? Color(.black) // Very dark gray, near black
-    public static let secondaryBackground = Color(hex: "2C2C2E") ?? Color(.systemGray6) // Slightly lighter dark gray
+    // Background Colors (Dark, more industrial)
+    public static let appBackground = Color(hex: "0A0A0A") ?? Color(.black) // Nearly black for higher contrast
+    public static let secondaryBackground = Color(hex: "1A1A1A") ?? Color(.systemGray6) // Darker gray
+    public static let tertiaryBackground = Color(hex: "252525") ?? Color(.systemGray5) // For subtle layering
 
-    // Text Colors (Light)
-    public static let primaryText = Color(hex: "E5E5EA") ?? Color(.white) // Light gray / off-white
-    public static let secondaryText = Color(hex: "8E8E93") ?? Color(.systemGray) // Medium gray
+    // Text Colors (High contrast for military/industrial legibility)
+    public static let primaryText = Color(hex: "F5F5F5") ?? Color(.white) // Brighter white for better contrast
+    public static let secondaryText = Color(hex: "A0A0A0") ?? Color(.systemGray) // Medium gray
+    public static let tertiaryText = Color(hex: "6A6A6A") ?? Color(.systemGray2) // Darker gray for less important text
 
-    // Accent Colors (Industrial/Minimalist)
-    // Using Muted Blue/Teal option:
-    public static let accent = Color(hex: "4A90E2") ?? Color.blue // A less saturated blue
+    // Accent Colors (Industrial/Military palette)
+    public static let accent = Color(hex: "2A5885") ?? Color.blue // Desaturated blue - primary accent
+    public static let accentHighlight = Color(hex: "3A78B5") ?? Color.blue.opacity(0.8) // Slightly lighter for highlights
 
-    public static let destructive = Color(hex: "D9534F") ?? Color.red // Slightly desaturated red
+    // Status Colors
+    public static let destructive = Color(hex: "A02C2C") ?? Color.red // Darker desaturated red
+    public static let warning = Color(hex: "9D6E21") ?? Color.orange // Desaturated orange/amber 
+    public static let success = Color(hex: "29683F") ?? Color.green // Desaturated military green
+    
+    // Military Category Colors (for different types of equipment)
+    public static let weaponsCategory = Color(hex: "8B2E2E") ?? Color.red.opacity(0.7) // Dark red
+    public static let communicationsCategory = Color(hex: "395F94") ?? Color.blue.opacity(0.7) // Navy blue
+    public static let opticsCategory = Color(hex: "3A633A") ?? Color.green.opacity(0.7) // Military green
+    public static let vehiclesCategory = Color(hex: "6B5226") ?? Color.brown.opacity(0.7) // Brown/tan
+    public static let electronicsCategory = Color(hex: "494A73") ?? Color.indigo.opacity(0.7) // Deep blue/indigo
+    
+    // Border/Divider Colors
+    public static let border = Color(hex: "323232") ?? Color.gray.opacity(0.3) // Subtle border
+    public static let divider = Color(hex: "3A3A3A") ?? Color.gray.opacity(0.5) // Slightly more visible divider
 }
 
 // Helper extension to initialize Color from hex string
@@ -32,16 +48,6 @@ extension Color {
             return nil
         }
 
-        // Ensure we handle both 6-digit (RRGGBB) and 8-digit (AARRGGBB/RRGGBBAA) hex formats if needed.
-        // This implementation assumes 6-digit RRGGBB.
-        // For 8-digit with alpha first (AARRGGBB):
-        // let alpha = Double((rgb & 0xFF000000) >> 24) / 255.0
-        // let red = Double((rgb & 0x00FF0000) >> 16) / 255.0
-        // let green = Double((rgb & 0x0000FF00) >> 8) / 255.0
-        // let blue = Double(rgb & 0x000000FF) / 255.0
-        // self.init(.sRGB, red: red, green: green, blue: blue, opacity: alpha)
-
-        // Current implementation for 6-digit RRGGBB:
         let red = Double((rgb & 0xFF0000) >> 16) / 255.0
         let green = Double((rgb & 0x00FF00) >> 8) / 255.0
         let blue = Double(rgb & 0x0000FF) / 255.0

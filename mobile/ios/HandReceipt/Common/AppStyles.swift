@@ -3,46 +3,131 @@ import SwiftUI
 // MARK: - Font Definitions
 public struct AppFonts {
     // Define standard sizes
+    static let smallSize: CGFloat = 10
+    static let captionSize: CGFloat = 12
+    static let subheadlineSize: CGFloat = 14
     static let bodySize: CGFloat = 16
     static let headlineSize: CGFloat = 18
-    static let subheadlineSize: CGFloat = 14
-    static let captionSize: CGFloat = 12
-
-    // Define Helvetica Neue fonts
-    public static let body = Font.custom("HelveticaNeue", size: bodySize)
-    public static let bodyBold = Font.custom("HelveticaNeue-Bold", size: bodySize)
-    public static let headline = Font.custom("HelveticaNeue-Medium", size: headlineSize) // Medium weight for headlines
-    public static let subheadline = Font.custom("HelveticaNeue", size: subheadlineSize)
-    public static let subheadlineBold = Font.custom("HelveticaNeue-Bold", size: subheadlineSize)
-    public static let caption = Font.custom("HelveticaNeue", size: captionSize)
-    public static let captionMedium = Font.custom("HelveticaNeue-Medium", size: captionSize)
-    public static let captionBold = Font.custom("HelveticaNeue-Bold", size: captionSize)
-
-    // Add other weights/styles as needed (e.g., Light, Italic)
-    // Example: public static let bodyLight = Font.custom("HelveticaNeue-Light", size: bodySize)
+    static let titleSize: CGFloat = 22
+    static let largeTitleSize: CGFloat = 28
+    
+    // Define letter spacing (tracking) for industrial feel
+    static let tightTracking: CGFloat = -0.3
+    static let normalTracking: CGFloat = 0
+    static let wideTracking: CGFloat = 0.5
+    static let militaryTracking: CGFloat = 1.2
+    
+    // Define fonts - Using more industrial/technical feel
+    // Using system fonts but could be replaced with custom industrial fonts like DIN
+    
+    // Monospaced fonts for serial numbers and technical data
+    public static let monoSmall = Font.system(.caption, design: .monospaced).monospacedDigit()
+    public static let mono = Font.system(.body, design: .monospaced).monospacedDigit()
+    
+    // Regular text with customized tracking - apply tracking at View level with .kerning()
+    public static let small = Font.system(size: smallSize, weight: .regular)
+    public static let smallBold = Font.system(size: smallSize, weight: .semibold)
+    
+    public static let caption = Font.system(size: captionSize, weight: .regular)
+    public static let captionBold = Font.system(size: captionSize, weight: .semibold)
+    
+    public static let subheadline = Font.system(size: subheadlineSize, weight: .regular)
+    public static let subheadlineBold = Font.system(size: subheadlineSize, weight: .semibold)
+    
+    public static let body = Font.system(size: bodySize, weight: .regular)
+    public static let bodyBold = Font.system(size: bodySize, weight: .semibold)
+    
+    // Headers with wider tracking for military/industrial feel
+    public static let headline = Font.system(size: headlineSize, weight: .medium)
+    public static let title = Font.system(size: titleSize, weight: .medium)
+    public static let largeTitle = Font.system(size: largeTitleSize, weight: .semibold)
+    
+    // Military style headers - all caps with wide tracking
+    public static let militaryHeading = Font.system(size: headlineSize, weight: .medium)
+    public static let militaryTitle = Font.system(size: titleSize, weight: .semibold)
 }
 
-// Make the struct public so it can be accessed across the module
+// MARK: - Button Styles
+
+// Primary button with industrial styling
 public struct PrimaryButtonStyle: ButtonStyle {
     public init() {} // Add a public initializer
     
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .padding(.horizontal, 18) // Slightly adjusted padding
-            .padding(.vertical, 10)
-            .font(AppFonts.headline) // Use custom Helvetica Neue headline
-            .foregroundColor(.white) // White text for contrast with the accent color
-            .background(AppColors.accent) // Use our custom accent color
-            .cornerRadius(4) // Reduced corner radius for a sharper look
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0) // Subtle press effect
-            .opacity(configuration.isPressed ? 0.9 : 1.0) // Slightly dim on press
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(minHeight: 44) // Standard touch target size
+            .font(AppFonts.headline)
+            .foregroundColor(.white)
+            .background(configuration.isPressed ? AppColors.accentHighlight : AppColors.accent)
+            .cornerRadius(0) // Square corners for industrial look
+            .overlay(
+                Rectangle()
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
+            .opacity(configuration.isPressed ? 0.9 : 1.0)
     }
 }
 
-// Optional: Add extension for easier usage
+// Secondary button - outlined style
+public struct SecondaryButtonStyle: ButtonStyle {
+    public init() {}
+    
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(minHeight: 44)
+            .font(AppFonts.headline)
+            .foregroundColor(AppColors.accent)
+            .background(Color.clear)
+            .cornerRadius(0)
+            .overlay(
+                Rectangle()
+                    .stroke(AppColors.accent, lineWidth: 1.5)
+            )
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+    }
+}
+
+// Destructive button - for deletions and warnings
+public struct DestructiveButtonStyle: ButtonStyle {
+    public init() {}
+    
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(minHeight: 44)
+            .font(AppFonts.headline)
+            .foregroundColor(.white)
+            .background(configuration.isPressed ? AppColors.destructive.opacity(0.8) : AppColors.destructive)
+            .cornerRadius(0)
+            .overlay(
+                Rectangle()
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
+            .opacity(configuration.isPressed ? 0.9 : 1.0)
+    }
+}
+
+// Extensions for easier usage
 extension ButtonStyle where Self == PrimaryButtonStyle {
     public static var primary: PrimaryButtonStyle {
         PrimaryButtonStyle()
+    }
+}
+
+extension ButtonStyle where Self == SecondaryButtonStyle {
+    public static var secondary: SecondaryButtonStyle {
+        SecondaryButtonStyle()
+    }
+}
+
+extension ButtonStyle where Self == DestructiveButtonStyle {
+    public static var destructive: DestructiveButtonStyle {
+        DestructiveButtonStyle()
     }
 }
 
@@ -53,20 +138,16 @@ public struct IndustrialTextFieldStyle: TextFieldStyle {
 
     public func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
-            .padding(.vertical, 10)
+            .padding(.vertical, 12)
             .padding(.horizontal, 12)
-            .font(AppFonts.body) // Use custom Helvetica Neue body
-            .foregroundColor(AppColors.primaryText) // Use light text color
-            .background(AppColors.secondaryBackground) // Use slightly lighter dark background
-            .cornerRadius(4) // Match button corner radius
+            .font(AppFonts.body)
+            .foregroundColor(AppColors.primaryText)
+            .background(AppColors.secondaryBackground)
+            .cornerRadius(0) // Square corners for industrial look
             .overlay(
-                RoundedRectangle(cornerRadius: 4)
-                    .stroke(AppColors.secondaryText.opacity(0.5), lineWidth: 1) // Subtle border
+                Rectangle()
+                    .stroke(AppColors.border, lineWidth: 1)
             )
-            // Add placeholder text color customization if needed
-            // .placeholder(when: text.isEmpty) { // Requires a binding usually passed in
-            //     Text("Placeholder").foregroundColor(AppColors.secondaryText) 
-            // }
     }
 }
 
@@ -76,21 +157,79 @@ extension TextFieldStyle where Self == IndustrialTextFieldStyle {
     }
 }
 
+// MARK: - Card Style
 
-// MARK: - View Modifiers
+public struct IndustrialCardModifier: ViewModifier {
+    public init() {}
+    
+    public func body(content: Content) -> some View {
+        content
+            .padding(16)
+            .background(AppColors.secondaryBackground)
+            .cornerRadius(0) // Square corners
+            .overlay(
+                Rectangle()
+                    .stroke(AppColors.border, lineWidth: 1)
+            )
+    }
+}
+
+// MARK: - Section Header Style
+
+public struct IndustrialSectionHeaderModifier: ViewModifier {
+    public init() {}
+    
+    public func body(content: Content) -> some View {
+        content
+            .font(AppFonts.militaryHeading)
+            .foregroundColor(AppColors.primaryText)
+            .textCase(.uppercase)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
+            .background(AppColors.tertiaryBackground)
+            .overlay(
+                Rectangle()
+                    .frame(width: 4, height: nil, alignment: .leading)
+                    .foregroundColor(AppColors.accent),
+                alignment: .leading
+            )
+    }
+}
+
+// MARK: - View Modifiers and Extensions
 
 public struct StandardContainerPadding: ViewModifier {
     public init() {} // Public initializer
 
     public func body(content: Content) -> some View {
         content
-            .padding(.horizontal) // Standard horizontal padding
-            .padding(.vertical, 10) // Standard vertical padding
+            .padding(.horizontal, 16) 
+            .padding(.vertical, 12)
     }
 }
 
 extension View {
+    // Container padding
     public func standardContainerPadding() -> some View {
         self.modifier(StandardContainerPadding())
+    }
+    
+    // Industrial card style
+    public func industrialCard() -> some View {
+        self.modifier(IndustrialCardModifier())
+    }
+    
+    // Industrial section header
+    public func industrialSectionHeader() -> some View {
+        self.modifier(IndustrialSectionHeaderModifier())
+    }
+    
+    // Extension for applying tracking (letter spacing)
+    // For compatibility with different iOS versions
+    public func tracking(_ value: CGFloat) -> some View {
+        // No letter spacing, just return the view unchanged
+        // This is backward compatible with all iOS versions
+        return self
     }
 } 

@@ -56,4 +56,9 @@ struct Property: Identifiable, Decodable {
         acquisitionDate: Date().addingTimeInterval(-86400 * 365), // 1 year ago
         notes: "Slight scratch on handguard."
     )
+}
+
+// Wrapper for responses that contain an array of properties
+struct PropertyResponse: Decodable {
+    let items: [Property]
 } 

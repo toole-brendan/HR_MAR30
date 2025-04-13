@@ -326,27 +326,29 @@ class APIService: APIServiceProtocol {
     // Check session function implementation
     func checkSession() async throws -> LoginResponse {
         debugPrint("Checking current session status")
-        let endpoint = baseURL.appendingPathComponent("/users/me") // Correct endpoint path
+        let endpoint = baseURL.appendingPathComponent("/auth/me") // Changed from /users/me
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         // Cookies are handled automatically by URLSession/HTTPCookieStorage
 
-        // Perform request, expecting LoginResponse (or a similar User Profile struct)
-        // performRequest handles decoding and potential 401 unauthorized errors
-        let response = try await performRequest(request: request) as LoginResponse
+        // Use UserResponse to decode and then convert to LoginResponse for compatibility
+        let response = try await performRequest(request: request) as UserResponse
         debugPrint("Session check successful, user: \(response.user.username)")
-        return response
+        // Convert to LoginResponse to maintain compatibility with existing code
+        return response.toLoginResponse()
     }
 
     func fetchReferenceItems() async throws -> [ReferenceItem] {
         debugPrint("Fetching all reference items")
-        let endpoint = baseURL.appendingPathComponent("/reference-db/items")
+        let endpoint = baseURL.appendingPathComponent("/reference/models") // Changed from /reference-db/items
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         // Cookies are handled automatically by URLSession/HTTPCookieStorage
-        let items = try await performRequest(request: request) as [ReferenceItem]
-        debugPrint("Successfully fetched \(items.count) reference items")
-        return items
+        
+        // Use wrapper response type and extract models array
+        let response = try await performRequest(request: request) as ReferenceItemsResponse
+        debugPrint("Successfully fetched \(response.models.count) reference items")
+        return response.models
     }
 
     func fetchPropertyBySerialNumber(serialNumber: String) async throws -> Property {
@@ -355,7 +357,7 @@ class APIService: APIServiceProtocol {
             debugPrint("ERROR: Failed to percent encode serial number: \(serialNumber)")
             throw APIError.invalidURL
         }
-        let endpoint = baseURL.appendingPathComponent("/inventory/serial/\(encodedSerialNumber)")
+        let endpoint = baseURL.appendingPathComponent("/inventory/property/serial/\(encodedSerialNumber)") // Changed from /inventory/serial/
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         // Cookies are handled automatically by URLSession/HTTPCookieStorage
@@ -371,7 +373,7 @@ class APIService: APIServiceProtocol {
             debugPrint("ERROR: Failed to percent encode item ID: \(itemId)")
             throw APIError.invalidURL
         }
-        let endpoint = baseURL.appendingPathComponent("/reference-db/items/\(encodedItemId)")
+        let endpoint = baseURL.appendingPathComponent("/reference/models/\(encodedItemId)") // Changed from /reference-db/items/
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         // Cookies are handled automatically by URLSession/HTTPCookieStorage
@@ -383,20 +385,27 @@ class APIService: APIServiceProtocol {
     // Function to fetch current user's properties
     func getMyProperties() async throws -> [Property] {
         debugPrint("Fetching current user's properties")
-        let endpoint = baseURL.appendingPathComponent("/users/me/inventory")
+        
+        // First get the current user ID
+        let userResponse = try await checkSession()
+        let userId = userResponse.user.id
+        
+        let endpoint = baseURL.appendingPathComponent("/inventory/user/\(userId)") // Changed from /users/me/inventory
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         // Cookies are handled automatically by URLSession/HTTPCookieStorage
-        let properties = try await performRequest(request: request) as [Property]
-        debugPrint("Successfully fetched \(properties.count) properties for current user")
-        return properties
+        
+        // Use wrapper response type and extract items array
+        let response = try await performRequest(request: request) as PropertyResponse
+        debugPrint("Successfully fetched \(response.items.count) properties for current user")
+        return response.items
     }
 
     // Function to fetch specific property by ID
     func getPropertyById(propertyId: Int) async throws -> Property {
         debugPrint("Fetching property with ID: \(propertyId)")
         // No need to encode Int for path component
-        let endpoint = baseURL.appendingPathComponent("/inventory/id/\(propertyId)") // Use Int directly
+        let endpoint = baseURL.appendingPathComponent("/inventory/property/\(propertyId)") // Changed from /inventory/id/
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         // Cookies handled automatically
@@ -409,20 +418,42 @@ class APIService: APIServiceProtocol {
     
     // Fetch Transfers (with optional filters)
     func fetchTransfers(status: String? = nil, direction: String? = nil) async throws -> [Transfer] {
-        debugPrint("Fetching transfers with status: \(status ?? "any"), direction: \(direction ?? "any")")
-        var components = URLComponents(url: baseURL.appendingPathComponent("/transfers"), resolvingAgainstBaseURL: false)!
+        // Removed fallback logic, directly call the correct implementation
+        debugPrint("Fetching transfers with status: \(status ?? "any")")
+
+        // Base endpoint is /transfers
+        let endpoint = "/transfers"
+        var components = URLComponents(url: baseURL.appendingPathComponent(endpoint), resolvingAgainstBaseURL: false)!
         var queryItems = [URLQueryItem]()
-        if let status = status, !status.isEmpty { queryItems.append(URLQueryItem(name: "status", value: status)) }
-        if let direction = direction, !direction.isEmpty { queryItems.append(URLQueryItem(name: "direction", value: direction)) }
-        if !queryItems.isEmpty { components.queryItems = queryItems }
+
+        // Add status query parameter if provided
+        if let status = status, !status.isEmpty {
+            queryItems.append(URLQueryItem(name: "status", value: status))
+        }
         
+        // NOTE: The 'direction' parameter is currently ignored as the backend route
+        // `/transfers` (GetAllTransfers) filters based on the authenticated user
+        // and doesn't accept a direction parameter. Filtering by direction
+        // is handled client-side in TransfersViewModel based on currentUserId.
+        // If server-side direction filtering becomes available on this route,
+        // add the query parameter here.
+        // if let direction = direction, !direction.isEmpty {
+        //     queryItems.append(URLQueryItem(name: "direction", value: direction))
+        // }
+
+        if !queryItems.isEmpty {
+            components.queryItems = queryItems
+        }
+
         guard let url = components.url else {
             debugPrint("ERROR: Failed to construct URL for fetchTransfers")
             throw APIError.invalidURL
         }
+
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        // Use the new TransfersResponse wrapper to decode the response
+
+        // Expect the backend to return {"transfers": [...]}
         let response = try await performRequest(request: request) as TransfersResponse
         debugPrint("Successfully fetched \(response.transfers.count) transfers")
         return response.transfers
@@ -431,6 +462,7 @@ class APIService: APIServiceProtocol {
     // Request Transfer
     func requestTransfer(propertyId: Int, targetUserId: Int) async throws -> Transfer {
         debugPrint("Requesting transfer of property \(propertyId) to user \(targetUserId)")
+        // Correct endpoint for creating a transfer is /transfers
         let endpoint = baseURL.appendingPathComponent("/transfers")
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
@@ -453,13 +485,26 @@ class APIService: APIServiceProtocol {
     // Approve Transfer
     func approveTransfer(transferId: Int) async throws -> Transfer {
         debugPrint("Approving transfer: \(transferId)")
-        guard let url = URL(string: "\(baseURLString)/transfers/\(transferId)/approve") else {
+        // Correct endpoint for approving is /transfers/{id}/status
+        guard let url = URL(string: "\(baseURLString)/transfers/\(transferId)/status") else {
             throw APIError.invalidURL
         }
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
+        // Approval likely requires a PATCH or PUT with a body indicating approval
+        request.httpMethod = "PATCH" // Changed from POST
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         addAuthHeader(to: &request)
         
+        // Send status update in the body
+        let requestBody = UpdateTransferStatusBody(status: "Approved") // Assuming "Approved" is the correct status string
+        do {
+            request.httpBody = try encoder.encode(requestBody)
+            debugPrint("Encoded approve status body")
+        } catch {
+            debugPrint("ERROR: Failed to encode approve status: \(error)")
+            throw APIError.encodingError(error)
+        }
+
         let transfer = try await performRequest(request: request) as Transfer
         debugPrint("Successfully approved transfer: \(transfer.id)")
         return transfer
@@ -468,13 +513,26 @@ class APIService: APIServiceProtocol {
     // Reject Transfer
     func rejectTransfer(transferId: Int) async throws -> Transfer {
         debugPrint("Rejecting transfer: \(transferId)")
-        guard let url = URL(string: "\(baseURLString)/transfers/\(transferId)/reject") else {
+        // Correct endpoint for rejecting is /transfers/{id}/status
+        guard let url = URL(string: "\(baseURLString)/transfers/\(transferId)/status") else {
             throw APIError.invalidURL
         }
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
+        // Rejection likely requires a PATCH or PUT with a body indicating rejection
+        request.httpMethod = "PATCH" // Changed from POST
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         addAuthHeader(to: &request)
-        
+
+        // Send status update in the body
+        let requestBody = UpdateTransferStatusBody(status: "Rejected") // Assuming "Rejected" is the correct status string
+        do {
+            request.httpBody = try encoder.encode(requestBody)
+            debugPrint("Encoded reject status body")
+        } catch {
+            debugPrint("ERROR: Failed to encode reject status: \(error)")
+            throw APIError.encodingError(error)
+        }
+
         let transfer = try await performRequest(request: request) as Transfer
         debugPrint("Successfully rejected transfer: \(transfer.id)")
         return transfer
@@ -485,7 +543,7 @@ class APIService: APIServiceProtocol {
     // Fetch Users (with optional search)
     func fetchUsers(searchQuery: String? = nil) async throws -> [UserSummary] {
         debugPrint("Fetching users with search query: \(searchQuery ?? "none")")
-        var components = URLComponents(url: baseURL.appendingPathComponent("/users"), resolvingAgainstBaseURL: false)!
+        var components = URLComponents(url: baseURL.appendingPathComponent("/auth/users"), resolvingAgainstBaseURL: false)! // Changed from /users
         if let query = searchQuery, !query.isEmpty {
             components.queryItems = [URLQueryItem(name: "search", value: query)]
         }
@@ -514,4 +572,10 @@ struct EmptyResponse: Decodable {}
 
 struct ErrorResponse: Decodable {
     let message: String
+}
+
+// Add struct for updating transfer status if not already present
+struct UpdateTransferStatusBody: Encodable {
+    let status: String
+    // Add other fields like 'notes' if needed/allowed by the backend endpoint
 } 

@@ -97,7 +97,7 @@ struct AuthenticatedTabView: View {
         // Configure item colors and fonts (selected and normal)
         let itemAppearance = UITabBarItemAppearance()
         let normalFont = AppFonts.uiFont(from: AppFonts.caption) ?? .systemFont(ofSize: 10) // Fallback font
-        let selectedFont = AppFonts.uiFont(from: AppFonts.captionMedium) ?? .systemFont(ofSize: 10, weight: .medium) // Fallback font
+        let selectedFont = AppFonts.uiFont(from: AppFonts.captionBold) ?? .systemFont(ofSize: 10, weight: .medium) // Fallback font
         
         itemAppearance.selected.iconColor = UIColor(AppColors.accent)
         itemAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor(AppColors.accent), .font: selectedFont]
@@ -163,7 +163,6 @@ extension AppFonts {
                 case AppFonts.subheadline: fontName = "HelveticaNeue"; finalSize = AppFonts.subheadlineSize
                 case AppFonts.subheadlineBold: fontName = "HelveticaNeue-Bold"; finalSize = AppFonts.subheadlineSize
                 case AppFonts.caption: fontName = "HelveticaNeue"; finalSize = AppFonts.captionSize
-                case AppFonts.captionMedium: fontName = "HelveticaNeue-Medium"; finalSize = AppFonts.captionSize
                 case AppFonts.captionBold: fontName = "HelveticaNeue-Bold"; finalSize = AppFonts.captionSize
                 default:
                     // Basic fallback for weighted fonts (less reliable)

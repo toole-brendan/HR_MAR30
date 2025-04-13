@@ -136,7 +136,7 @@ struct PropertyRow: View {
             
             // Status Badge
             Text(property.status.capitalized)
-                .font(AppFonts.captionMedium) // Use themed font
+                .font(AppFonts.captionBold) // Use themed font
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .foregroundColor(statusTextColor(property.status)) // Use helper for text color
@@ -388,7 +388,8 @@ class MockAPIService: APIServiceProtocol {
             requestTimestamp: Date(),
             approvalTimestamp: nil,
             fromUser: mockFromUser,
-            toUser: mockToUser
+            toUser: mockToUser,
+            notes: nil
          )
          return mockTransfer
      }

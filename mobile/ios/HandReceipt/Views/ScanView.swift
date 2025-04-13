@@ -202,7 +202,7 @@ struct PropertyDetailsCard: View {
     private func detailRow(label: String, value: String) -> some View {
         HStack {
             Text(label + ":")
-                .font(AppFonts.captionMedium) // Use theme font
+                .font(AppFonts.captionBold) // Use theme font
                 .foregroundColor(AppColors.secondaryText)
                 .frame(width: 70, alignment: .leading) // Align labels
             Text(value)
