@@ -1,8 +1,8 @@
 import { useContext } from "react";
 import { useLocation, Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext";
-import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useApp } from "@/contexts/AppContext";
 import { useNotifications } from "@/contexts/NotificationContext";
 import {
   Home,
@@ -23,6 +23,10 @@ import {
   FileText,
   User,
   Bell,
+  UserCog,
+  History,
+  FileClock,
+  ShieldCheck,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -113,7 +117,6 @@ const Sidebar = ({
   const navItems: NavItem[] = [
     { path: "/", icon: <Home className="sidebar-item-icon" />, label: "Dashboard" },
     { path: "/property-book", icon: <BookOpen className="sidebar-item-icon" />, label: "Property Book" },
-    { path: "/inventory", icon: <Package className="sidebar-item-icon" />, label: "Inventory" },
     { path: "/sensitive-items", icon: <Shield className="sidebar-item-icon" />, label: "Sensitive Items" },
     { 
       path: "/transfers", 
@@ -125,9 +128,17 @@ const Sidebar = ({
     { path: "/reports", icon: <FileText className="sidebar-item-icon" />, label: "Reports" }
   ];
   
+  // Admin nav items (conditionally rendered)
+  const adminNavItems: NavItem[] = [
+    { path: "/user-management", icon: <UserCog className="sidebar-item-icon" />, label: "User Management" },
+    { path: "/audit-log", icon: <History className="sidebar-item-icon" />, label: "Ledger History" },
+    { path: "/correction-log", icon: <FileClock className="sidebar-item-icon" />, label: "Correction Log" },
+    { path: "/ledger-verification", icon: <ShieldCheck className="sidebar-item-icon" />, label: "Ledger Verification" },
+  ];
+  
   // Footer actions
   const qrScanAction = {
-    path: "/scan",
+    path: "#",
     icon: <QrCode className="sidebar-item-icon" />,
     label: "Scan QR Code",
     onClick: handleQRScanClick
@@ -386,6 +397,26 @@ const Sidebar = ({
               </Link>
             )
           )}
+          
+          {/* Admin section divider and items (conditional based on role) */}
+          {/* TODO: Add role check (e.g., user?.role === 'Admin') */}
+          <div className="px-2 pt-4">
+            <div className="border-t border-gray-700/50 dark:border-white/10 mb-2"></div>
+            <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-2 pl-2">
+              {sidebarCollapsed ? "ADM" : "Administration"}
+            </p>
+          </div>
+          {adminNavItems.map((item) => (
+            <Link key={item.path} href={item.path}>
+              <div
+                className={`sidebar-item ${isActive(item.path) ? "active" : ""}`}
+                onClick={() => handleLinkClick()}
+              >
+                {item.icon}
+                {!sidebarCollapsed && <span className="text-nav-item">{item.label}</span>}
+              </div>
+            </Link>
+          ))}
         </nav>
         
         {/* Bottom action links section */}

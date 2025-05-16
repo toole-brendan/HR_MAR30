@@ -411,8 +411,8 @@ const QRManagement: React.FC<QRManagementProps> = ({ code }) => {
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-light tracking-tight mb-1">QR Code Management</h1>
-            <p className="text-sm text-muted-foreground">Generate, print, and manage QR codes for equipment tracking</p>
+            <h1 className="text-3xl font-light tracking-tight mb-1">QR Code Administration</h1>
+            <p className="text-sm text-muted-foreground">Generate, print, replace, and manage QR codes for equipment</p>
           </div>
           <Button 
             onClick={handleOpenGenerateDialog} 
@@ -649,8 +649,8 @@ const QRManagement: React.FC<QRManagementProps> = ({ code }) => {
                   <QrCode className="h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-normal mb-2">No QR Codes Found</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    {searchTerm || statusFilter !== "all" 
-                      ? "No QR codes match your search criteria. Try adjusting your filters."
+                    {searchTerm || statusFilter !== "all"
+                      ? "No QR codes match your filter criteria. Try adjusting your filters."
                       : "There are no QR codes in the system yet. Generate a new QR code to get started."}
                   </p>
                   <Button 

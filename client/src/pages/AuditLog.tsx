@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PageWrapper } from "@/components/ui/page-wrapper";
 import { PageHeader } from "@/components/ui/page-header";
-import { Search, FileDown, CheckCircle, XCircle, RefreshCw, Info } from "lucide-react";
+import { Search, FileDown, CheckCircle, XCircle, RefreshCw, Info, DatabaseZap, History } from "lucide-react";
 
 const AuditLog: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,31 +48,37 @@ const AuditLog: React.FC = () => {
 
   // Action buttons for the page header
   const actions = (
-    <Button className="flex items-center gap-1">
-      <FileDown className="h-4 w-4" />
-      <span>Export Log</span>
-    </Button>
+    <>
+      <Button variant="outline" className="flex items-center gap-1">
+        <DatabaseZap className="h-4 w-4" />
+        <span>Verify Ledger</span>
+      </Button>
+      <Button variant="outline" className="flex items-center gap-1">
+        <FileDown className="h-4 w-4" />
+        <span>Export History</span>
+      </Button>
+    </>
   );
 
   return (
     <PageWrapper withPadding={true}>
       <PageHeader
-        title="Audit Log"
-        description="Track all equipment changes and transfers"
+        title="Ledger History & Verification"
+        description="Explore and verify the immutable equipment transaction history"
         actions={actions}
         className="mb-4 sm:mb-5 md:mb-6"
       />
 
       <Card>
         <CardHeader>
-          <CardTitle>Activity History</CardTitle>
-          <CardDescription>Comprehensive log of all equipment actions</CardDescription>
+          <CardTitle>Transaction History</CardTitle>
+          <CardDescription>Immutable log of all equipment actions recorded in the secure ledger</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Input
-                placeholder="Search activities"
+                placeholder="Search by item, user, or transaction ID"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -99,7 +105,7 @@ const AuditLog: React.FC = () => {
 
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {filteredActivities.length === 0 ? (
-              <div className="py-4 text-center text-gray-500 dark:text-gray-400">No activities found</div>
+              <div className="py-4 text-center text-gray-500 dark:text-gray-400">No ledger entries found</div>
             ) : (
               filteredActivities.map((activity) => (
                 <div key={activity.id} className="py-4 flex items-start">

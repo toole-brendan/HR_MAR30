@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useApp } from '@/context/AppContext';
+import { useApp } from '@/contexts/AppContext';
 
 interface ResponsiveContainerProps {
   children: ReactNode;

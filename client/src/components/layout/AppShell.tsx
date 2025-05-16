@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import Sidebar from "./Sidebar";
 import MobileMenu from "./MobileMenu";
 import MobileNav from "./MobileNav";
 import QRScannerModal from "@/components/shared/QRScannerModal";
 import NotificationPanel from "@/components/modals/NotificationPanel";
-import { useApp } from "@/context/AppContext";
+import { useApp } from "@/contexts/AppContext";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu } from "lucide-react";

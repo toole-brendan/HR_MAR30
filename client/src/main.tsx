@@ -68,7 +68,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 if ('serviceWorker' in navigator) {
   // Get the current origin and path for correct registration
   const basePath = '/defense/';
-  
+
   // Use Workbox window library for registration with correct base path
   const wb = new Workbox(`${basePath}service-worker.js`, { scope: basePath });
 
@@ -82,22 +82,22 @@ if ('serviceWorker' in navigator) {
     // Example: if (confirm('New app version available. Reload to update?')) {
     //   wb.messageSkipWaiting();
     // }
-    
+
     // For smoother updates during development or testing, skip waiting automatically
     // Remove this for production if you want manual user refresh prompt
     console.log('Service Worker: Automatically skipping waiting.');
-    wb.messageSkipWaiting(); 
+    wb.messageSkipWaiting();
   });
 
   // Use the specific type for the 'activated' listener
-  wb.addEventListener('activated', (event: WorkboxLifecycleEvent) => { 
+  wb.addEventListener('activated', (event: WorkboxLifecycleEvent) => {
      // The 'isUpdate' property should be available on the event object for 'activated'
      if (!event.isUpdate) {
       console.log('Service worker activated for the first time!');
     } else {
       console.log('Service worker updated and activated.');
       // Optional: Reload the page to ensure the user gets the latest assets
-      // window.location.reload(); 
+      // window.location.reload();
     }
   });
 

@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  # Go backend API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: handreceipt_api
+    env_file:
+      - ../.env  # Explicitly load .env from the parent directory
+    environment:
+      # Hard-coded Azure PostgreSQL connection string
+      - HANDRECEIPT_DATABASE_URL=postgresql://brendantoole:Dunlainge123@hr-postgres.postgres.database.azure.com:5432/postgres?sslmode=require
+      # Use Azure SQL Ledger connection string from .env
+      - AZURE_SQL_LEDGER_CONNECTION_STRING=${AZURE_SQL_LEDGER_CONNECTION_STRING}
+      # Keep server port and JWT secret
+      - HANDRECEIPT_SERVER_PORT=8080
+      - HANDRECEIPT_AUTH_JWT_SECRET=your-secret-key-for-development-only
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+# Removed volumes: postgres_data 
