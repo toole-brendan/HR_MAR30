@@ -768,12 +768,12 @@ const Transfers: React.FC<TransfersProps> = ({ id }) => {
         onValueChange={(value) => dispatch({ type: 'SET_ACTIVE_VIEW', payload: value as TransferView })}
         className="w-full mb-6"
       >
-        <TabsList className="grid grid-cols-3 w-full h-10 border rounded-none bg-card">
+        <TabsList className="grid grid-cols-3 h-10 border rounded-none">
           {(['incoming', 'outgoing', 'history'] as TransferView[]).map((view) => (
             <TabsTrigger
               key={view}
               value={view}
-              className="text-xs uppercase tracking-wider rounded-none data-[state=active]:bg-muted data-[state=active]:shadow-none data-[state=active]:font-semibold data-[state=active]:text-foreground"
+              className="text-xs uppercase tracking-wider rounded-none"
             >
               {view.charAt(0).toUpperCase() + view.slice(1)}
               {view === 'incoming' && incomingPendingCount > 0 && (

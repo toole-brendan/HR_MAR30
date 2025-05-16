@@ -615,10 +615,10 @@ const SensitiveItems: React.FC<SensitiveItemsProps> = ({ id }) => {
         onValueChange={(value) => setAssignmentTab(value as 'me' | 'others' | 'unassigned')} 
         className="w-full mb-6"
       >
-        <TabsList className="grid w-full grid-cols-3 h-10 border rounded-none">
-          <TabsTrigger value="me" className="text-xs uppercase tracking-wider">Assigned to Me</TabsTrigger>
-          <TabsTrigger value="others" className="text-xs uppercase tracking-wider">Signed Down to Others</TabsTrigger>
-          <TabsTrigger value="unassigned" className="text-xs uppercase tracking-wider">Unassigned</TabsTrigger>
+        <TabsList className="grid grid-cols-3 h-10 border rounded-none">
+          <TabsTrigger value="me" className="text-xs uppercase tracking-wider rounded-none">Assigned to Me</TabsTrigger>
+          <TabsTrigger value="others" className="text-xs uppercase tracking-wider rounded-none">Signed Down to Others</TabsTrigger>
+          <TabsTrigger value="unassigned" className="text-xs uppercase tracking-wider rounded-none">Unassigned</TabsTrigger>
         </TabsList>
       </Tabs>
 
