@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"github.com/yourusername/handreceipt/internal/domain" // Import domain models
+	"github.com/toole-brendan/handreceipt-go/internal/domain" // Import domain models
 )
 
 // ConnectDB initializes and returns a GORM DB instance for PostgreSQL.

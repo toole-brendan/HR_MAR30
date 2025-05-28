@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/handreceipt/internal/ledger"
+	"github.com/toole-brendan/handreceipt-go/internal/ledger"
 )
 
 // VerificationHandler handles ledger verification operations

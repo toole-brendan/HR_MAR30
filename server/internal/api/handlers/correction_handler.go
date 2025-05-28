@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin" // Assuming user ID comes from context
-	"github.com/yourusername/handreceipt/internal/ledger"
+	"github.com/toole-brendan/handreceipt-go/internal/ledger"
 )
 
 // CorrectionHandler handles correction-related API requests

@@ -8,10 +8,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	"github.com/yourusername/handreceipt/internal/api/routes"
-	"github.com/yourusername/handreceipt/internal/ledger"
-	"github.com/yourusername/handreceipt/internal/platform/database"
-	"github.com/yourusername/handreceipt/internal/repository"
+	"github.com/toole-brendan/handreceipt-go/internal/api/routes"
+	"github.com/toole-brendan/handreceipt-go/internal/ledger"
+	"github.com/toole-brendan/handreceipt-go/internal/platform/database"
+	"github.com/toole-brendan/handreceipt-go/internal/repository"
 )
 
 func main() {

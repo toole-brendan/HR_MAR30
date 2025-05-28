@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/handreceipt/internal/domain"
-	"github.com/yourusername/handreceipt/internal/platform/database"
+	"github.com/toole-brendan/handreceipt-go/internal/domain"
+	"github.com/toole-brendan/handreceipt-go/internal/platform/database"
 )
 
 // ActivityHandler handles activity log operations

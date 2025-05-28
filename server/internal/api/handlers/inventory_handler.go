@@ -9,9 +9,9 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/handreceipt/internal/domain"
-	"github.com/yourusername/handreceipt/internal/ledger"
-	"github.com/yourusername/handreceipt/internal/repository"
+	"github.com/toole-brendan/handreceipt-go/internal/domain"
+	"github.com/toole-brendan/handreceipt-go/internal/ledger"
+	"github.com/toole-brendan/handreceipt-go/internal/repository"
 	"gorm.io/gorm"
 )
 

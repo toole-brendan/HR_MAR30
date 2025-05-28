@@ -2,10 +2,10 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/handreceipt/internal/api/handlers"
-	"github.com/yourusername/handreceipt/internal/api/middleware"
-	"github.com/yourusername/handreceipt/internal/ledger"
-	"github.com/yourusername/handreceipt/internal/repository"
+	"github.com/toole-brendan/handreceipt-go/internal/api/handlers"
+	"github.com/toole-brendan/handreceipt-go/internal/api/middleware"
+	"github.com/toole-brendan/handreceipt-go/internal/ledger"
+	"github.com/toole-brendan/handreceipt-go/internal/repository"
 )
 
 // SetupRoutes configures all the API routes for the application

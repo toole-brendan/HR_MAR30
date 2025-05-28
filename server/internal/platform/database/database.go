@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/viper"
-	"github.com/yourusername/handreceipt/internal/domain"
+	"github.com/toole-brendan/handreceipt-go/internal/domain"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

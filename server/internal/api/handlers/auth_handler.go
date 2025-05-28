@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/handreceipt/internal/api/middleware"
-	"github.com/yourusername/handreceipt/internal/domain"
-	"github.com/yourusername/handreceipt/internal/repository"
+	"github.com/toole-brendan/handreceipt-go/internal/api/middleware"
+	"github.com/toole-brendan/handreceipt-go/internal/domain"
+	"github.com/toole-brendan/handreceipt-go/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 

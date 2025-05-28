@@ -8,7 +8,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/yourusername/handreceipt/internal/domain"
+	"github.com/toole-brendan/handreceipt-go/internal/domain"
 	"gorm.io/driver/postgres" // Using postgres dialect for realistic query generation
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

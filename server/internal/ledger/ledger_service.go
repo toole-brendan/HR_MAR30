@@ -3,7 +3,7 @@ package ledger
 import (
 	"database/sql"
 
-	"github.com/yourusername/handreceipt/internal/domain"
+	"github.com/toole-brendan/handreceipt-go/internal/domain"
 )
 
 // LedgerService defines the interface for interacting with an immutable ledger.

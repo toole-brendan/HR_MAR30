@@ -9,7 +9,7 @@ import (
 	"time"
 
 	_ "github.com/microsoft/go-mssqldb" // Azure SQL Database driver
-	"github.com/yourusername/handreceipt/internal/domain"
+	"github.com/toole-brendan/handreceipt-go/internal/domain"
 	// Consider using Viper for configuration management if not already set up globally
 )
 

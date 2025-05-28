@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/handreceipt/internal/repository"
+	"github.com/toole-brendan/handreceipt-go/internal/repository"
 	"gorm.io/gorm"
 )
 

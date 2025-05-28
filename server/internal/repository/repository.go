@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/yourusername/handreceipt/internal/domain"
+	"github.com/toole-brendan/handreceipt-go/internal/domain"
 )
 
 // Repository defines the interface for data access operations.

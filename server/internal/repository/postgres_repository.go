@@ -3,7 +3,7 @@ package repository
 import (
 	"errors"
 
-	"github.com/yourusername/handreceipt/internal/domain"
+	"github.com/toole-brendan/handreceipt-go/internal/domain"
 	"gorm.io/gorm"
 )
 
