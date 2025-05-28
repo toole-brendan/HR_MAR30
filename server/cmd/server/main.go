@@ -51,25 +51,37 @@ func main() {
 	// Initialize Repository
 	repo := repository.NewPostgresRepository(db)
 
-	// Initialize Ledger Service
+	// Initialize Ledger Service based on configuration
 	var ledgerService ledger.LedgerService
 
-	// Use Azure SQL Ledger in production, Mock in development
-	if environment == "production" || viper.GetBool("ledger.use_azure") {
-		connectionString := os.Getenv("AZURE_SQL_LEDGER_CONNECTION_STRING")
-		if connectionString == "" {
-			log.Fatalf("Azure SQL Ledger connection string not found in environment variables")
-		}
+	if environment == "production" || viper.GetBool("immudb.enabled") {
+		// Use ImmuDB for ledger service
+		immuHost := viper.GetString("immudb.host")
+		immuPort := viper.GetInt("immudb.port")
+		immuUsername := viper.GetString("immudb.username")
+		immuPassword := viper.GetString("immudb.password")
+		immuDatabase := viper.GetString("immudb.database")
 
 		var err error
-		ledgerService, err = ledger.NewAzureSqlLedgerService(connectionString)
+		ledgerService, err = ledger.NewImmuDBLedgerService(immuHost, immuPort, immuUsername, immuPassword, immuDatabase)
 		if err != nil {
-			log.Fatalf("Failed to initialize Azure SQL Ledger service: %v", err)
+			log.Fatalf("Failed to initialize ImmuDB Ledger service: %v", err)
 		}
-		log.Println("Using Azure SQL Ledger")
+		log.Println("Using ImmuDB Ledger")
 	} else {
-		ledgerService = &ledger.AzureSqlLedgerService{} // Using a mock instance for now
-		log.Println("Using Mock Ledger Service for development")
+		// Fallback to Azure SQL for development/testing if needed
+		connectionString := os.Getenv("AZURE_SQL_LEDGER_CONNECTION_STRING")
+		if connectionString != "" {
+			var err error
+			ledgerService, err = ledger.NewAzureSqlLedgerService(connectionString)
+			if err != nil {
+				log.Fatalf("Failed to initialize Azure SQL Ledger service: %v", err)
+			}
+			log.Println("Using Azure SQL Ledger (fallback)")
+		} else {
+			log.Println("No ledger service configured - using mock/disabled mode")
+			// You might want to create a mock ledger service here
+		}
 	}
 
 	if err := ledgerService.Initialize(); err != nil {

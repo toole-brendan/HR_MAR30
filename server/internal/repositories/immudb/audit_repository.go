@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/codenotary/immudb/pkg/api/schema"
 	immuclient "github.com/codenotary/immudb/pkg/client"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -109,8 +110,8 @@ func (r *AuditRepository) GetAuditTrail(ctx context.Context, entityType, entityI
 	// Create prefix for scanning
 	prefix := fmt.Sprintf("audit:%s:%s:", entityType, entityID)
 
-	// Scan for entries with the prefix
-	scanReq := &immuclient.ScanRequest{
+	// Scan for entries with the prefix using the correct API
+	scanReq := &schema.ScanRequest{
 		Prefix: []byte(prefix),
 		Limit:  1000, // Limit to prevent memory issues
 	}
@@ -167,7 +168,7 @@ func (r *AuditRepository) SearchAuditEvents(ctx context.Context, filter AuditSea
 		limit = 100
 	}
 
-	scanReq := &immuclient.ScanRequest{
+	scanReq := &schema.ScanRequest{
 		Prefix: []byte(prefix),
 		Limit:  uint64(limit),
 	}
@@ -204,7 +205,7 @@ func (r *AuditRepository) GetAuditEventByID(ctx context.Context, eventID string)
 	}
 
 	// Search for the event by scanning with a broader prefix
-	scanReq := &immuclient.ScanRequest{
+	scanReq := &schema.ScanRequest{
 		Prefix: []byte("audit:"),
 		Limit:  10000, // Large limit to search through events
 	}
@@ -236,7 +237,7 @@ func (r *AuditRepository) VerifyAuditIntegrity(ctx context.Context, entityType, 
 
 	prefix := fmt.Sprintf("audit:%s:%s:", entityType, entityID)
 
-	scanReq := &immuclient.ScanRequest{
+	scanReq := &schema.ScanRequest{
 		Prefix: []byte(prefix),
 		Limit:  1000,
 	}
@@ -270,7 +271,7 @@ func (r *AuditRepository) GetAuditStatistics(ctx context.Context, entityType str
 		prefix = fmt.Sprintf("audit:%s:", entityType)
 	}
 
-	scanReq := &immuclient.ScanRequest{
+	scanReq := &schema.ScanRequest{
 		Prefix: []byte(prefix),
 		Limit:  10000,
 	}

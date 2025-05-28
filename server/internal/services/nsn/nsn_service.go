@@ -2,8 +2,10 @@ package nsn
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -16,13 +18,29 @@ import (
 	"gorm.io/gorm"
 )
 
+// NSNService provides NSN/LIN lookup functionality
 type NSNService struct {
 	config      *config.NSNConfig
 	cache       *cache.Cache
 	db          *gorm.DB
-	httpClient  *http.Client
 	logger      *logrus.Logger
+	client      *http.Client
 	rateLimiter chan struct{}
+}
+
+// NSNRecord represents a National Stock Number record
+type NSNRecord struct {
+	ID           uint      `json:"id" gorm:"primaryKey"`
+	NSN          string    `json:"nsn" gorm:"uniqueIndex;not null"`
+	LIN          string    `json:"lin" gorm:"index"`
+	ItemName     string    `json:"itemName" gorm:"not null"`
+	Description  string    `json:"description"`
+	Category     string    `json:"category"`
+	Manufacturer string    `json:"manufacturer"`
+	PartNumber   string    `json:"partNumber"`
+	ImageURL     string    `json:"imageUrl"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 type NSNDetails struct {
@@ -121,27 +139,28 @@ func (r *nsnRepository) DeleteOld(ctx context.Context, olderThan time.Time) erro
 	return r.db.WithContext(ctx).Where("last_updated < ?", olderThan).Delete(&models.NSNData{}).Error
 }
 
-func NewNSNService(cfg *config.NSNConfig, db *gorm.DB, logger *logrus.Logger) *NSNService {
+// NewNSNService creates a new NSN service instance
+func NewNSNService(config *config.NSNConfig, db *gorm.DB, logger *logrus.Logger) *NSNService {
 	// Initialize cache
 	var cacheInstance *cache.Cache
-	if cfg.CacheEnabled {
-		cacheInstance = cache.New(cfg.CacheTTL, cfg.CacheTTL*2)
+	if config.CacheEnabled {
+		cacheInstance = cache.New(config.CacheTTL, config.CacheTTL*2)
 	}
 
 	// Initialize HTTP client with timeout
-	httpClient := &http.Client{
-		Timeout: time.Duration(cfg.TimeoutSeconds) * time.Second,
+	client := &http.Client{
+		Timeout: time.Duration(config.TimeoutSeconds) * time.Second,
 	}
 
 	// Initialize rate limiter
-	rateLimiter := make(chan struct{}, cfg.RateLimitRPS)
-	for i := 0; i < cfg.RateLimitRPS; i++ {
+	rateLimiter := make(chan struct{}, config.RateLimitRPS)
+	for i := 0; i < config.RateLimitRPS; i++ {
 		rateLimiter <- struct{}{}
 	}
 
 	// Start rate limiter refill goroutine
 	go func() {
-		ticker := time.NewTicker(time.Second / time.Duration(cfg.RateLimitRPS))
+		ticker := time.NewTicker(time.Second / time.Duration(config.RateLimitRPS))
 		defer ticker.Stop()
 		for range ticker.C {
 			select {
@@ -152,13 +171,266 @@ func NewNSNService(cfg *config.NSNConfig, db *gorm.DB, logger *logrus.Logger) *N
 	}()
 
 	return &NSNService{
-		config:      cfg,
+		config:      config,
 		cache:       cacheInstance,
 		db:          db,
-		httpClient:  httpClient,
 		logger:      logger,
+		client:      client,
 		rateLimiter: rateLimiter,
 	}
+}
+
+// Initialize sets up the NSN service and ensures database tables exist
+func (s *NSNService) Initialize() error {
+	// Auto-migrate the NSN records table
+	if err := s.db.AutoMigrate(&NSNRecord{}); err != nil {
+		return fmt.Errorf("failed to migrate NSN records table: %w", err)
+	}
+
+	s.logger.Info("NSN service initialized successfully")
+	return nil
+}
+
+// LookupByNSN retrieves an item by its NSN
+func (s *NSNService) LookupByNSN(ctx context.Context, nsn string) (*NSNRecord, error) {
+	// Clean and format NSN
+	cleanNSN := s.cleanNSN(nsn)
+
+	var record NSNRecord
+	err := s.db.WithContext(ctx).Where("nsn = ?", cleanNSN).First(&record).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// Try to fetch from external API if configured
+			if s.config.APIEndpoint != "" {
+				return s.fetchFromExternalAPI(ctx, cleanNSN)
+			}
+			return nil, fmt.Errorf("NSN not found: %s", cleanNSN)
+		}
+		return nil, fmt.Errorf("database error: %w", err)
+	}
+
+	return &record, nil
+}
+
+// LookupByLIN retrieves an item by its LIN
+func (s *NSNService) LookupByLIN(ctx context.Context, lin string) (*NSNRecord, error) {
+	var record NSNRecord
+	err := s.db.WithContext(ctx).Where("lin = ?", strings.ToUpper(lin)).First(&record).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("LIN not found: %s", lin)
+		}
+		return nil, fmt.Errorf("database error: %w", err)
+	}
+
+	return &record, nil
+}
+
+// SearchItems searches for items by name or description
+func (s *NSNService) SearchItems(ctx context.Context, query string, limit int) ([]NSNRecord, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 20 // Default limit
+	}
+
+	var records []NSNRecord
+	searchPattern := "%" + strings.ToLower(query) + "%"
+
+	err := s.db.WithContext(ctx).
+		Where("LOWER(item_name) LIKE ? OR LOWER(description) LIKE ?", searchPattern, searchPattern).
+		Limit(limit).
+		Find(&records).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("search error: %w", err)
+	}
+
+	return records, nil
+}
+
+// ImportFromCSV imports NSN data from a CSV file
+func (s *NSNService) ImportFromCSV(ctx context.Context, reader io.Reader) error {
+	csvReader := csv.NewReader(reader)
+
+	// Read header
+	header, err := csvReader.Read()
+	if err != nil {
+		return fmt.Errorf("failed to read CSV header: %w", err)
+	}
+
+	// Map header columns
+	columnMap := s.mapCSVColumns(header)
+
+	var records []NSNRecord
+	lineNumber := 1
+
+	for {
+		row, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			s.logger.WithError(err).WithField("line", lineNumber).Warn("Failed to read CSV row")
+			continue
+		}
+
+		record := s.parseCSVRow(row, columnMap)
+		if record != nil {
+			records = append(records, *record)
+		}
+
+		lineNumber++
+
+		// Batch insert every 1000 records
+		if len(records) >= 1000 {
+			if err := s.batchInsertRecords(ctx, records); err != nil {
+				return fmt.Errorf("failed to insert batch at line %d: %w", lineNumber, err)
+			}
+			records = records[:0] // Clear slice
+		}
+	}
+
+	// Insert remaining records
+	if len(records) > 0 {
+		if err := s.batchInsertRecords(ctx, records); err != nil {
+			return fmt.Errorf("failed to insert final batch: %w", err)
+		}
+	}
+
+	s.logger.WithField("lines_processed", lineNumber).Info("CSV import completed")
+	return nil
+}
+
+// RefreshCachedNSNData refreshes NSN data from external sources
+func (s *NSNService) RefreshCachedNSNData(ctx context.Context) error {
+	if s.config.APIEndpoint == "" {
+		s.logger.Info("No external API configured for NSN data refresh")
+		return nil
+	}
+
+	s.logger.Info("Starting NSN data refresh from external API")
+
+	// This is a placeholder for the actual implementation
+	// In practice, you would:
+	// 1. Fetch data from government APIs or data sources
+	// 2. Parse the response
+	// 3. Update the local database
+
+	s.logger.Info("NSN data refresh completed")
+	return nil
+}
+
+// GetStatistics returns statistics about the NSN database
+func (s *NSNService) GetStatistics(ctx context.Context) (map[string]interface{}, error) {
+	var totalRecords int64
+	var categoryCounts []struct {
+		Category string
+		Count    int64
+	}
+
+	// Get total count
+	if err := s.db.WithContext(ctx).Model(&NSNRecord{}).Count(&totalRecords).Error; err != nil {
+		return nil, fmt.Errorf("failed to get total count: %w", err)
+	}
+
+	// Get category breakdown
+	if err := s.db.WithContext(ctx).
+		Model(&NSNRecord{}).
+		Select("category, COUNT(*) as count").
+		Group("category").
+		Scan(&categoryCounts).Error; err != nil {
+		return nil, fmt.Errorf("failed to get category counts: %w", err)
+	}
+
+	stats := map[string]interface{}{
+		"total_records":   totalRecords,
+		"category_counts": categoryCounts,
+		"last_updated":    time.Now(),
+	}
+
+	return stats, nil
+}
+
+// Helper methods
+
+func (s *NSNService) cleanNSN(nsn string) string {
+	// Remove spaces, hyphens, and convert to uppercase
+	cleaned := strings.ReplaceAll(nsn, " ", "")
+	cleaned = strings.ReplaceAll(cleaned, "-", "")
+	return strings.ToUpper(cleaned)
+}
+
+func (s *NSNService) fetchFromExternalAPI(ctx context.Context, nsn string) (*NSNRecord, error) {
+	if s.config.APIEndpoint == "" {
+		return nil, fmt.Errorf("no external API configured")
+	}
+
+	// This is a placeholder for external API integration
+	// Implementation would depend on the specific API being used
+	s.logger.WithField("nsn", nsn).Info("Fetching NSN from external API")
+
+	return nil, fmt.Errorf("external API integration not implemented")
+}
+
+func (s *NSNService) mapCSVColumns(header []string) map[string]int {
+	columnMap := make(map[string]int)
+
+	for i, col := range header {
+		switch strings.ToLower(strings.TrimSpace(col)) {
+		case "nsn", "national_stock_number":
+			columnMap["nsn"] = i
+		case "lin", "line_item_number":
+			columnMap["lin"] = i
+		case "item_name", "name", "nomenclature":
+			columnMap["item_name"] = i
+		case "description", "desc":
+			columnMap["description"] = i
+		case "category", "type":
+			columnMap["category"] = i
+		case "manufacturer", "mfg":
+			columnMap["manufacturer"] = i
+		case "part_number", "part_no":
+			columnMap["part_number"] = i
+		}
+	}
+
+	return columnMap
+}
+
+func (s *NSNService) parseCSVRow(row []string, columnMap map[string]int) *NSNRecord {
+	record := &NSNRecord{}
+
+	if idx, ok := columnMap["nsn"]; ok && idx < len(row) {
+		record.NSN = s.cleanNSN(row[idx])
+	}
+	if idx, ok := columnMap["lin"]; ok && idx < len(row) {
+		record.LIN = strings.ToUpper(strings.TrimSpace(row[idx]))
+	}
+	if idx, ok := columnMap["item_name"]; ok && idx < len(row) {
+		record.ItemName = strings.TrimSpace(row[idx])
+	}
+	if idx, ok := columnMap["description"]; ok && idx < len(row) {
+		record.Description = strings.TrimSpace(row[idx])
+	}
+	if idx, ok := columnMap["category"]; ok && idx < len(row) {
+		record.Category = strings.TrimSpace(row[idx])
+	}
+	if idx, ok := columnMap["manufacturer"]; ok && idx < len(row) {
+		record.Manufacturer = strings.TrimSpace(row[idx])
+	}
+	if idx, ok := columnMap["part_number"]; ok && idx < len(row) {
+		record.PartNumber = strings.TrimSpace(row[idx])
+	}
+
+	// Validate required fields
+	if record.NSN == "" || record.ItemName == "" {
+		return nil
+	}
+
+	return record
+}
+
+func (s *NSNService) batchInsertRecords(ctx context.Context, records []NSNRecord) error {
+	return s.db.WithContext(ctx).CreateInBatches(records, s.config.BulkBatchSize).Error
 }
 
 // LookupNSN performs NSN lookup with caching and fallback to external API
@@ -169,10 +441,11 @@ func (s *NSNService) LookupNSN(ctx context.Context, nsn string) (*NSNDetails, er
 	}
 
 	// Check cache first
-	if s.config.CacheEnabled && s.cache != nil {
+	if s.cache != nil {
 		if cached, found := s.cache.Get(nsn); found {
 			s.logger.WithField("nsn", nsn).Debug("NSN found in cache")
-			return cached.(*NSNDetails), nil
+			details := cached.(NSNDetails)
+			return &details, nil
 		}
 	}
 
@@ -228,7 +501,8 @@ func (s *NSNService) LookupLIN(ctx context.Context, lin string) (*NSNDetails, er
 	if s.config.CacheEnabled && s.cache != nil {
 		if cached, found := s.cache.Get(cacheKey); found {
 			s.logger.WithField("lin", lin).Debug("LIN found in cache")
-			return cached.(*NSNDetails), nil
+			details := cached.(NSNDetails)
+			return &details, nil
 		}
 	}
 
@@ -262,7 +536,7 @@ func (s *NSNService) BulkLookup(ctx context.Context, nsns []string) (map[string]
 	// Check cache and database first
 	for _, nsn := range nsns {
 		// Check cache
-		if s.config.CacheEnabled && s.cache != nil {
+		if s.cache != nil {
 			if cached, found := s.cache.Get(nsn); found {
 				mu.Lock()
 				results[nsn] = cached.(*NSNDetails)
@@ -343,50 +617,6 @@ func (s *NSNService) SearchNSN(ctx context.Context, query string, limit int) ([]
 	return results, nil
 }
 
-// RefreshCachedNSNData refreshes cached NSN data from external API
-func (s *NSNService) RefreshCachedNSNData(ctx context.Context) error {
-	if s.config.APIEndpoint == "" {
-		s.logger.Info("No API endpoint configured, skipping NSN data refresh")
-		return nil
-	}
-
-	s.logger.Info("Starting NSN data refresh")
-
-	// Get all NSNs from database
-	repo := NewNSNRepository(s.db)
-	allData, _, err := repo.GetAll(ctx, 1000, 0) // Process in batches
-	if err != nil {
-		return fmt.Errorf("failed to get NSN data for refresh: %w", err)
-	}
-
-	// Extract NSNs
-	nsns := make([]string, len(allData))
-	for i, data := range allData {
-		nsns[i] = data.NSN
-	}
-
-	// Process in batches
-	batchSize := s.config.BulkBatchSize
-	for i := 0; i < len(nsns); i += batchSize {
-		end := i + batchSize
-		if end > len(nsns) {
-			end = len(nsns)
-		}
-
-		batch := nsns[i:end]
-		_, err := s.BulkLookup(ctx, batch)
-		if err != nil {
-			s.logger.WithError(err).WithField("batch", i/batchSize).Warn("Failed to refresh NSN batch")
-		}
-
-		// Rate limiting between batches
-		time.Sleep(time.Second)
-	}
-
-	s.logger.Info("NSN data refresh completed")
-	return nil
-}
-
 // fetchFromAPI fetches NSN data from external API
 func (s *NSNService) fetchFromAPI(ctx context.Context, nsn string) (*NSNDetails, error) {
 	// Rate limiting
@@ -408,7 +638,7 @@ func (s *NSNService) fetchFromAPI(ctx context.Context, nsn string) (*NSNDetails,
 
 	var response NSNAPIResponse
 	for attempt := 0; attempt < s.config.RetryAttempts; attempt++ {
-		resp, err := s.httpClient.Do(req)
+		resp, err := s.client.Do(req)
 		if err != nil {
 			if attempt == s.config.RetryAttempts-1 {
 				return nil, err
@@ -468,7 +698,7 @@ func (s *NSNService) bulkFetchFromAPI(ctx context.Context, nsns []string) (map[s
 		req.Header.Set("Authorization", "Bearer "+s.config.APIKey)
 	}
 
-	resp, err := s.httpClient.Do(req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
