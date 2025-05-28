@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Config holds all configuration for the application
 type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
@@ -19,6 +20,7 @@ type Config struct {
 	Security SecurityConfig `mapstructure:"security"`
 }
 
+// ServerConfig holds server configuration
 type ServerConfig struct {
 	Port            string        `mapstructure:"port"`
 	Host            string        `mapstructure:"host"`
@@ -31,6 +33,7 @@ type ServerConfig struct {
 	KeyFile         string        `mapstructure:"key_file"`
 }
 
+// DatabaseConfig holds database configuration
 type DatabaseConfig struct {
 	Host            string        `mapstructure:"host"`
 	Port            int           `mapstructure:"port"`
@@ -44,6 +47,13 @@ type DatabaseConfig struct {
 	MigrationPath   string        `mapstructure:"migration_path"`
 }
 
+// GetDSN returns the database connection string
+func (d DatabaseConfig) GetDSN() string {
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		d.Host, d.Port, d.User, d.Password, d.DBName, d.SSLMode)
+}
+
+// JWTConfig holds JWT configuration
 type JWTConfig struct {
 	SecretKey      string        `mapstructure:"secret_key"`
 	AccessExpiry   time.Duration `mapstructure:"access_expiry"`
@@ -54,6 +64,7 @@ type JWTConfig struct {
 	RefreshEnabled bool          `mapstructure:"refresh_enabled"`
 }
 
+// ImmuDBConfig holds ImmuDB configuration
 type ImmuDBConfig struct {
 	Host     string `mapstructure:"host"`
 	Port     int    `mapstructure:"port"`
@@ -63,6 +74,7 @@ type ImmuDBConfig struct {
 	Enabled  bool   `mapstructure:"enabled"`
 }
 
+// MinIOConfig holds MinIO configuration
 type MinIOConfig struct {
 	Endpoint        string `mapstructure:"endpoint"`
 	AccessKeyID     string `mapstructure:"access_key_id"`
@@ -73,6 +85,7 @@ type MinIOConfig struct {
 	Enabled         bool   `mapstructure:"enabled"`
 }
 
+// NSNConfig holds NSN service configuration
 type NSNConfig struct {
 	APIEndpoint    string        `mapstructure:"api_endpoint"`
 	APIKey         string        `mapstructure:"api_key"`
@@ -84,6 +97,7 @@ type NSNConfig struct {
 	BulkBatchSize  int           `mapstructure:"bulk_batch_size"`
 }
 
+// RedisConfig holds Redis configuration
 type RedisConfig struct {
 	Host     string `mapstructure:"host"`
 	Port     int    `mapstructure:"port"`
@@ -92,6 +106,7 @@ type RedisConfig struct {
 	Enabled  bool   `mapstructure:"enabled"`
 }
 
+// LoggingConfig holds logging configuration
 type LoggingConfig struct {
 	Level      string `mapstructure:"level"`
 	Format     string `mapstructure:"format"`
@@ -256,12 +271,6 @@ func validateConfig(config *Config) error {
 	}
 
 	return nil
-}
-
-// GetDSN returns the database connection string
-func (c *DatabaseConfig) GetDSN() string {
-	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		c.Host, c.Port, c.User, c.Password, c.DBName, c.SSLMode)
 }
 
 // IsProduction returns true if running in production environment
